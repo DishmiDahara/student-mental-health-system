@@ -1,0 +1,2 @@
+const API_URL = import.meta.env.VITE_API_URL || 'http://172.20.10.4:5000';
+export default API_URL;
