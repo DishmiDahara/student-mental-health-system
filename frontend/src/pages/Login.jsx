@@ -9,6 +9,8 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
@@ -214,30 +216,48 @@ export default function Login() {
             spellCheck="false"
             style={{ width: '100%', height: '50px', lineHeight: '1.5', padding: '12px 16px', marginBottom: '14px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', color: '#1e293b', background: '#ffffff', outline: 'none', boxSizing: 'border-box', textAlign: 'left', colorScheme: 'light' }} 
           />
-          <input 
-            value={password} 
-            onChange={e => setPassword(e.target.value)} 
-            placeholder="Password" 
-            type="password" 
-            autoComplete="current-password" 
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck="false"
-            style={{ width: '100%', height: '50px', lineHeight: '1.5', padding: '12px 16px', marginBottom: isLogin ? '16px' : '14px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', color: '#1e293b', background: '#ffffff', outline: 'none', boxSizing: 'border-box', textAlign: 'left', colorScheme: 'light' }} 
-          />
-
-          {!isLogin && (
+          <div style={{ position: 'relative', width: '100%', marginBottom: isLogin ? '16px' : '14px' }}>
             <input 
-              value={confirmPassword} 
-              onChange={e => { setConfirmPassword(e.target.value); setError(''); }} 
-              placeholder="Confirm Password" 
-              type="password" 
-              autoComplete="new-password" 
+              value={password} 
+              onChange={e => setPassword(e.target.value)} 
+              placeholder="Password" 
+              type={showPassword ? "text" : "password"} 
+              autoComplete="current-password" 
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck="false"
-              style={{ width: '100%', height: '50px', lineHeight: '1.5', padding: '12px 16px', marginBottom: '16px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', color: '#1e293b', background: '#ffffff', outline: 'none', boxSizing: 'border-box', textAlign: 'left', colorScheme: 'light' }} 
+              style={{ width: '100%', height: '50px', lineHeight: '1.5', padding: '12px 46px 12px 16px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', color: '#1e293b', background: '#ffffff', outline: 'none', boxSizing: 'border-box', textAlign: 'left', colorScheme: 'light' }} 
             />
+            <button 
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', opacity: 0.7, padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              {showPassword ? '🙈' : '👁️'}
+            </button>
+          </div>
+
+          {!isLogin && (
+            <div style={{ position: 'relative', width: '100%', marginBottom: '16px' }}>
+              <input 
+                value={confirmPassword} 
+                onChange={e => { setConfirmPassword(e.target.value); setError(''); }} 
+                placeholder="Confirm Password" 
+                type={showConfirmPassword ? "text" : "password"} 
+                autoComplete="new-password" 
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck="false"
+                style={{ width: '100%', height: '50px', lineHeight: '1.5', padding: '12px 46px 12px 16px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', color: '#1e293b', background: '#ffffff', outline: 'none', boxSizing: 'border-box', textAlign: 'left', colorScheme: 'light' }} 
+              />
+              <button 
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', opacity: 0.7, padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                {showConfirmPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
           )}
 
           {isLogin && (
