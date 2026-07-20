@@ -428,10 +428,78 @@ export default function MoodTracker() {
 
   // --- THREE.JS 3D WEBGL RELAXATION GAMES ENGINE STATES ---
   const [active3DGame, setActive3DGame] = useState(null)
+  const [is3DAudioMuted, setIs3DAudioMuted] = useState(false)
   const threeContainerRef = useRef(null)
+
+  // Web Audio 3D Ambient Sound Synthesizer
+  const play3DAmbientSoundscape = (gameType, isMuted) => {
+    if (isMuted) return null
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext
+      if (!AudioCtx) return null
+      const ctx = new AudioCtx()
+
+      const masterGain = ctx.createGain()
+      masterGain.gain.setValueAtTime(0.1, ctx.currentTime)
+      masterGain.connect(ctx.destination)
+
+      const freqMap = {
+        starfield: 108,
+        water: 174,
+        sakura: 285,
+        crystal: 528,
+        saturn: 144,
+        autumn: 220,
+        prism: 432,
+        warp: 96
+      }
+
+      const baseFreq = freqMap[gameType] || 216
+
+      const osc1 = ctx.createOscillator()
+      osc1.type = gameType === 'crystal' ? 'sine' : 'triangle'
+      osc1.frequency.setValueAtTime(baseFreq, ctx.currentTime)
+
+      const lfo = ctx.createOscillator()
+      lfo.frequency.setValueAtTime(0.2, ctx.currentTime)
+      const lfoGain = ctx.createGain()
+      lfoGain.gain.setValueAtTime(12, ctx.currentTime)
+      lfo.connect(lfoGain)
+      lfoGain.connect(osc1.frequency)
+
+      const osc2 = ctx.createOscillator()
+      osc2.type = 'sine'
+      osc2.frequency.setValueAtTime(baseFreq * 1.5, ctx.currentTime)
+
+      osc1.connect(masterGain)
+      osc2.connect(masterGain)
+
+      osc1.start()
+      osc2.start()
+      lfo.start()
+
+      return {
+        stop: () => {
+          try {
+            masterGain.gain.setTargetAtTime(0, ctx.currentTime, 0.4)
+            setTimeout(() => {
+              osc1.stop()
+              osc2.stop()
+              lfo.stop()
+              ctx.close()
+            }, 500)
+          } catch (e) {}
+        }
+      }
+    } catch (e) {
+      return null
+    }
+  }
 
   useEffect(() => {
     if (!active3DGame || !threeContainerRef.current) return
+
+    const soundscape = play3DAmbientSoundscape(active3DGame, is3DAudioMuted)
 
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000)
@@ -713,10 +781,11 @@ export default function MoodTracker() {
       window.removeEventListener('mousemove', handlePointerMove)
       window.removeEventListener('touchmove', handlePointerMove)
       cancelAnimationFrame(animFrameId)
+      if (soundscape) soundscape.stop()
       if (renderer.domElement) renderer.domElement.remove()
       renderer.dispose()
     }
-  }, [active3DGame])
+  }, [active3DGame, is3DAudioMuted])
 
   // --- CRAZYGAMES UNLIMITED ARCADE PORTAL STATES ---
   const [crazySearchInput, setCrazySearchInput] = useState('')
@@ -8695,13 +8764,32 @@ export default function MoodTracker() {
                 {active3DGame === 'prism' && '💎 3D Rainbow Prism Kaleidoscope'}
                 {active3DGame === 'warp' && '🌌 3D Quantum Warp Particle Tunnel'}
               </h3>
-              <button
-                type="button"
-                onClick={() => setActive3DGame(null)}
-                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }}
-              >
-                ✕
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIs3DAudioMuted(prev => !prev)}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: '10px',
+                    background: is3DAudioMuted ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)',
+                    border: is3DAudioMuted ? '1px solid #ef4444' : '1px solid #10b981',
+                    color: is3DAudioMuted ? '#f87171' : '#34d399',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    touchAction: 'manipulation'
+                  }}
+                >
+                  {is3DAudioMuted ? '🔇 Audio Off' : '🔊 3D Audio On'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActive3DGame(null)}
+                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
             {/* 3D WebGL Canvas Container */}
