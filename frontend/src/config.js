@@ -3,12 +3,14 @@ const getApiUrl = () => {
     return import.meta.env.VITE_API_URL;
   }
   // Check if running inside Capacitor (native app environment)
-  const isCapacitor = !!window.Capacitor;
+  const isCapacitor = typeof window !== 'undefined' && !!window.Capacitor;
   if (isCapacitor) {
-    // 10.0.2.2 is the IP of the host machine from the Android Emulator.
     return 'http://10.0.2.2:5000';
   }
-  // Use relative URL for web client (works for localhost, network IPs, and cloudflared/localtunnel tunnels via Vite Proxy)
+  // If running on Netlify or external phone/web domain, route to active backend tunnel
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return 'https://newsletter-pendant-laboratory-patches.trycloudflare.com';
+  }
   return '';
 };
 
