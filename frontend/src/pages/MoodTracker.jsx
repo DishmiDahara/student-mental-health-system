@@ -613,38 +613,30 @@ export default function MoodTracker() {
   const [activeCrazyGameModal, setActiveCrazyGameModal] = useState(null)
 
   const defaultCrazyGamesList = [
-    { title: 'Pop It Master 3D 🧸', category: 'Antistress', slug: 'pop-it-master', icon: '🧸', desc: '3D Fidget popping antistress toy' },
-    { title: 'Fluid Simulation 3D 🌊', category: 'Fluids', slug: 'fluid-simulation', icon: '🌊', desc: 'Real-time relaxing liquid physics' },
-    { title: 'Zen Coloring Book 🎨', category: 'Coloring', slug: 'zen-coloring-book', icon: '🎨', desc: 'Mindful 3D color shading' },
-    { title: 'Antistress Toy Box 3D 🎯', category: 'Antistress', slug: 'antistress-relaxing-games', icon: '🎯', desc: 'Collection of 30+ 3D fidget toys' },
-    { title: 'Spiral Roll 🌀', category: 'Relaxing', slug: 'spiral-roll', icon: '🌀', desc: 'Soothing wood carving mechanics' },
-    { title: 'Slime Simulator 3D 🧪', category: 'Antistress', slug: 'satisfying-slime-simulator-3d', icon: '🧪', desc: 'Tactile slime squeezing soundscape' },
-    { title: 'Color Water Sort 🧪', category: 'Logic', slug: 'water-sort-puzzle-2', icon: '🧪', desc: 'Calming liquid sorting puzzle' },
-    { title: 'Merge Ocean Fish 🐠', category: 'Relaxing', slug: 'fish-eat-fish-3-players', icon: '🐠', desc: 'Deep sea aquatic exploration' },
-    { title: 'Bubble Shooter Zen 🫧', category: 'Puzzle', slug: 'bubble-shooter-hd', icon: '🫧', desc: 'Classic relaxing bubble popping' },
-    { title: 'Mahjong Solitaire 🀄', category: 'Logic', slug: 'mahjongg-solitaire', icon: '🀄', desc: 'Traditional zen tile matching' },
-    { title: 'Jigsaw Puzzles 🧩', category: 'Puzzle', slug: 'jigsaw-cities-and-nature', icon: '🧩', desc: 'Beautiful nature landscape puzzles' },
-    { title: 'Piano Tiles Relaxation 🎹', category: 'Music', slug: 'magic-piano-tiles-2', icon: '🎹', desc: 'Play soothing melodies on key taps' }
+    { title: 'Pop It Master 3D 🧸', category: 'Antistress', embedUrl: 'https://html5.gamedistribution.com/rvvASAiD-1.0/', icon: '🧸', desc: '3D Fidget popping antistress toy' },
+    { title: 'Fluid & Water Liquid 🌊', category: 'Fluids', embedUrl: 'https://html5.gamedistribution.com/6c65e89d1b6441b09b55bcbc03e7a00f/', icon: '🌊', desc: 'Real-time relaxing liquid physics' },
+    { title: 'Zen Coloring Book 🎨', category: 'Coloring', embedUrl: 'https://html5.gamedistribution.com/b28fa5d2024b4fba8c9c0c80d46efad2/', icon: '🎨', desc: 'Mindful 3D color shading' },
+    { title: 'Antistress Toy Box 3D 🎯', category: 'Antistress', embedUrl: 'https://html5.gamedistribution.com/4f728c70757d42cf956b69b8bd591d37/', icon: '🎯', desc: 'Collection of 30+ 3D fidget toys' },
+    { title: 'Slime Simulator 3D 🧪', category: 'Antistress', embedUrl: 'https://html5.gamedistribution.com/5c9d57a912bb4cb8b5321f855fb603f0/', icon: '🧪', desc: 'Tactile slime squeezing soundscape' },
+    { title: 'Bubble Shooter Zen 🫧', category: 'Puzzle', embedUrl: 'https://html5.gamedistribution.com/c98918237937400d9841f39185a9bcbc/', icon: '🫧', desc: 'Classic relaxing bubble popping' },
+    { title: 'Mahjong Solitaire 🀄', category: 'Logic', embedUrl: 'https://html5.gamedistribution.com/978ed5df64be4c1fb3a12ebf9ffb6255/', icon: '🀄', desc: 'Traditional zen tile matching' },
+    { title: 'Jigsaw Nature Puzzles 🧩', category: 'Puzzle', embedUrl: 'https://html5.gamedistribution.com/a42dfc685bfd4c5bb9c1a5b8a531cf6c/', icon: '🧩', desc: 'Beautiful nature landscape puzzles' },
+    { title: 'Magic Piano Tiles 🎹', category: 'Music', embedUrl: 'https://html5.gamedistribution.com/396656715f5d4705a61e793910c0e5a6/', icon: '🎹', desc: 'Play soothing melodies on key taps' }
   ]
 
   const getCrazyEmbedUrl = (rawInput) => {
-    if (!rawInput) return ''
+    if (!rawInput) return 'https://html5.gamedistribution.com/rvvASAiD-1.0/'
     const str = rawInput.trim()
     if (str.startsWith('http://') || str.startsWith('https://')) {
-      const parts = str.split('/game/')
-      if (parts.length > 1) {
-        return `https://www.crazygames.com/embed/${parts[1].replace(/\/$/, '')}`
-      }
       return str
     }
-    const cleanSlug = str.toLowerCase().replace(/[^a-z0-9-]/g, '')
-    return `https://www.crazygames.com/embed/${cleanSlug}`
+    return `https://html5.gamedistribution.com/rvvASAiD-1.0/`
   }
 
   const launchCrazyGame = (gameObj) => {
-    const embedUrl = getCrazyEmbedUrl(gameObj.slug || gameObj.url)
+    const embedUrl = gameObj.embedUrl || getCrazyEmbedUrl(gameObj.slug || gameObj.url)
     setActiveCrazyGameModal({
-      title: gameObj.title || 'CrazyGame',
+      title: gameObj.title || 'Relaxing Web Game',
       embedUrl
     })
   }
@@ -654,7 +646,7 @@ export default function MoodTracker() {
     if (!crazySearchInput.trim()) return
     const embedUrl = getCrazyEmbedUrl(crazySearchInput)
     setActiveCrazyGameModal({
-      title: `CrazyGame: ${crazySearchInput.trim()}`,
+      title: `Relaxing Game: ${crazySearchInput.trim()}`,
       embedUrl
     })
   }
