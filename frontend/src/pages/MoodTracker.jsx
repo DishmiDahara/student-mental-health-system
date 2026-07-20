@@ -596,6 +596,117 @@ export default function MoodTracker() {
         renderer.render(scene, camera)
       }
       animate()
+
+    } else if (active3DGame === 'saturn') {
+      // 🪐 3D SATURN RINGS & PLANETS
+      const sphereGeo = new THREE.SphereGeometry(3.5, 32, 32)
+      const sphereMat = new THREE.MeshBasicMaterial({ color: 0xfde047, wireframe: true })
+      const planet = new THREE.Mesh(sphereGeo, sphereMat)
+      scene.add(planet)
+
+      const ringGeo = new THREE.TorusGeometry(6, 0.4, 16, 100)
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xf97316, wireframe: true })
+      const ring = new THREE.Mesh(ringGeo, ringMat)
+      ring.rotation.x = Math.PI / 2.5
+      scene.add(ring)
+
+      const moonGeo = new THREE.BufferGeometry()
+      const count = 1000
+      const pos = new Float32Array(count * 3)
+      for (let i = 0; i < count * 3; i += 3) {
+        pos[i] = (Math.random() - 0.5) * 35
+        pos[i + 1] = (Math.random() - 0.5) * 35
+        pos[i + 2] = (Math.random() - 0.5) * 35
+      }
+      moonGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
+      const moons = new THREE.Points(moonGeo, new THREE.PointsMaterial({ color: 0x38bdf8, size: 0.25 }))
+      scene.add(moons)
+
+      const animate = () => {
+        animFrameId = requestAnimationFrame(animate)
+        planet.rotation.y += 0.006
+        ring.rotation.z += 0.003
+        moons.rotation.y += 0.002 + mouseX * 0.01
+        renderer.render(scene, camera)
+      }
+      animate()
+
+    } else if (active3DGame === 'autumn') {
+      // 🍃 3D AUTUMN LEAVES FOREST
+      const leafGeo = new THREE.BufferGeometry()
+      const count = 1400
+      const positions = new Float32Array(count * 3)
+      const colors = new Float32Array(count * 3)
+      for (let i = 0; i < count * 3; i += 3) {
+        positions[i] = (Math.random() - 0.5) * 25
+        positions[i + 1] = Math.random() * 20 - 10
+        positions[i + 2] = (Math.random() - 0.5) * 25
+        colors[i] = 0.9 + Math.random() * 0.1     // R (Amber/Golden)
+        colors[i + 1] = 0.4 + Math.random() * 0.4 // G
+        colors[i + 2] = 0.1                       // B
+      }
+      leafGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+      leafGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+      const leaves = new THREE.Points(leafGeo, new THREE.PointsMaterial({ size: 0.4, vertexColors: true, transparent: true, opacity: 0.9 }))
+      scene.add(leaves)
+
+      const animate = () => {
+        animFrameId = requestAnimationFrame(animate)
+        const p = leafGeo.attributes.position
+        for (let i = 0; i < p.count; i++) {
+          let y = p.getY(i) - 0.04
+          let x = p.getX(i) + Math.sin(y * 0.5) * 0.02
+          if (y < -10) y = 10
+          p.setY(i, y)
+          p.setX(i, x)
+        }
+        p.needsUpdate = true
+        scene.rotation.y += 0.003 + mouseX * 0.01
+        renderer.render(scene, camera)
+      }
+      animate()
+
+    } else if (active3DGame === 'prism') {
+      // 💎 3D PRISM KALEIDOSCOPE
+      const geo = new THREE.OctahedronGeometry(5, 0)
+      const mat = new THREE.MeshBasicMaterial({ color: 0xa855f7, wireframe: true })
+      const prism = new THREE.Mesh(geo, mat)
+      scene.add(prism)
+
+      const innerGeo = new THREE.IcosahedronGeometry(2.5, 0)
+      const innerMat = new THREE.MeshBasicMaterial({ color: 0xec4899, wireframe: true })
+      const innerPrism = new THREE.Mesh(innerGeo, innerMat)
+      scene.add(innerPrism)
+
+      let clock = new THREE.Clock()
+      const animate = () => {
+        animFrameId = requestAnimationFrame(animate)
+        const t = clock.getElapsedTime()
+        prism.rotation.x = t * 0.5
+        prism.rotation.y = t * 0.8
+        innerPrism.rotation.x = -t * 0.7
+        innerPrism.rotation.z = t * 0.9
+        renderer.render(scene, camera)
+      }
+      animate()
+
+    } else if (active3DGame === 'warp') {
+      // 🌌 3D QUANTUM WARP TUNNEL
+      const tunnelGeo = new THREE.CylinderGeometry(6, 6, 40, 24, 40, true)
+      const tunnelMat = new THREE.MeshBasicMaterial({ color: 0x06b6d4, wireframe: true, side: THREE.DoubleSide })
+      const tunnel = new THREE.Mesh(tunnelGeo, tunnelMat)
+      tunnel.rotation.x = Math.PI / 2
+      scene.add(tunnel)
+
+      let clock = new THREE.Clock()
+      const animate = () => {
+        animFrameId = requestAnimationFrame(animate)
+        const t = clock.getElapsedTime()
+        tunnel.position.z = (t * 5) % 10
+        tunnel.rotation.z += 0.005 + mouseX * 0.01
+        renderer.render(scene, camera)
+      }
+      animate()
     }
 
     return () => {
@@ -4362,7 +4473,11 @@ export default function MoodTracker() {
                     { key: 'starfield', title: '🌌 Cosmic Starfield', desc: 'Interactive 3D particle universe', icon: '🌌' },
                     { key: 'water', title: '🌊 Water Ripples', desc: '3D kinetic liquid wave pool', icon: '🌊' },
                     { key: 'sakura', title: '🌸 Sakura Sanctuary', desc: '3D cherry tree in falling petals', icon: '🌸' },
-                    { key: 'crystal', title: '🔮 Breathing Crystal', desc: '4-7-8 pulsing 3D glass orb', icon: '🔮' }
+                    { key: 'crystal', title: '🔮 Breathing Crystal', desc: '4-7-8 pulsing 3D glass orb', icon: '🔮' },
+                    { key: 'saturn', title: '🪐 Saturn & Moons', desc: '3D planet & orbiting moon rings', icon: '🪐' },
+                    { key: 'autumn', title: '🍃 Autumn Forest', desc: '3D golden leaves drifting in breeze', icon: '🍃' },
+                    { key: 'prism', title: '💎 Prism Kaleidoscope', desc: '3D rainbow light beams', icon: '💎' },
+                    { key: 'warp', title: '🌌 Quantum Warp Tunnel', desc: '3D infinite spiral particle tunnel', icon: '🌌' }
                   ].map(g => (
                     <div
                       key={g.key}
@@ -8575,6 +8690,10 @@ export default function MoodTracker() {
                 {active3DGame === 'water' && '🌊 3D Kinetic Water Ripples & Lotus'}
                 {active3DGame === 'sakura' && '🌸 3D Sakura Blossom Sanctuary'}
                 {active3DGame === 'crystal' && '🔮 3D Breathing Crystal Orb'}
+                {active3DGame === 'saturn' && '🪐 3D Saturn Rings & Orbiting Moons'}
+                {active3DGame === 'autumn' && '🍃 3D Autumn Leaves Forest Breeze'}
+                {active3DGame === 'prism' && '💎 3D Rainbow Prism Kaleidoscope'}
+                {active3DGame === 'warp' && '🌌 3D Quantum Warp Particle Tunnel'}
               </h3>
               <button
                 type="button"
