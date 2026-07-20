@@ -239,6 +239,40 @@ export default function MoodTracker() {
   const [gtsOptions, setGtsOptions] = useState([])
   const [gtsAnswered, setGtsAnswered] = useState(null)
 
+  // --- SOOTHING MENTAL HEALTH MUSIC PLAYER STATES ---
+  const [selectedTrackKey, setSelectedTrackKey] = useState('rain')
+  const [isPlayerPlaying, setIsPlayerPlaying] = useState(false)
+  const [playerVolume, setPlayerVolume] = useState(0.8)
+  const playerAudioRef = useRef(null)
+
+  const soothingPlaylist = [
+    { key: 'rain', name: 'Gentle Rain & Soft Piano 🌧️', audioUrl: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=soft-rain-ambient-111154.mp3' },
+    { key: 'ocean', name: 'Ocean Swells & Deep Peace 🌊', audioUrl: 'https://cdn.pixabay.com/download/audio/2021/08/09/audio_884fe92c21.mp3?filename=ocean-waves-112906.mp3' },
+    { key: 'nature', name: 'Forest Breeze & Song Birds 🍃', audioUrl: 'https://cdn.pixabay.com/download/audio/2022/03/09/audio_c8c8a82b4a.mp3?filename=forest-birds-ambient-10255.mp3' },
+    { key: 'tone', name: '432Hz Healing Frequency 🧘', audioUrl: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=meditation-432hz-18076.mp3' },
+    { key: 'lofi', name: 'Lofi Chill & Study Beats ☕', audioUrl: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3' }
+  ]
+
+  const handleTogglePlayMusic = () => {
+    if (!playerAudioRef.current) return
+    if (isPlayerPlaying) {
+      playerAudioRef.current.pause()
+      setIsPlayerPlaying(false)
+    } else {
+      playerAudioRef.current.play().then(() => setIsPlayerPlaying(true)).catch(() => {})
+    }
+  }
+
+  const handleSelectMusicTrack = (trackKey) => {
+    setSelectedTrackKey(trackKey)
+    const trk = soothingPlaylist.find(t => t.key === trackKey)
+    if (playerAudioRef.current && trk) {
+      playerAudioRef.current.src = trk.audioUrl
+      playerAudioRef.current.volume = playerVolume
+      playerAudioRef.current.play().then(() => setIsPlayerPlaying(true)).catch(() => {})
+    }
+  }
+
   const [petStats, setPetStats] = useState({ hunger: 50, love: 50, energy: 50 })
   const [petMessage, setPetMessage] = useState('Click buttons to interact with your pet! 🐱')
 
@@ -3490,8 +3524,126 @@ export default function MoodTracker() {
                 </div>
               </div>
 
+              {/* --- SOOTHING MENTAL HEALTH MUSIC PLAYER CARD --- */}
+              <div style={{
+                marginBottom: '24px',
+                background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)',
+                borderRadius: '20px',
+                padding: '20px',
+                color: 'white',
+                boxShadow: '0 12px 32px rgba(49, 46, 129, 0.35)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      🎧 Soothing Mental Health Music & Sound Player 🎵
+                    </h3>
+                    <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#c7d2fe' }}>
+                      Listen to calming rain, ocean swells, 432Hz healing tones and lofi beats while journaling
+                    </p>
+                  </div>
+                  {/* Sound Equalizer Animated Bars */}
+                  {isPlayerPlaying && (
+                    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: '22px' }}>
+                      <span style={{ width: '4px', height: '100%', background: '#818cf8', borderRadius: '2px', animation: 'mindFloat 0.8s infinite alternate' }} />
+                      <span style={{ width: '4px', height: '60%', background: '#a5b4fc', borderRadius: '2px', animation: 'mindFloat 1.2s infinite alternate' }} />
+                      <span style={{ width: '4px', height: '85%', background: '#c7d2fe', borderRadius: '2px', animation: 'mindFloat 0.6s infinite alternate' }} />
+                      <span style={{ width: '4px', height: '40%', background: '#e0e7ff', borderRadius: '2px', animation: 'mindFloat 1s infinite alternate' }} />
+                    </div>
+                  )}
+                </div>
 
-              {/*Extras Weather/Music & What Helped */}
+                {/* Hidden Audio Element */}
+                <audio 
+                  ref={playerAudioRef} 
+                  src={soothingPlaylist.find(t => t.key === selectedTrackKey)?.audioUrl} 
+                  loop 
+                  onPlay={() => setIsPlayerPlaying(true)}
+                  onPause={() => setIsPlayerPlaying(false)}
+                />
+
+                {/* Playlist Selection Tabs */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+                  {soothingPlaylist.map(trk => (
+                    <button
+                      key={trk.key}
+                      type="button"
+                      onClick={() => handleSelectMusicTrack(trk.key)}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '10px',
+                        border: selectedTrackKey === trk.key ? '2px solid #a5b4fc' : '1px solid rgba(255,255,255,0.2)',
+                        background: selectedTrackKey === trk.key ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.08)',
+                        color: 'white',
+                        fontSize: '12px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        backdropFilter: 'blur(4px)',
+                        touchAction: 'manipulation'
+                      }}
+                    >
+                      {trk.name}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Audio Player Control Bar */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', background: 'rgba(0,0,0,0.3)', padding: '12px 16px', borderRadius: '14px' }}>
+                  <button
+                    type="button"
+                    onClick={handleTogglePlayMusic}
+                    style={{
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '50%',
+                      background: isPlayerPlaying ? '#ef4444' : '#10b981',
+                      color: 'white',
+                      border: 'none',
+                      fontSize: '18px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: isPlayerPlaying ? '0 4px 14px rgba(239,68,68,0.4)' : '0 4px 14px rgba(16,185,129,0.4)',
+                      transition: 'transform 0.2s',
+                      touchAction: 'manipulation'
+                    }}
+                  >
+                    {isPlayerPlaying ? '⏸' : '▶'}
+                  </button>
+
+                  <div style={{ flex: 1, overflow: 'hidden' }}>
+                    <div style={{ fontSize: '13px', fontWeight: '700', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                      {soothingPlaylist.find(t => t.key === selectedTrackKey)?.name}
+                    </div>
+                    <div style={{ fontSize: '11.5px', color: '#a5b4fc', marginTop: '2px' }}>
+                      {isPlayerPlaying ? '🎵 Playing soothing relaxation audio...' : 'Press ▶ Play to start soundscape'}
+                    </div>
+                  </div>
+
+                  {/* Volume Slider */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ fontSize: '13px' }}>🔊</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={playerVolume}
+                      onChange={e => {
+                        const val = parseFloat(e.target.value)
+                        setPlayerVolume(val)
+                        if (playerAudioRef.current) playerAudioRef.current.volume = val
+                      }}
+                      style={{ width: '60px', cursor: 'pointer' }}
+                    />
+                  </div>
+                </div>
+              </div>
               <label style={{ display: 'block', color: '#475569', fontWeight: '700', marginBottom: '10px', fontSize: '13.5px' }}>6. Unique Factors & Integration</label>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
