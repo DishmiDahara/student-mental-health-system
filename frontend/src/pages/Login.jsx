@@ -177,15 +177,85 @@ export default function Login() {
   }
 
   return (
-    <div className="animated-bg" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', overflow: 'hidden', position: 'relative', boxSizing: 'border-box' }}>
-      {/* Background Animated Blobs */}
-      <div className="bg-blob-1" />
-      <div className="bg-blob-2" />
-      <div className="bg-blob-3" />
+    <div className="ms-animated-bg" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', overflow: 'hidden', position: 'relative', boxSizing: 'border-box' }}>
+      <style>{`
+        @keyframes waveGradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes floatBlob1 {
+          0% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(80px, 60px) scale(1.35); }
+          100% { transform: translate(0px, 0px) scale(1); }
+        }
+        @keyframes floatBlob2 {
+          0% { transform: translate(0px, 0px) scale(1.1); }
+          50% { transform: translate(-90px, -70px) scale(0.8); }
+          100% { transform: translate(0px, 0px) scale(1.1); }
+        }
+        @keyframes mindFloat {
+          0% { transform: translateY(0px) rotate(0deg) scale(1); }
+          50% { transform: translateY(-10px) rotate(3deg) scale(1.08); }
+          100% { transform: translateY(0px) rotate(0deg) scale(1); }
+        }
+        .ms-animated-bg {
+          background: linear-gradient(-45deg, #3b82f6, #6366f1, #8b5cf6, #ec4899);
+          background-size: 400% 400%;
+          animation: waveGradient 10s ease infinite !important;
+        }
+        .ms-blob-1 {
+          position: absolute; top: -50px; left: -50px; width: 300px; height: 300px;
+          background: radial-gradient(circle, rgba(168,85,247,0.85) 0%, rgba(126,34,206,0) 70%);
+          border-radius: 50%; filter: blur(35px); animation: floatBlob1 8s ease-in-out infinite alternate; pointer-events: none;
+        }
+        .ms-blob-2 {
+          position: absolute; bottom: -60px; right: -60px; width: 340px; height: 340px;
+          background: radial-gradient(circle, rgba(59,130,246,0.85) 0%, rgba(29,78,216,0) 70%);
+          border-radius: 50%; filter: blur(40px); animation: floatBlob2 10s ease-in-out infinite alternate; pointer-events: none;
+        }
+        @keyframes borderGlow {
+          0% { border-color: #6366f1; box-shadow: 0 15px 45px rgba(99, 102, 241, 0.3); }
+          50% { border-color: #a855f7; box-shadow: 0 15px 45px rgba(168, 85, 247, 0.4); }
+          100% { border-color: #6366f1; box-shadow: 0 15px 45px rgba(99, 102, 241, 0.3); }
+        }
+        @keyframes cardBreath {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.012); }
+          100% { transform: scale(1); }
+        }
+        .ms-white-card {
+          background: linear-gradient(160deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%) !important;
+          border: 3px solid #6366f1 !important;
+          animation: borderGlow 5s ease-in-out infinite, cardBreath 4s ease-in-out infinite !important;
+          position: relative !important;
+          overflow: hidden !important;
+        }
+        .ms-card-inner-glow {
+          position: absolute;
+          top: -30px;
+          right: -30px;
+          width: 160px;
+          height: 160px;
+          background: radial-gradient(circle, rgba(168,85,247,0.25) 0%, rgba(255,255,255,0) 70%);
+          border-radius: 50%;
+          animation: floatBlob1 6s ease-in-out infinite alternate;
+          pointer-events: none;
+        }
+        .ms-brain-icon {
+          animation: mindFloat 3s ease-in-out infinite !important; display: inline-block;
+        }
+      `}</style>
 
-      <div className="animated-card" key={isLogin ? 'login-card' : 'register-card'} style={{ background: 'rgba(255, 255, 255, 0.95)', padding: '32px 24px', borderRadius: '24px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', boxSizing: 'border-box', margin: 'auto', backdropFilter: 'blur(16px)', zIndex: 2, border: '1px solid rgba(255,255,255,0.4)' }}>
+      {/* Background Animated Blobs */}
+      <div className="ms-blob-1" />
+      <div className="ms-blob-2" />
+
+      <div className="ms-white-card" key={isLogin ? 'login-card' : 'register-card'} style={{ padding: '32px 24px', borderRadius: '24px', width: '100%', maxWidth: '380px', boxSizing: 'border-box', margin: 'auto', zIndex: 2 }}>
+        {/* Inner Card Soft Glow */}
+        <div className="ms-card-inner-glow" />
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div className="animated-brain-icon" style={{ fontSize: '48px', filter: 'drop-shadow(0 4px 12px rgba(79,70,229,0.3))' }}>🧠</div>
+          <div className="ms-brain-icon" style={{ fontSize: '48px', filter: 'drop-shadow(0 4px 12px rgba(79,70,229,0.3))' }}>🧠</div>
           <h2 style={{ color: '#4f46e5', fontSize: '26px', margin: '6px 0 2px', fontWeight: '800', letterSpacing: '-0.5px' }}>MindSpace</h2>
           <p style={{ color: '#6b7280', fontSize: '13.5px', margin: 0, fontWeight: '500' }}>Student Mental Health Support</p>
         </div>
