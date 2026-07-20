@@ -177,17 +177,29 @@ export default function Login() {
   }
 
   return (
-    <div style={{ minHeight: '100dvh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto', boxSizing: 'border-box' }}>
-      <div style={{ background: 'white', padding: '32px 24px', borderRadius: '20px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', boxSizing: 'border-box', margin: 'auto' }}>
+    <div className="animated-bg" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto', boxSizing: 'border-box' }}>
+      <div className="animated-card" key={isLogin ? 'login-card' : 'register-card'} style={{ background: 'white', padding: '32px 24px', borderRadius: '24px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', boxSizing: 'border-box', margin: 'auto', backdropFilter: 'blur(10px)' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div style={{ fontSize: '44px' }}>🧠</div>
-          <h2 style={{ color: '#4f46e5', fontSize: '24px', margin: '4px 0' }}>MindSpace</h2>
-          <p style={{ color: '#6b7280', fontSize: '13.5px', margin: 0 }}>Student Mental Health Support</p>
+          <div className="animated-brain-icon" style={{ fontSize: '48px', filter: 'drop-shadow(0 4px 12px rgba(79,70,229,0.3))' }}>🧠</div>
+          <h2 style={{ color: '#4f46e5', fontSize: '26px', margin: '6px 0 2px', fontWeight: '800', letterSpacing: '-0.5px' }}>MindSpace</h2>
+          <p style={{ color: '#6b7280', fontSize: '13.5px', margin: 0, fontWeight: '500' }}>Student Mental Health Support</p>
         </div>
 
-        <div style={{ display: 'flex', marginBottom: '20px', background: '#f3f4f6', borderRadius: '10px', padding: '4px' }}>
-          <button type="button" onClick={() => setIsLogin(true)} style={{ flex: 1, padding: '10px', background: isLogin ? '#4f46e5' : 'transparent', color: isLogin ? 'white' : '#6b7280', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', touchAction: 'manipulation' }}>Login</button>
-          <button type="button" onClick={() => setIsLogin(false)} style={{ flex: 1, padding: '10px', background: !isLogin ? '#4f46e5' : 'transparent', color: !isLogin ? 'white' : '#6b7280', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', touchAction: 'manipulation' }}>Register</button>
+        <div style={{ display: 'flex', marginBottom: '20px', background: '#f1f5f9', borderRadius: '12px', padding: '4px', position: 'relative' }}>
+          <button 
+            type="button" 
+            onClick={() => { setIsLogin(true); setError(''); }} 
+            style={{ flex: 1, padding: '11px', background: isLogin ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'transparent', color: isLogin ? 'white' : '#64748b', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '14.5px', transition: 'all 0.3s ease', boxShadow: isLogin ? '0 4px 12px rgba(79,70,229,0.3)' : 'none', touchAction: 'manipulation' }}
+          >
+            Login
+          </button>
+          <button 
+            type="button" 
+            onClick={() => { setIsLogin(false); setError(''); }} 
+            style={{ flex: 1, padding: '11px', background: !isLogin ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'transparent', color: !isLogin ? 'white' : '#64748b', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '14.5px', transition: 'all 0.3s ease', boxShadow: !isLogin ? '0 4px 12px rgba(79,70,229,0.3)' : 'none', touchAction: 'manipulation' }}
+          >
+            Register
+          </button>
         </div>
 
         {error && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '13.5px' }}>{error}</div>}

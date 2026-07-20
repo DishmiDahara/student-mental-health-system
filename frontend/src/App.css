@@ -12,6 +12,49 @@ body {
   width: 100%;
 }
 
+/* MindSpace Animations */
+@keyframes mindFloat {
+  0% { transform: translateY(0px) rotate(0deg) scale(1); }
+  50% { transform: translateY(-8px) rotate(2deg) scale(1.05); }
+  100% { transform: translateY(0px) rotate(0deg) scale(1); }
+}
+
+@keyframes calmPulse {
+  0% { transform: scale(1); opacity: 0.5; box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+  50% { transform: scale(1.1); opacity: 0.9; box-shadow: 0 0 0 15px rgba(99, 102, 241, 0); }
+  100% { transform: scale(1); opacity: 0.5; box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+@keyframes cardFadeSlideUp {
+  0% { opacity: 0; transform: translateY(24px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes waveGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animated-bg {
+  background: linear-gradient(-45deg, #4f46e5, #7c3aed, #3b82f6, #6366f1);
+  background-size: 400% 400%;
+  animation: waveGradient 12s ease infinite;
+}
+
+.animated-card {
+  animation: cardFadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animated-brain-icon {
+  animation: mindFloat 3.5s ease-in-out infinite;
+  display: inline-block;
+}
+
+.animated-pulse-glow {
+  animation: calmPulse 3s ease-in-out infinite;
+}
+
 /* Fix input field text visibility for browser dark mode and autofill */
 input, select, textarea {
   color: #1e293b !important;
