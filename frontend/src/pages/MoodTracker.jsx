@@ -613,8 +613,8 @@ export default function MoodTracker() {
   const [activeCrazyGameModal, setActiveCrazyGameModal] = useState(null)
 
   const defaultCrazyGamesList = [
-    { title: 'Pop It Master 3D 🧸', category: 'Antistress', embedUrl: 'https://html5.gamedistribution.com/rvvASAiD-1.0/', icon: '🧸', desc: '3D Fidget popping antistress toy' },
-    { title: 'Fluid & Water Liquid 🌊', category: 'Fluids', embedUrl: 'https://html5.gamedistribution.com/6c65e89d1b6441b09b55bcbc03e7a00f/', icon: '🌊', desc: 'Real-time relaxing liquid physics' },
+    { title: 'Pop It Master 3D 🧸', category: 'Antistress', type: 'native-popit', icon: '🧸', desc: 'Native 3D Fidget popping antistress toy' },
+    { title: 'Fluid & Water Sort 🧪', category: 'Fluids', type: 'native-watersort', icon: '🧪', desc: 'Native liquid color sorting puzzle' },
     { title: 'Zen Coloring Book 🎨', category: 'Coloring', embedUrl: 'https://html5.gamedistribution.com/b28fa5d2024b4fba8c9c0c80d46efad2/', icon: '🎨', desc: 'Mindful 3D color shading' },
     { title: 'Antistress Toy Box 3D 🎯', category: 'Antistress', embedUrl: 'https://html5.gamedistribution.com/4f728c70757d42cf956b69b8bd591d37/', icon: '🎯', desc: 'Collection of 30+ 3D fidget toys' },
     { title: 'Slime Simulator 3D 🧪', category: 'Antistress', embedUrl: 'https://html5.gamedistribution.com/5c9d57a912bb4cb8b5321f855fb603f0/', icon: '🧪', desc: 'Tactile slime squeezing soundscape' },
@@ -634,6 +634,14 @@ export default function MoodTracker() {
   }
 
   const launchCrazyGame = (gameObj) => {
+    if (gameObj.type === 'native-popit') {
+      setShowPopItModal(true)
+      return
+    }
+    if (gameObj.type === 'native-watersort') {
+      setShowWaterSortModal(true)
+      return
+    }
     const embedUrl = gameObj.embedUrl || getCrazyEmbedUrl(gameObj.slug || gameObj.url)
     setActiveCrazyGameModal({
       title: gameObj.title || 'Relaxing Web Game',
@@ -649,6 +657,93 @@ export default function MoodTracker() {
       title: `Relaxing Game: ${crazySearchInput.trim()}`,
       embedUrl
     })
+  }
+
+  // --- NATIVE POP-IT FIDGET TOY STATES ---
+  const [popItState, setPopItState] = useState(Array(36).fill(false))
+  const [showPopItModal, setShowPopItModal] = useState(false)
+
+  const handlePopBubble = (index) => {
+    setPopItState(prev => {
+      const next = [...prev]
+      next[index] = !next[index]
+      return next
+    })
+    playTickSound()
+  }
+
+  const resetPopItBoard = () => {
+    setPopItState(Array(36).fill(false))
+    playResetSound()
+  }
+
+  // --- NATIVE WATER SORT LIQUID GAME STATES ---
+  const [showWaterSortModal, setShowWaterSortModal] = useState(false)
+  const [waterTubes, setWaterTubes] = useState([
+    ['#3b82f6', '#a855f7', '#3b82f6', '#a855f7'],
+    ['#10b981', '#f43f5e', '#10b981', '#f43f5e'],
+    [],
+    []
+  ])
+  const [selectedTubeIndex, setSelectedTubeIndex] = useState(null)
+  const [waterSortWon, setWaterSortWon] = useState(false)
+
+  const handleTubeClick = (tubeIdx) => {
+    if (waterSortWon) return
+    if (selectedTubeIndex === null) {
+      if (waterTubes[tubeIdx].length === 0) return
+      setSelectedTubeIndex(tubeIdx)
+      playTickSound()
+    } else {
+      if (selectedTubeIndex === tubeIdx) {
+        setSelectedTubeIndex(null)
+        return
+      }
+      const source = waterTubes[selectedTubeIndex]
+      const dest = waterTubes[tubeIdx]
+
+      if (dest.length >= 4) {
+        setSelectedTubeIndex(null)
+        playErrorSound()
+        return
+      }
+
+      const topColor = source[source.length - 1]
+      if (dest.length > 0 && dest[dest.length - 1] !== topColor) {
+        setSelectedTubeIndex(null)
+        playErrorSound()
+        return
+      }
+
+      const newSource = [...source]
+      const pouredColor = newSource.pop()
+      const newDest = [...dest, pouredColor]
+
+      const nextTubes = [...waterTubes]
+      nextTubes[selectedTubeIndex] = newSource
+      nextTubes[tubeIdx] = newDest
+      setWaterTubes(nextTubes)
+      setSelectedTubeIndex(null)
+      playSuccessHarp()
+
+      const isWon = nextTubes.every(t => t.length === 0 || (t.length === 4 && t.every(c => c === t[0])))
+      if (isWon) {
+        setWaterSortWon(true)
+        playGameWinSound()
+      }
+    }
+  }
+
+  const resetWaterSortGame = () => {
+    setWaterTubes([
+      ['#3b82f6', '#a855f7', '#3b82f6', '#a855f7'],
+      ['#10b981', '#f43f5e', '#10b981', '#f43f5e'],
+      [],
+      []
+    ])
+    setSelectedTubeIndex(null)
+    setWaterSortWon(false)
+    playResetSound()
   }
 
   const [petStats, setPetStats] = useState({ hunger: 50, love: 50, energy: 50 })
@@ -8592,6 +8687,145 @@ export default function MoodTracker() {
               style={{ flex: 1, width: '100%', border: 'none', background: '#000' }}
               allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope"
             />
+          </div>
+        </div>
+      )}
+
+      {/* NATIVE POP-IT 3D FIDGET MODAL */}
+      {showPopItModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)',
+          zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #1e1b4b, #312e81)', borderRadius: '24px',
+            maxWidth: '520px', width: '100%', padding: '28px', border: '1px solid rgba(255,255,255,0.2)',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)', textAlign: 'center', color: 'white'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                🧸 Native Pop-It 3D Fidget Toy
+              </h3>
+              <button onClick={() => setShowPopItModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+            </div>
+
+            {/* 6x6 Rainbow Pop-It Board */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '10px', background: 'rgba(255,255,255,0.08)', padding: '16px', borderRadius: '20px', marginBottom: '20px' }}>
+              {popItState.map((popped, idx) => {
+                const colors = ['#f43f5e', '#a855f7', '#3b82f6', '#10b981', '#f59e0b', '#ec4899']
+                const rowColor = colors[Math.floor(idx / 6)]
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handlePopBubble(idx)}
+                    style={{
+                      height: '52px',
+                      borderRadius: '50%',
+                      background: popped ? '#0f172a' : rowColor,
+                      border: popped ? '2px solid rgba(255,255,255,0.1)' : `3px solid ${rowColor}`,
+                      boxShadow: popped ? 'inset 0 4px 8px rgba(0,0,0,0.8)' : '0 6px 12px rgba(0,0,0,0.3)',
+                      transform: popped ? 'scale(0.88)' : 'scale(1)',
+                      transition: 'all 0.15s cubic-bezier(0.4, 0, 0.2, 1)',
+                      cursor: 'pointer',
+                      outline: 'none',
+                      touchAction: 'manipulation'
+                    }}
+                  />
+                )
+              })}
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={resetPopItBoard} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.15)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
+                🔄 Flip Pop-It Board
+              </button>
+              <button onClick={() => setShowPopItModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
+                Done Relaxing ✨
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* NATIVE WATER SORT LIQUID MODAL */}
+      {showWaterSortModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)',
+          zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #020617, #1e1b4b)', borderRadius: '24px',
+            maxWidth: '520px', width: '100%', padding: '28px', border: '1px solid rgba(255,255,255,0.2)',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)', textAlign: 'center', color: 'white'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                🧪 Water Sort Liquid Puzzle
+              </h3>
+              <button onClick={() => setShowWaterSortModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+            </div>
+
+            <p style={{ fontSize: '12.5px', color: '#94a3b8', margin: '0 0 20px 0' }}>
+              Tap a source tube, then tap a destination tube to sort liquids by color:
+            </p>
+
+            {/* Test Tubes Display */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '24px' }}>
+              {waterTubes.map((tube, tIdx) => {
+                const isSelected = selectedTubeIndex === tIdx
+                return (
+                  <div
+                    key={tIdx}
+                    onClick={() => handleTubeClick(tIdx)}
+                    style={{
+                      width: '56px',
+                      height: '180px',
+                      border: isSelected ? '3px solid #818cf8' : '2px solid rgba(255,255,255,0.3)',
+                      borderRadius: '0 0 28px 28px',
+                      background: 'rgba(255,255,255,0.05)',
+                      display: 'flex',
+                      flexDirection: 'column-reverse',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      transform: isSelected ? 'translateY(-12px)' : 'none',
+                      transition: 'all 0.2s ease',
+                      boxShadow: isSelected ? '0 10px 20px rgba(129, 140, 248, 0.4)' : 'none',
+                      touchAction: 'manipulation'
+                    }}
+                  >
+                    {tube.map((color, cIdx) => (
+                      <div
+                        key={cIdx}
+                        style={{
+                          height: '45px',
+                          background: color,
+                          width: '100%',
+                          transition: 'height 0.3s ease'
+                        }}
+                      />
+                    ))}
+                  </div>
+                )
+              })}
+            </div>
+
+            {waterSortWon && (
+              <div style={{ background: 'rgba(16, 185, 129, 0.2)', border: '1px solid #10b981', padding: '12px', borderRadius: '12px', color: '#34d399', fontWeight: 'bold', marginBottom: '16px' }}>
+                🎉 Fantastic! You solved the Water Liquid Puzzle!
+              </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={resetWaterSortGame} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.15)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
+                🔄 Restart Puzzle
+              </button>
+              <button onClick={() => setShowWaterSortModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
+                Done Playing ✨
+              </button>
+            </div>
           </div>
         </div>
       )}
