@@ -9,7 +9,7 @@ const getApiUrl = () => {
   }
   // If running on Netlify or external phone/web domain, route to active backend tunnel
   if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return 'https://newsletter-pendant-laboratory-patches.trycloudflare.com';
+    return 'https://pink-weeks-poke.loca.lt';
   }
   return '';
 };

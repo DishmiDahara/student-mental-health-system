@@ -9,6 +9,10 @@ import AnonymousChat from './pages/AnonymousChat'
 import AdminDashboard from './pages/AdminDashboard'
 import ApplyCounselor from './pages/ApplyCounselor'
 
+import axios from 'axios'
+
+axios.defaults.headers.common['Bypass-Tunnel-Reminder'] = 'true'
+
 function App() {
   return (
     <BrowserRouter>
