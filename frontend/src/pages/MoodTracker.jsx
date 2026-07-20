@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
+import * as THREE from 'three'
 import API_URL from '../config'
 import Navbar from '../components/Navbar'
 import { 
@@ -424,6 +425,187 @@ export default function MoodTracker() {
     }
     stopFaceCamera()
   }
+
+  // --- THREE.JS 3D WEBGL RELAXATION GAMES ENGINE STATES ---
+  const [active3DGame, setActive3DGame] = useState(null)
+  const threeContainerRef = useRef(null)
+
+  useEffect(() => {
+    if (!active3DGame || !threeContainerRef.current) return
+
+    const scene = new THREE.Scene()
+    const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 1000)
+    camera.position.z = 15
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    const container = threeContainerRef.current
+    renderer.setSize(container.clientWidth, container.clientHeight)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    
+    container.innerHTML = ''
+    container.appendChild(renderer.domElement)
+
+    let animFrameId
+    let mouseX = 0, mouseY = 0
+
+    const handlePointerMove = (e) => {
+      const rect = container.getBoundingClientRect()
+      if (!rect) return
+      mouseX = ((e.clientX || e.touches?.[0]?.clientX) - rect.left - rect.width / 2) * 0.005
+      mouseY = ((e.clientY || e.touches?.[0]?.clientY) - rect.top - rect.height / 2) * 0.005
+    }
+
+    window.addEventListener('mousemove', handlePointerMove)
+    window.addEventListener('touchmove', handlePointerMove)
+
+    if (active3DGame === 'starfield') {
+      // 🌌 3D COSMIC STARFIELD & NEBULA WEAVER
+      const geometry = new THREE.BufferGeometry()
+      const count = 1800
+      const positions = new Float32Array(count * 3)
+      const colors = new Float32Array(count * 3)
+
+      for (let i = 0; i < count * 3; i += 3) {
+        positions[i] = (Math.random() - 0.5) * 40
+        positions[i + 1] = (Math.random() - 0.5) * 40
+        positions[i + 2] = (Math.random() - 0.5) * 40
+
+        colors[i] = 0.4 + Math.random() * 0.6
+        colors[i + 1] = 0.4 + Math.random() * 0.4
+        colors[i + 2] = 0.9 + Math.random() * 0.1
+      }
+
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+
+      const material = new THREE.PointsMaterial({
+        size: 0.3,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.85
+      })
+
+      const starfield = new THREE.Points(geometry, material)
+      scene.add(starfield)
+
+      const animate = () => {
+        animFrameId = requestAnimationFrame(animate)
+        starfield.rotation.y += 0.002 + mouseX * 0.01
+        starfield.rotation.x += 0.001 + mouseY * 0.01
+        renderer.render(scene, camera)
+      }
+      animate()
+
+    } else if (active3DGame === 'water') {
+      // 🌊 3D KINETIC WATER RIPPLES & LOTUS
+      const geometry = new THREE.PlaneGeometry(30, 30, 36, 36)
+      const material = new THREE.MeshPhongMaterial({
+        color: 0x38bdf8,
+        wireframe: true,
+        side: THREE.DoubleSide
+      })
+      const plane = new THREE.Mesh(geometry, material)
+      plane.rotation.x = -Math.PI / 3
+      scene.add(plane)
+
+      const light = new THREE.PointLight(0xffffff, 2, 100)
+      light.position.set(0, 10, 10)
+      scene.add(light)
+      scene.add(new THREE.AmbientLight(0x1e3a8a))
+
+      let clock = new THREE.Clock()
+      const animate = () => {
+        animFrameId = requestAnimationFrame(animate)
+        const t = clock.getElapsedTime()
+        const pos = geometry.attributes.position
+        for (let i = 0; i < pos.count; i++) {
+          const u = pos.getX(i)
+          const v = pos.getY(i)
+          const z = Math.sin(u * 0.5 + t * 2) * Math.cos(v * 0.5 + t * 2) * 1.2
+          pos.setZ(i, z)
+        }
+        pos.needsUpdate = true
+        plane.rotation.z += 0.002
+        renderer.render(scene, camera)
+      }
+      animate()
+
+    } else if (active3DGame === 'sakura') {
+      // 🌸 3D SAKURA BLOSSOM SANCTUARY
+      const trunkGeo = new THREE.CylinderGeometry(0.5, 1.2, 8, 8)
+      const trunkMat = new THREE.MeshBasicMaterial({ color: 0x582f0e })
+      const trunk = new THREE.Mesh(trunkGeo, trunkMat)
+      trunk.position.y = -3
+      scene.add(trunk)
+
+      const petalGeo = new THREE.BufferGeometry()
+      const count = 1200
+      const positions = new Float32Array(count * 3)
+      for (let i = 0; i < count * 3; i += 3) {
+        positions[i] = (Math.random() - 0.5) * 20
+        positions[i + 1] = Math.random() * 15 - 5
+        positions[i + 2] = (Math.random() - 0.5) * 20
+      }
+      petalGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+      const petalMat = new THREE.PointsMaterial({ color: 0xf472b6, size: 0.35, transparent: true, opacity: 0.9 })
+      const petals = new THREE.Points(petalGeo, petalMat)
+      scene.add(petals)
+
+      const animate = () => {
+        animFrameId = requestAnimationFrame(animate)
+        const pos = petalGeo.attributes.position
+        for (let i = 0; i < pos.count; i++) {
+          let y = pos.getY(i) - 0.03
+          if (y < -8) y = 10
+          pos.setY(i, y)
+        }
+        pos.needsUpdate = true
+        scene.rotation.y += 0.005 + mouseX * 0.01
+        renderer.render(scene, camera)
+      }
+      animate()
+
+    } else if (active3DGame === 'crystal') {
+      // 🔮 3D BREATHING CRYSTAL ORB
+      const geo = new THREE.IcosahedronGeometry(4, 2)
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0x818cf8,
+        wireframe: true,
+        roughness: 0.1,
+        metalness: 0.8
+      })
+      const crystal = new THREE.Mesh(geo, mat)
+      scene.add(crystal)
+
+      const light1 = new THREE.PointLight(0xc084fc, 2, 50)
+      light1.position.set(10, 10, 10)
+      scene.add(light1)
+
+      const light2 = new THREE.PointLight(0x38bdf8, 2, 50)
+      light2.position.set(-10, -10, 10)
+      scene.add(light2)
+
+      let clock = new THREE.Clock()
+      const animate = () => {
+        animFrameId = requestAnimationFrame(animate)
+        const t = clock.getElapsedTime()
+        const scale = 1 + Math.sin(t * 1.2) * 0.35
+        crystal.scale.set(scale, scale, scale)
+        crystal.rotation.x += 0.008
+        crystal.rotation.y += 0.01
+        renderer.render(scene, camera)
+      }
+      animate()
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handlePointerMove)
+      window.removeEventListener('touchmove', handlePointerMove)
+      cancelAnimationFrame(animFrameId)
+      if (renderer.domElement) renderer.domElement.remove()
+      renderer.dispose()
+    }
+  }, [active3DGame])
 
   const [petStats, setPetStats] = useState({ hunger: 50, love: 50, energy: 50 })
   const [petMessage, setPetMessage] = useState('Click buttons to interact with your pet! 🐱')
@@ -4024,6 +4206,46 @@ export default function MoodTracker() {
                       Choose your mood rating first
                     </div>
                   )}
+                </div>
+              </div>
+
+              {/* 🌌 ADVANCED 3D WEBGL RELAXATION ZONE */}
+              <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)', padding: '24px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.15)', color: 'white', marginBottom: '24px' }}>
+                <h3 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  🌌 Advanced 3D Relaxation Zone 🎮
+                </h3>
+                <p style={{ margin: '0 0 16px 0', fontSize: '12.5px', color: '#94a3b8' }}>
+                  Hardware-accelerated 3D WebGL environments for instant sensory grounding:
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  {[
+                    { key: 'starfield', title: '🌌 Cosmic Starfield', desc: 'Interactive 3D particle universe', icon: '🌌' },
+                    { key: 'water', title: '🌊 Water Ripples', desc: '3D kinetic liquid wave pool', icon: '🌊' },
+                    { key: 'sakura', title: '🌸 Sakura Sanctuary', desc: '3D cherry tree in falling petals', icon: '🌸' },
+                    { key: 'crystal', title: '🔮 Breathing Crystal', desc: '4-7-8 pulsing 3D glass orb', icon: '🔮' }
+                  ].map(g => (
+                    <div
+                      key={g.key}
+                      onClick={() => setActive3DGame(g.key)}
+                      style={{
+                        background: 'rgba(255,255,255,0.08)',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        borderRadius: '14px',
+                        padding: '12px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
+                        touchAction: 'manipulation'
+                      }}
+                    >
+                      <div style={{ fontSize: '22px' }}>{g.icon}</div>
+                      <div style={{ fontSize: '12.5px', fontWeight: '700', color: 'white' }}>{g.title}</div>
+                      <div style={{ fontSize: '10.5px', color: '#94a3b8' }}>{g.desc}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -8112,6 +8334,71 @@ export default function MoodTracker() {
                 style={{ padding: '12px 20px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3D WEBGL RELAXATION GAME MODAL */}
+      {active3DGame && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(15, 23, 42, 0.92)',
+          backdropFilter: 'blur(10px)',
+          zIndex: 999999,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '680px',
+            background: '#0f172a',
+            borderRadius: '24px',
+            border: '1px solid rgba(255,255,255,0.15)',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)',
+            overflow: 'hidden',
+            position: 'relative'
+          }}>
+            {/* Header Bar */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+              <h3 style={{ margin: 0, color: 'white', fontSize: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {active3DGame === 'starfield' && '🌌 3D Cosmic Starfield & Nebula Weaver'}
+                {active3DGame === 'water' && '🌊 3D Kinetic Water Ripples & Lotus'}
+                {active3DGame === 'sakura' && '🌸 3D Sakura Blossom Sanctuary'}
+                {active3DGame === 'crystal' && '🔮 3D Breathing Crystal Orb'}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setActive3DGame(null)}
+                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* 3D WebGL Canvas Container */}
+            <div 
+              ref={threeContainerRef} 
+              style={{ width: '100%', height: '400px', background: '#020617', position: 'relative', cursor: 'grab', touchAction: 'none' }} 
+            />
+
+            {/* Footer Instructions */}
+            <div style={{ padding: '14px 24px', background: 'rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontSize: '12.5px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+              <span>👆 Drag across screen to rotate 3D camera 360°</span>
+              <button
+                type="button"
+                onClick={() => setActive3DGame(null)}
+                style={{ padding: '8px 16px', borderRadius: '10px', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: 'white', border: 'none', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', touchAction: 'manipulation' }}
+              >
+                Done Relaxing ✨
               </button>
             </div>
           </div>
