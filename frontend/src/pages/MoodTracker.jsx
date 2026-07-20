@@ -255,11 +255,22 @@ export default function MoodTracker() {
     if (!queryTerm || !queryTerm.trim()) return
     setIsSearchingMusic(true)
     try {
-      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(queryTerm.trim())}&media=music&limit=12`)
-      const data = await res.json()
-      if (data.results) {
-        setMusicSearchResults(data.results)
+      let res = await fetch(`${API_URL}/api/mood/search-music?q=${encodeURIComponent(queryTerm.trim())}`)
+      let list = []
+      if (res.ok) {
+        list = await res.json()
+      } else {
+        const fallbackRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(queryTerm.trim())}&media=music&limit=15`)
+        const data = await fallbackRes.json()
+        list = (data.results || []).map(t => ({
+          trackId: t.trackId,
+          trackName: t.trackName,
+          artistName: t.artistName,
+          artworkUrl: t.artworkUrl100 || t.artworkUrl60,
+          previewUrl: t.previewUrl
+        }))
       }
+      setMusicSearchResults(list)
     } catch (e) {
       console.error('Music search error:', e)
     }
@@ -3557,19 +3568,19 @@ export default function MoodTracker() {
                 </div>
 
                 {/* Search Bar Input */}
-                <form onSubmit={(e) => { e.preventDefault(); fetchMusicSearchResults(musicSearchQuery); }} style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+                <form onSubmit={(e) => { e.preventDefault(); fetchMusicSearchResults(musicSearchQuery); }} style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', marginBottom: '14px' }}>
                   <input 
                     value={musicSearchQuery} 
                     onChange={(e) => setMusicSearchQuery(e.target.value)} 
                     placeholder="Search any song or artist (e.g. Rain, Lofi, Sinhala)..." 
-                    style={{ flex: 1, height: '42px', padding: '0 14px', borderRadius: '12px', border: '1px solid #475569', background: '#1e293b', color: 'white', fontSize: '13.5px', outline: 'none', colorScheme: 'dark' }}
+                    style={{ width: '100%', height: '48px', lineHeight: '1.5', padding: '12px 16px', borderRadius: '12px', border: '1.5px solid #475569', background: '#1e293b', color: '#ffffff', fontSize: '16px', outline: 'none', boxSizing: 'border-box', colorScheme: 'dark' }}
                   />
                   <button 
                     type="submit" 
                     disabled={isSearchingMusic}
-                    style={{ padding: '0 18px', height: '42px', borderRadius: '12px', background: '#6366f1', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer', fontSize: '13.5px', touchAction: 'manipulation' }}
+                    style={{ width: '100%', height: '46px', borderRadius: '12px', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer', fontSize: '15px', touchAction: 'manipulation', boxShadow: '0 4px 12px rgba(99,102,241,0.3)' }}
                   >
-                    {isSearchingMusic ? 'Searching...' : '🔍 Search'}
+                    {isSearchingMusic ? 'Searching tracks...' : '🔍 Search Music'}
                   </button>
                 </form>
 
