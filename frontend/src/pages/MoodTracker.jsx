@@ -926,6 +926,82 @@ export default function MoodTracker() {
     playResetSound()
   }
 
+  // --- NATIVE DESIGNVILLE MERGE & DECORATE STATES ---
+  const [showMergeModal, setShowMergeModal] = useState(false)
+  const [mergeGrid, setMergeGrid] = useState([
+    { id: 1, level: 1, icon: '🛋️', name: 'Sofa' },
+    { id: 2, level: 1, icon: '🛋️', name: 'Sofa' },
+    { id: 3, level: 2, icon: '🛋️✨', name: 'Luxury Sofa' },
+    { id: 4, level: 1, icon: '🪴', name: 'Plant' },
+    { id: 5, level: 1, icon: '🪴', name: 'Plant' },
+    { id: 6, level: 2, icon: '🪴✨', name: 'Bloom Plant' },
+    { id: 7, level: 1, icon: '💡', name: 'Lamp' },
+    { id: 8, level: 1, icon: '💡', name: 'Lamp' }
+  ])
+  const [mergeSelected, setMergeSelected] = useState(null)
+
+  const handleMergeClick = (index) => {
+    if (mergeSelected === null) {
+      setMergeSelected(index)
+      playTickSound()
+    } else {
+      if (mergeSelected === index) {
+        setMergeSelected(null)
+        return
+      }
+      const itemA = mergeGrid[mergeSelected]
+      const itemB = mergeGrid[index]
+
+      if (itemA.name.split(' ')[0] === itemB.name.split(' ')[0] && itemA.level === itemB.level) {
+        const nextGrid = [...mergeGrid]
+        nextGrid[index] = {
+          ...itemB,
+          level: itemB.level + 1,
+          icon: itemB.icon + '✨',
+          name: `${itemB.name.split(' ')[0]} Lv${itemB.level + 1}`
+        }
+        nextGrid[mergeSelected] = { id: Math.random(), level: 1, icon: '📦', name: 'Box' }
+        setMergeGrid(nextGrid)
+        setMergeSelected(null)
+        playSuccessHarp()
+      } else {
+        setMergeSelected(null)
+        playErrorSound()
+      }
+    }
+  }
+
+  // --- NATIVE FIND THE DIFFERENCE STATES ---
+  const [showDiffModal, setShowDiffModal] = useState(false)
+  const [foundDiffs, setFoundDiffs] = useState([])
+
+  const handleSpotDiffClick = (diffId) => {
+    if (!foundDiffs.includes(diffId)) {
+      setFoundDiffs(prev => [...prev, diffId])
+      playSuccessHarp()
+    }
+  }
+
+  // --- NATIVE STONE GRASS LAWN MOWER STATES ---
+  const [showMowerModal, setShowMowerModal] = useState(false)
+  const [grassTiles, setGrassTiles] = useState(Array(24).fill(true))
+
+  const handleMowGrass = (idx) => {
+    if (grassTiles[idx]) {
+      setGrassTiles(prev => {
+        const next = [...prev]
+        next[idx] = false
+        return next
+      })
+      playTickSound()
+    }
+  }
+
+  const resetMowerGame = () => {
+    setGrassTiles(Array(24).fill(true))
+    playResetSound()
+  }
+
   const [petStats, setPetStats] = useState({ hunger: 50, love: 50, energy: 50 })
   const [petMessage, setPetMessage] = useState('Click buttons to interact with your pet! 🐱')
 
@@ -4594,16 +4670,18 @@ export default function MoodTracker() {
                 {/* Pre-loaded 100% Native Games Grid */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(135px, 1fr))', gap: '10px' }}>
                   {[
+                    { id: 'merge', title: 'DesignVille Merge 🏡', desc: 'Merge & decorate dream room', icon: '🏡', action: () => setShowMergeModal(true) },
+                    { id: 'diff', title: 'Spot Differences 🔍', desc: 'Find 5 hidden differences', icon: '🔍', action: () => setShowDiffModal(true) },
+                    { id: 'mower', title: 'Stone Grass Mower 🚜', desc: 'Satisfying lawn grass cutting', icon: '🚜', action: () => setShowMowerModal(true) },
                     { id: 'popit', title: 'Pop-It 3D Fidget 🧸', desc: 'Interactive popping bubbles', icon: '🧸', action: () => setShowPopItModal(true) },
                     { id: 'watersort', title: 'Water Sort Liquid 🧪', desc: 'Color liquid sorting puzzle', icon: '🧪', action: () => setShowWaterSortModal(true) },
+                    { id: 'colortap', title: 'Color Tap Paint 🎨', desc: 'Mindful number color painting', icon: '🎨', action: () => setActiveGame('drawing') },
+                    { id: 'solitaire', title: 'Solitaire Story 🃏', desc: 'Classic relaxing solitaire cards', icon: '🃏', action: () => setActiveGame('memory') },
                     { id: 'starfield', title: '3D Cosmic Space 🌌', desc: 'Interactive 3D particle universe', icon: '🌌', action: () => setActive3DGame('starfield') },
                     { id: 'water', title: '3D Water Waves 🌊', desc: '3D kinetic liquid wave pool', icon: '🌊', action: () => setActive3DGame('water') },
                     { id: 'sakura', title: '3D Sakura Sanctuary 🌸', desc: '3D cherry tree in falling petals', icon: '🌸', action: () => setActive3DGame('sakura') },
                     { id: 'crystal', title: '3D Breathing Orb 🔮', desc: '4-7-8 pulsing 3D glass crystal', icon: '🔮', action: () => setActive3DGame('crystal') },
-                    { id: 'drawing', title: 'Zen Painting 🎨', desc: 'Color drawing & brush board', icon: '🎨', action: () => setActiveGame('drawing') },
-                    { id: 'breathing', title: '4-7-8 Breathwork 🎈', desc: 'Guided sound bath & breathing', icon: '🎈', action: () => setActiveGame('breathing') },
-                    { id: 'pet', title: 'Virtual Zen Pet 🐱', desc: 'Feed & pet your virtual cat', icon: '🐱', action: () => setActiveGame('pet') },
-                    { id: 'memory', title: 'Memory Tiles 🀄', desc: 'Focus & memory tile matching', icon: '🀄', action: () => setActiveGame('memory') }
+                    { id: 'pet', title: 'Virtual Zen Pet 🐱', desc: 'Feed & pet your virtual cat', icon: '🐱', action: () => setActiveGame('pet') }
                   ].map(gameObj => (
                     <div
                       key={gameObj.id}
@@ -9000,6 +9078,118 @@ export default function MoodTracker() {
               </button>
               <button onClick={() => setShowWaterSortModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
                 Done Playing ✨
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* NATIVE DESIGNVILLE MERGE MODAL */}
+      {showMergeModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: 'linear-gradient(135deg, #1e1b4b, #312e81)', borderRadius: '24px', maxWidth: '520px', width: '100%', padding: '28px', border: '1px solid rgba(255,255,255,0.2)', color: 'white', textAlign: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>🏡 DesignVille: Merge & Decorate</h3>
+              <button onClick={() => setShowMergeModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+            </div>
+            <p style={{ fontSize: '12.5px', color: '#94a3b8', marginBottom: '20px' }}>Tap matching items of the same level to merge and upgrade furniture:</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', background: 'rgba(255,255,255,0.08)', padding: '16px', borderRadius: '20px', marginBottom: '20px' }}>
+              {mergeGrid.map((item, idx) => (
+                <div
+                  key={item.id}
+                  onClick={() => handleMergeClick(idx)}
+                  style={{
+                    background: mergeSelected === idx ? 'rgba(99, 102, 241, 0.5)' : 'rgba(255,255,255,0.1)',
+                    border: mergeSelected === idx ? '2px solid #818cf8' : '1px solid rgba(255,255,255,0.15)',
+                    borderRadius: '16px', padding: '14px 6px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'all 0.2s ease', touchAction: 'manipulation'
+                  }}
+                >
+                  <div style={{ fontSize: '28px', marginBottom: '4px' }}>{item.icon}</div>
+                  <div style={{ fontSize: '11px', fontWeight: 'bold' }}>{item.name}</div>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setShowMergeModal(false)} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
+              Done Decorating ✨
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* NATIVE FIND DIFFERENCES MODAL */}
+      {showDiffModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: 'linear-gradient(135deg, #020617, #1e1b4b)', borderRadius: '24px', maxWidth: '540px', width: '100%', padding: '28px', border: '1px solid rgba(255,255,255,0.2)', color: 'white', textAlign: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>🔍 Spot the Differences (Found {foundDiffs.length}/4)</h3>
+              <button onClick={() => setShowDiffModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+            </div>
+            <p style={{ fontSize: '12.5px', color: '#94a3b8', marginBottom: '20px' }}>Tap hidden items on the picture to find all differences:</p>
+            <div style={{ position: 'relative', width: '100%', height: '220px', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', borderRadius: '20px', overflow: 'hidden', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ fontSize: '64px', opacity: 0.3 }}>🍎 ☀️ 🐦 🌸</div>
+              {[
+                { id: 1, left: '20%', top: '30%', label: '🍎' },
+                { id: 2, left: '70%', top: '20%', label: '☀️' },
+                { id: 3, left: '40%', top: '65%', label: '🐦' },
+                { id: 4, left: '80%', top: '75%', label: '🌸' }
+              ].map(diff => {
+                const isFound = foundDiffs.includes(diff.id)
+                return (
+                  <button
+                    key={diff.id}
+                    onClick={() => handleSpotDiffClick(diff.id)}
+                    style={{
+                      position: 'absolute', left: diff.left, top: diff.top,
+                      fontSize: '28px', background: isFound ? 'rgba(16, 185, 129, 0.4)' : 'transparent',
+                      border: isFound ? '2px solid #10b981' : 'none', borderRadius: '50%', width: '48px', height: '48px',
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'manipulation'
+                    }}
+                  >
+                    {diff.label}
+                  </button>
+                )
+              })}
+            </div>
+            <button onClick={() => setShowDiffModal(false)} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
+              Done Playing ✨
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* NATIVE STONE GRASS MOWER MODAL */}
+      {showMowerModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: 'linear-gradient(135deg, #064e3b, #022c22)', borderRadius: '24px', maxWidth: '520px', width: '100%', padding: '28px', border: '1px solid rgba(255,255,255,0.2)', color: 'white', textAlign: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>🚜 Stone Grass Lawn Mower</h3>
+              <button onClick={() => setShowMowerModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+            </div>
+            <p style={{ fontSize: '12.5px', color: '#6ee7b7', marginBottom: '20px' }}>Tap or drag over grass tiles to cut lawn grass:</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '16px', borderRadius: '20px', marginBottom: '20px' }}>
+              {grassTiles.map((hasGrass, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => handleMowGrass(idx)}
+                  onMouseEnter={() => handleMowGrass(idx)}
+                  style={{
+                    height: '48px', borderRadius: '12px',
+                    background: hasGrass ? '#15803d' : '#854d0e',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px',
+                    cursor: 'pointer', transition: 'all 0.15s ease', touchAction: 'none'
+                  }}
+                >
+                  {hasGrass ? '🌾' : '🚜'}
+                </div>
+              ))}
+            </div>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button onClick={resetMowerGame} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.15)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
+                🔄 Regrow Lawn
+              </button>
+              <button onClick={() => setShowMowerModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
+                Done Mowing ✨
               </button>
             </div>
           </div>
