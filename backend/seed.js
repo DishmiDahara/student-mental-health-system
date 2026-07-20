@@ -56,6 +56,14 @@ const seed = async () => {
         lang: 'en'
       },
       {
+        title: 'විභාග කාංසාව තේරුම් ගැනීම සහ එය සන්සුන් කර ගැනීම',
+        content: 'විභාග කාංසාව (test anxiety) හේතුවෙන් ඔබේ උපරිම දක්ෂතා දැක්වීමට බාධා ඇතිවිය හැක. විභාගයකට පෙර ඔබේ මනස සන්සුන් කර ගැනීමට:\n1. විශ්වාසය ගොඩනඟා ගැනීම සඳහා කල්තියා හොඳින් සූදානම් වන්න.\n2. අසමත් වේවි යැයි සිතනවා වෙනුවට, ධනාත්මකව තමා සමඟ කතා කිරීමට (positive self-talk) පුරුදු වන්න.\n3. කලබල වීම වැළැක්වීම සඳහා විභාග ශාලාවට වේලාසනින් පැමිණෙන්න.\n4. කොටු හුස්ම ගැනීමේ ව්‍යායාමය (box breathing) කරන්න: තත්පර 4ක් හුස්ම ගන්න, තත්පර 4ක් රඳවන්න, තත්පර 4ක් පිට කරන්න, තත්පර 4ක් රඳවන්න.\n5. ශරීරය සජලීයව තබා ගන්න සහ කාංසාවේ ලක්ෂණ වැඩි කරන අධික කැෆේන් භාවිතයෙන් වළකින්න.',
+        category: 'Anxiety',
+        readTime: 5,
+        author: 'MindSpace Clinical Advisory',
+        lang: 'si'
+      },
+      {
         title: 'How to Sleep Better During Exam Weeks',
         content: 'Sleep is crucial for cognitive function and memory consolidation. Improve your sleep hygiene by:\n1. Setting a consistent bedtime, even during exams.\n2. Turning off screens (phones, laptops) at least 30 minutes before sleeping.\n3. Creating a quiet, dark, and cool sleeping environment.\n4. Avoiding heavy meals and stimulants late in the evening.\n5. Doing a 5-minute progressive muscle relaxation routine to release bodily tension before sleep.',
         category: 'Sleep',
@@ -64,12 +72,28 @@ const seed = async () => {
         lang: 'en'
       },
       {
+        title: 'විභාග සතිවලදී වඩා හොඳින් නිදා ගන්නේ කෙසේද',
+        content: 'මතකය තහවුරු වීමට සහ මොළයේ ක්‍රියාකාරීත්වයට නින්ද අත්‍යවශ්‍ය වේ. ඔබේ නින්දේ ගුණාත්මකභාවය වැඩි දියුණු කර ගැනීමට:\n1. විභාග කාලය තුළ වුවද සෑම දිනකම එකම වේලාවකට නින්දට යන්න.\n2. නින්දට යාමට අවම වශයෙන් විනාඩි 30කට පෙර ජංගම දුරකථන, පරිගණක වැනි තිර (screens) ක්‍රියා විරහිත කරන්න.\n3. නිහඬ, අඳුරු සහ සිසිල් නිදන පරිසරයක් නිර්මාණය කර ගන්න.\n4. රාත්‍රී කාලයේදී අධික ආහාර වේල් ලබා ගැනීමෙන් සහ උත්තේජක පාන වර්ගවලින් වළකින්න.\n5. ශරීරයේ පීඩනය මුදා හැරීම සඳහා නින්දට පෙර විනාඩි 5ක මාංශ පේශි ලිහිල් කිරීමේ ව්‍යායාමයක නිරත වන්න.',
+        category: 'Sleep',
+        readTime: 3,
+        author: 'Sleep Wellness Center',
+        lang: 'si'
+      },
+      {
         title: 'Beginners Guide to Mindfulness Meditation',
         content: 'Mindfulness is the practice of being fully present in the moment without judgment. Try this simple exercise:\n1. Find a comfortable, quiet seat.\n2. Close your eyes and bring your attention to your breathing.\n3. Feel the sensation of breath entering and leaving your nostrils.\n4. When your mind wanders (which it will), gently guide your focus back to your breath.\n5. Start with just 2-3 minutes a day and gradually increase the duration.',
         category: 'Mindfulness',
         readTime: 3,
         author: 'Mindfulness Expert Team',
         lang: 'en'
+      },
+      {
+        title: 'මනෝභාවය සන්සුන් කිරීමේ භාවනාව (Mindfulness) පිළිබඳ ආධුනික අත්පොත',
+        content: 'Mindfulness (සතිමත්භාවය) යනු කිසිදු විනිශ්චයකින් තොරව වර්තමාන මොහොතේ සම්පූර්ණයෙන්ම ජීවත් වීමයි. මෙම සරල ව්‍යායාමය උත්සාහ කර බලන්න:\n1. පහසු, නිහඬ ආසනයක් සොයා ගන්න.\n2. ඇස් වසා ඔබේ හුස්ම ගැනීම කෙරෙහි අවධානය යොමු කරන්න.\n3. ඔබේ නාස්පුඩු හරහා හුස්ම ඇතුළු වන සහ පිටවන ආකාරය හොඳින් දැනෙන්නට හරින්න.\n4. ඔබේ මනස වෙනත් අතකට යොමු වන විට (එය සාමාන්‍ය දෙයකි), මෘදු ලෙස නැවත ඔබේ අවධානය හුස්ම වෙත යොමු කරන්න.\n5. දිනකට විනාඩි 2-3ක් වැනි කෙටි කාලයකින් ආරම්භ කර ක්‍රමයෙන් කාලය වැඩි කරන්න.',
+        category: 'Mindfulness',
+        readTime: 3,
+        author: 'Mindfulness Expert Team',
+        lang: 'si'
       },
       {
         title: 'WHO Guidelines: Doing What Matters in Times of Stress',

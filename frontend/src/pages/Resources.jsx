@@ -22,6 +22,42 @@ export default function Resources() {
 
   const categories = ['All', 'Stress', 'Anxiety', 'Sleep', 'Mindfulness']
 
+  const categoryTranslations = {
+    en: {
+      All: 'All',
+      Stress: 'Stress',
+      Anxiety: 'Anxiety',
+      Sleep: 'Sleep',
+      Mindfulness: 'Mindfulness'
+    },
+    si: {
+      All: 'සියල්ල',
+      Stress: 'මානසික ආතතිය',
+      Anxiety: 'කාංසාව',
+      Sleep: 'නින්ද',
+      Mindfulness: 'සතිමත්භාවය'
+    }
+  }
+
+  const articlePairs = {
+    '5 Steps to Manage Academic Stress': 'අධ්‍යයන ආතතිය පාලනයට පියවර 5ක්',
+    'අධ්‍යයන ආතතිය පාලනයට පියවර 5ක්': '5 Steps to Manage Academic Stress',
+    'Understanding and Calming Test Anxiety': 'විභාග කාංසාව තේරුම් ගැනීම සහ එය සන්සුන් කර ගැනීම',
+    'විභාග කාංසාව තේරුම් ගැනීම සහ එය සන්සුන් කර ගැනීම': 'Understanding and Calming Test Anxiety',
+    'How to Sleep Better During Exam Weeks': 'විභාග සතිවලදී වඩා හොඳින් නිදා ගන්නේ කෙසේද',
+    'විභාග සතිවලදී වඩා හොඳින් නිදා ගන්නේ කෙසේද': 'How to Sleep Better During Exam Weeks',
+    'Beginners Guide to Mindfulness Meditation': 'මනෝභාවය සන්සුන් කිරීමේ භාවනාව (Mindfulness) පිළිබඳ ආධුනික අත්පොත',
+    'මනෝභාවය සන්සුන් කිරීමේ භාවනාව (Mindfulness) පිළිබඳ ආධුනික අත්පොත': 'Beginners Guide to Mindfulness Meditation',
+    'WHO Guidelines: Doing What Matters in Times of Stress': 'WHO මාර්ගෝපදේශ: මානසික ආතතිය පවතින අවස්ථාවල වැදගත් දේ කිරීම',
+    'WHO මාර්ගෝපදේශ: මානසික ආතතිය පවතින අවස්ථාවල වැදගත් දේ කිරීම': 'WHO Guidelines: Doing What Matters in Times of Stress',
+    'Mayo Clinic: Relaxation Techniques for Stress Relief': 'Mayo Clinic: මානසික ආතතිය අඩු කරගැනීමේ ලිහිල් කිරීමේ ක්‍රම',
+    'Mayo Clinic: මානසික ආතතිය අඩු කරගැනීමේ ලිහිල් කිරීමේ ක්‍රම': 'Mayo Clinic: Relaxation Techniques for Stress Relief',
+    'APA Science-Based Strategies to Manage Daily Stress': 'APA: එදිනෙදා මානසික ආතතිය පාලනයට විද්‍යාත්මක ක්‍රමවේද',
+    'APA: එදිනෙදා මානසික ආතතිය පාලනයට විද්‍යාත්මක ක්‍රමවේද': 'APA Science-Based Strategies to Manage Daily Stress',
+    'NHS Every Mind Matters: Tips for Better Mental Wellbeing': 'NHS Every Mind Matters: යහපත් මානසික සෞඛ්‍යයක් සඳහා උපදෙස්',
+    'NHS Every Mind Matters: යහපත් මානසික සෞඛ්‍යයක් සඳහා උපදෙස්': 'NHS Every Mind Matters: Tips for Better Mental Wellbeing'
+  }
+
   useEffect(() => {
     fetchResources()
     return () => {
@@ -263,7 +299,7 @@ export default function Resources() {
                 }} 
                 style={{ padding: '12px 24px', background: 'white', color: '#4f46e5', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', transition: 'transform 0.2s' }}
               >
-                {breathingState === 'Idle' ? '⚡ Start Box Breathing' : '⏹️ Stop Coach'}
+                {breathingState === 'Idle' ? 'Start Box Breathing' : 'Stop Coach'}
               </button>
 
               <button 
@@ -280,7 +316,7 @@ export default function Resources() {
                   transition: 'all 0.2s' 
                 }}
               >
-                {audioEnabled ? '🔊 Sound On' : '🔇 Muted'}
+                {audioEnabled ? 'Sound On' : 'Muted'}
               </button>
             </div>
           </div>
@@ -309,7 +345,7 @@ export default function Resources() {
         {/* Resources Title */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h2 style={{ color: '#1f2937', margin: 0 }}>📚 Mental Health Resources</h2>
+            <h2 style={{ color: '#1f2937', margin: 0 }}>Mental Health Resources</h2>
             <p style={{ color: '#6b7280', fontSize: '14px', marginTop: '4px' }}>Curated articles and tips for your mental well-being</p>
           </div>
 
@@ -369,17 +405,19 @@ export default function Resources() {
                 whiteSpace: 'nowrap'
               }}
             >
-              {cat}
+              {categoryTranslations[lang]?.[cat] || cat}
             </button>
           ))}
         </div>
 
         {/* Articles Grid */}
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>⏳ Loading articles...</div>
+          <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+            {lang === 'si' ? 'ලිපි පූරණය වෙමින් පවතී...' : 'Loading articles...'}
+          </div>
         ) : filteredArticles.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px', background: 'white', borderRadius: '16px', color: '#6b7280' }}>
-            No articles found in this category.
+            {lang === 'si' ? 'මෙම කාණ්ඩය යටතේ ලිපි කිසිවක් හමු නොවීය.' : 'No articles found in this category.'}
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
@@ -410,7 +448,7 @@ export default function Resources() {
                     fontWeight: 'bold',
                     textTransform: 'uppercase'
                   }}>
-                    {art.category}
+                    {categoryTranslations[lang]?.[art.category] || art.category}
                   </span>
                   <h3 style={{ color: '#1f2937', fontSize: '18px', margin: '14px 0 8px', lineHeight: '1.4' }}>{art.title}</h3>
                   <p style={{ color: '#6b7280', fontSize: '13px', lineHeight: '1.5', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
@@ -418,8 +456,12 @@ export default function Resources() {
                   </p>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', borderTop: '1px solid #f3f4f6', paddingTop: '12px' }}>
-                  <span style={{ color: '#9ca3af', fontSize: '12px' }}>👤 {art.author}</span>
-                  <span style={{ color: '#4f46e5', fontSize: '12px', fontWeight: 'bold' }}>⏱️ {art.readTime} min read</span>
+                  <span style={{ color: '#9ca3af', fontSize: '12px' }}>
+                    {lang === 'si' ? 'කර්තෘ: ' : 'By: '}{art.author}
+                  </span>
+                  <span style={{ color: '#4f46e5', fontSize: '12px', fontWeight: 'bold' }}>
+                    {art.readTime} {lang === 'si' ? 'min කියවීම' : 'min read'}
+                  </span>
                 </div>
               </div>
             ))}
@@ -440,6 +482,38 @@ export default function Resources() {
               ✕
             </button>
 
+            {articlePairs[activeArticle.title] && (
+               <button
+                 onClick={() => {
+                   const targetTitle = articlePairs[activeArticle.title]
+                   const counterpart = articles.find(a => a.title === targetTitle)
+                   if (counterpart) {
+                     setActiveArticle(counterpart)
+                   }
+                 }}
+                 style={{
+                   position: 'absolute',
+                   top: '24px',
+                   right: '68px',
+                   padding: '6px 14px',
+                   background: '#f3f4f6',
+                   color: '#4f46e5',
+                   border: '1px solid #e5e7eb',
+                   borderRadius: '16px',
+                   cursor: 'pointer',
+                   fontSize: '12px',
+                   fontWeight: 'bold',
+                   display: 'flex',
+                   alignItems: 'center',
+                   gap: '6px',
+                   transition: 'all 0.2s',
+                   boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                 }}
+               >
+                 🌐 {activeArticle.lang === 'si' ? 'Read in English' : 'සිංහලෙන් කියවන්න'}
+               </button>
+             )}
+
             <span style={{
               background: activeArticle.category === 'Stress' ? '#fee2e2' : activeArticle.category === 'Anxiety' ? '#fef3c7' : activeArticle.category === 'Sleep' ? '#dbeafe' : '#d1fae5',
               color: activeArticle.category === 'Stress' ? '#991b1b' : activeArticle.category === 'Anxiety' ? '#92400e' : activeArticle.category === 'Sleep' ? '#1e40af' : '#065f46',
@@ -449,12 +523,12 @@ export default function Resources() {
               fontWeight: 'bold',
               textTransform: 'uppercase'
             }}>
-              {activeArticle.category}
+              {categoryTranslations[lang]?.[activeArticle.category] || activeArticle.category}
             </span>
 
             <h2 style={{ color: '#1f2937', marginTop: '16px', marginBottom: '8px', fontSize: '24px' }}>{activeArticle.title}</h2>
             <div style={{ color: '#9ca3af', fontSize: '13px', marginBottom: '24px' }}>
-              Written by <strong>{activeArticle.author}</strong> • {activeArticle.readTime} min read
+              {lang === 'si' ? 'කර්තෘ: ' : 'Written by '}<strong>{activeArticle.author}</strong> • {activeArticle.readTime} {lang === 'si' ? 'min කියවීම' : 'min read'}
             </div>
 
             <div style={{ color: '#374151', fontSize: '15px', lineHeight: '1.8', whiteSpace: 'pre-line' }}>
@@ -466,7 +540,7 @@ export default function Resources() {
                 onClick={() => setActiveArticle(null)}
                 style={{ padding: '10px 20px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer' }}
               >
-                Close Article
+                {lang === 'si' ? 'ලිපිය වසන්න' : 'Close Article'}
               </button>
             </div>
 

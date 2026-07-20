@@ -8,6 +8,7 @@ export default function Dashboard() {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [supportMessage, setSupportMessage] = useState(null)
 
   const token = localStorage.getItem('token')
 
@@ -17,6 +18,7 @@ export default function Dashboard() {
       return
     }
     fetchProfileAndData()
+    checkSupportMessages()
   }, [navigate])
 
   const fetchProfileAndData = async () => {
@@ -35,6 +37,21 @@ export default function Dashboard() {
       handleLogout()
     } finally {
       setLoading(false)
+    }
+  }
+
+  const checkSupportMessages = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/api/messages/admin-support`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      // Find the latest message sent by counselor or admin
+      const latestSupportMsg = res.data.slice().reverse().find(msg => msg.sender?.role === 'counsellor' || msg.sender?.role === 'admin')
+      if (latestSupportMsg) {
+        setSupportMessage(latestSupportMsg)
+      }
+    } catch (err) {
+      console.error('Error checking support messages:', err)
     }
   }
 
@@ -109,7 +126,7 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: '#f0f4f8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <h3>⏳ Loading MindSpace Dashboard...</h3>
+        <h3>Loading MindSpace Dashboard...</h3>
       </div>
     )
   }
@@ -122,11 +139,48 @@ export default function Dashboard() {
 
       <div style={{ padding: '40px 32px', maxWidth: '1000px', margin: '0 auto' }}>
         
+        {/* Urgent Support Message Banner */}
+        {supportMessage && (
+          <div 
+            onClick={() => navigate('/anonymous-chat', { state: { defaultTab: 'admin' } })}
+            style={{ 
+              background: 'linear-gradient(135deg, #fee2e2, #fecaca)', 
+              borderLeft: '6px solid #ef4444', 
+              borderRadius: '16px', 
+              padding: '20px', 
+              marginBottom: '24px', 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(239, 68, 68, 0.1)',
+              transition: 'transform 0.2s',
+              flexWrap: 'wrap',
+              gap: '16px'
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.01)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            <div style={{ flex: '1 1 300px' }}>
+              <span style={{ fontSize: '11px', background: '#ef4444', color: 'white', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}>Urgent Advisor Message</span>
+              <h4 style={{ margin: '8px 0 4px', color: '#7f1d1d', fontSize: '16.5px', fontWeight: 'bold' }}>Your counselor initiated a private live support session:</h4>
+              <p style={{ margin: 0, fontSize: '14.5px', color: '#991b1b', fontStyle: 'italic', fontWeight: '500' }}>
+                "{supportMessage.text}"
+              </p>
+            </div>
+            <button 
+              style={{ padding: '10px 20px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', boxShadow: '0 2px 6px rgba(239, 68, 68, 0.2)' }}
+            >
+              Reply Immediately 💬
+            </button>
+          </div>
+        )}
+
         {/* Custom Admin Recommendation Banner */}
         {customRec && (customRec.game || customRec.activity) && (
           <div style={{ background: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)', borderLeft: '6px solid #4f46e5', borderRadius: '16px', padding: '20px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
             <div style={{ flex: '1 1 300px' }}>
-              <span style={{ fontSize: '11px', background: '#4f46e5', color: 'white', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}>🎯 Advisor Custom Suggestion</span>
+              <span style={{ fontSize: '11px', background: '#4f46e5', color: 'white', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}>Advisor Custom Suggestion</span>
               <h4 style={{ margin: '8px 0 4px', color: '#1e1b4b', fontSize: '16px' }}>Your counselor recommended a relaxation exercise:</h4>
               <p style={{ margin: 0, fontSize: '14px', color: '#312e81', fontStyle: 'italic' }}>
                 "{customRec.activity || 'Take some time out to pop bubbles and calm your thoughts.'}"
@@ -142,7 +196,7 @@ export default function Dashboard() {
                 onClick={() => navigate('/mood')}
                 style={{ padding: '10px 20px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
               >
-                🎮 Play Game
+                Play Game
               </button>
             )}
           </div>
@@ -184,7 +238,7 @@ export default function Dashboard() {
         {/* Quote */}
         <div style={{ background: 'white', padding: '24px', borderRadius: '16px', borderLeft: '4px solid #4f46e5', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
           <p style={{ color: '#4f46e5', fontStyle: 'italic', fontSize: '16.5px', lineHeight: '1.5', margin: '0 0 10px 0' }}>"{getDailyReminder()}"</p>
-          <p style={{ color: '#9ca3af', margin: 0, fontSize: '13.5px', fontWeight: '500' }}>— Daily Reminder • {getFormattedDate()}</p>
+          <p style={{ color: '#9ca3af', margin: 0, fontSize: '13.5px', fontWeight: '500' }}>— Daily Reminder —      {getFormattedDate()}</p>
         </div>
 
       </div>

@@ -1514,16 +1514,42 @@ export default function MoodTracker() {
     }
   }
 
+  // Helper: Get Supported Audio MimeType for Safari/Chrome/iOS
+  const getSupportedMimeType = () => {
+    if (typeof MediaRecorder === 'undefined') return ''
+    const types = [
+      'audio/mp4',
+      'audio/aac',
+      'audio/mpeg',
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/ogg;codecs=opus'
+    ]
+    for (const type of types) {
+      if (MediaRecorder.isTypeSupported(type)) {
+        return type
+      }
+    }
+    return ''
+  }
+
   // Voice recording triggers
   const startAudioRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const recorder = new MediaRecorder(stream)
+      const mimeType = getSupportedMimeType()
+      const options = mimeType ? { mimeType } : {}
+      const recorder = new MediaRecorder(stream, options)
       const chunks = []
       
-      recorder.ondataavailable = (e) => chunks.push(e.data)
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          chunks.push(e.data)
+        }
+      }
       recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: 'audio/webm' })
+        const actualType = recorder.mimeType || mimeType || 'audio/mp4'
+        const blob = new Blob(chunks, { type: actualType })
         const url = URL.createObjectURL(blob)
         setAudioBlobUrl(url)
         
@@ -1534,7 +1560,7 @@ export default function MoodTracker() {
         reader.readAsDataURL(blob)
       }
       
-      recorder.start()
+      recorder.start(100)
       setAudioRecorder(recorder)
       setIsRecording(true)
     } catch(err) {
@@ -3465,7 +3491,7 @@ export default function MoodTracker() {
               </div>
 
 
-              {/* Step 6: Extras Weather/Music & What Helped */}
+              {/*Extras Weather/Music & What Helped */}
               <label style={{ display: 'block', color: '#475569', fontWeight: '700', marginBottom: '10px', fontSize: '13.5px' }}>6. Unique Factors & Integration</label>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
@@ -3776,7 +3802,7 @@ export default function MoodTracker() {
         {/* TAB 3: BADGES & HEATMAP */}
         {activeTab === 'gamification' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
-            
+            /
             {/* Heatmap calendar */}
             <div>
               {renderHeatmap()}

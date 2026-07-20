@@ -89,7 +89,6 @@ export default function Login() {
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ background: 'white', padding: '40px', borderRadius: '20px', width: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
           <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-            <div style={{ fontSize: '48px' }}>🔑</div>
             <h2 style={{ color: '#4f46e5', fontSize: '24px' }}>Reset Password</h2>
             <p style={{ color: '#6b7280', fontSize: '14px' }}>MindSpace Security Console</p>
           </div>
@@ -114,13 +113,13 @@ export default function Login() {
                 disabled={loading}
                 style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}
               >
-                {loading ? '⏳ Processing...' : '✉️ Request Reset Code'}
+                {loading ? 'Processing...' : 'Request Reset Code'}
               </button>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '12px', fontSize: '12.5px', color: '#1e3a8a', fontWeight: '500', lineHeight: '1.4' }}>
-                🔑 Dev Mode Reset Code: <strong style={{ color: '#2563eb', fontSize: '13.5px' }}>123456</strong>
+                Dev Mode Reset Code: <strong style={{ color: '#2563eb', fontSize: '13.5px' }}>123456</strong>
               </div>
               <div>
                 <label style={{ display: 'block', color: '#4b5563', fontWeight: '600', marginBottom: '6px', fontSize: '12.5px' }}>Verification Code:</label>
@@ -148,7 +147,7 @@ export default function Login() {
                 disabled={loading}
                 style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}
               >
-                {loading ? '⏳ Updating...' : '🔒 Reset Password'}
+                {loading ? 'Updating...' : 'Reset Password'}
               </button>
             </div>
           )}
@@ -211,7 +210,7 @@ export default function Login() {
 
         <button onClick={handleSubmit} disabled={loading}
           style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: '600', cursor: 'pointer' }}>
-          {loading ? '⏳ Please wait...' : isLogin ? '🔐 Login' : '🚀 Create Account'}
+          {loading ? 'Please wait...' : isLogin ? 'Login' : 'Create Account'}
         </button>
       </div>
     </div>

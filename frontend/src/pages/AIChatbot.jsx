@@ -258,10 +258,10 @@ export default function AIChatbot() {
           {/* Header & Language Toggle */}
           <div style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', padding: '20px 24px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div style={{ fontSize: '36px', background: 'rgba(255,255,255,0.2)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✨</div>
+              <div style={{ fontSize: '24px', background: 'rgba(255,255,255,0.2)', width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>AI</div>
               <div>
                 <h2 style={{ color: 'white', fontSize: '18px', margin: 0 }}>Aura</h2>
-                <span style={{ fontSize: '12px', opacity: 0.85 }}>✨ Online | AI Mental Health Companion</span>
+                <span style={{ fontSize: '12px', opacity: 0.85 }}>Online | AI Mental Health Companion</span>
               </div>
             </div>
 
@@ -338,17 +338,17 @@ export default function AIChatbot() {
           <div style={{ padding: '12px 24px', background: '#f9fafb', borderTop: '1px solid #f3f4f6', display: 'flex', gap: '8px', overflowX: 'auto' }}>
             {lang === 'en' ? (
               <>
-                <button onClick={() => setInput("I'm feeling very stressed about my exams.")} style={{ padding: '6px 12px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '20px', fontSize: '12px', color: '#4b5563', cursor: 'pointer', whiteSpace: 'nowrap' }}>📚 Academic Stress</button>
-                <button onClick={() => setInput("I feel really anxious right now.")} style={{ padding: '6px 12px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '20px', fontSize: '12px', color: '#4b5563', cursor: 'pointer', whiteSpace: 'nowrap' }}>😰 Anxiety Relief</button>
-                <button onClick={() => setInput("I'm feeling lonely.")} style={{ padding: '6px 12px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '20px', fontSize: '12px', color: '#4b5563', cursor: 'pointer', whiteSpace: 'nowrap' }}>👤 Feeling Lonely</button>
-                <button onClick={() => setInput("Help, I need to talk to someone urgently.")} style={{ padding: '6px 12px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '20px', fontSize: '12px', color: '#b91c1c', cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 'bold' }}>🚨 Emergency Help</button>
+                <button onClick={() => setInput("I'm feeling very stressed about my exams.")} style={{ padding: '6px 12px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '20px', fontSize: '12px', color: '#4b5563', cursor: 'pointer', whiteSpace: 'nowrap' }}>Academic Stress</button>
+                <button onClick={() => setInput("I feel really anxious right now.")} style={{ padding: '6px 12px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '20px', fontSize: '12px', color: '#4b5563', cursor: 'pointer', whiteSpace: 'nowrap' }}>Anxiety Relief</button>
+                <button onClick={() => setInput("I'm feeling lonely.")} style={{ padding: '6px 12px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '20px', fontSize: '12px', color: '#4b5563', cursor: 'pointer', whiteSpace: 'nowrap' }}>Feeling Lonely</button>
+                <button onClick={() => setInput("Help, I need to talk to someone urgently.")} style={{ padding: '6px 12px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '20px', fontSize: '12px', color: '#b91c1c', cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 'bold' }}>Emergency Help</button>
               </>
             ) : (
               <>
-                <button onClick={() => setInput("මට මගේ විභාග ගැන ලොකු ස්ට්‍රෙස් එකක් තියෙනවා.")} style={{ padding: '6px 12px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '20px', fontSize: '12px', color: '#4b5563', cursor: 'pointer', whiteSpace: 'nowrap' }}>📚 විභාග පීඩනය</button>
-                <button onClick={() => setInput("මට ලොකු බයක් සහ නොසන්සුන්කමක් දැනෙනවා.")} style={{ padding: '6px 12px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '20px', fontSize: '12px', color: '#4b5563', cursor: 'pointer', whiteSpace: 'nowrap' }}>😰 නොසන්සුන්කම</button>
-                <button onClick={() => setInput("මට ගොඩක් පාළුයි වගේ දැනෙනවා.")} style={{ padding: '6px 12px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '20px', fontSize: '12px', color: '#4b5563', cursor: 'pointer', whiteSpace: 'nowrap' }}>👤 හුදකලා බවක්</button>
-                <button onClick={() => setInput("මට හදිසි උපකාර අවශ්‍යයි.")} style={{ padding: '6px 12px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '20px', fontSize: '12px', color: '#b91c1c', cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 'bold' }}>🚨 හදිසි සහය</button>
+                <button onClick={() => setInput("මට මගේ විභාග ගැන ලොකු ස්ට්‍රෙස් එකක් තියෙනවා.")} style={{ padding: '6px 12px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '20px', fontSize: '12px', color: '#4b5563', cursor: 'pointer', whiteSpace: 'nowrap' }}>විභාග පීඩනය</button>
+                <button onClick={() => setInput("මට ලොකු බයක් සහ නොසන්සුන්කමක් දැනෙනවා.")} style={{ padding: '6px 12px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '20px', fontSize: '12px', color: '#4b5563', cursor: 'pointer', whiteSpace: 'nowrap' }}>නොසන්සුන්කම</button>
+                <button onClick={() => setInput("මට ගොඩක් පාළුයි වගේ දැනෙනවා.")} style={{ padding: '6px 12px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '20px', fontSize: '12px', color: '#4b5563', cursor: 'pointer', whiteSpace: 'nowrap' }}>හුදකලා බවක්</button>
+                <button onClick={() => setInput("මට හදිසි උපකාර අවශ්‍යයි.")} style={{ padding: '6px 12px', background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: '20px', fontSize: '12px', color: '#b91c1c', cursor: 'pointer', whiteSpace: 'nowrap', fontWeight: 'bold' }}>හදිසි සහය</button>
               </>
             )}
           </div>
@@ -375,7 +375,7 @@ export default function AIChatbot() {
                 cursor: 'pointer'
               }}
             >
-              {lang === 'en' ? 'Send 🚀' : 'යවන්න 🚀'}
+              {lang === 'en' ? 'Send' : 'යවන්න'}
             </button>
           </form>
 

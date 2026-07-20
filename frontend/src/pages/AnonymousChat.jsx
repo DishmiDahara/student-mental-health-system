@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import io from 'socket.io-client'
 import axios from 'axios'
@@ -13,7 +13,8 @@ const animalAliases = [
 
 export default function AnonymousChat() {
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState('peer') // 'peer' or 'admin'
+  const location = useLocation()
+  const [activeTab, setActiveTab] = useState(location.state?.defaultTab || 'peer') // 'peer' or 'admin'
   const [user, setUser] = useState(null)
   
   // Peer Chat Matchmaking states
@@ -66,7 +67,7 @@ export default function AnonymousChat() {
     const socket = socketRef.current
     if (!socket || !user) return
 
-    socket.emit('join_room', `admin-support-${user.id}`)
+    socket.emit('join_room', `admin-support-${user.id || user._id}`)
 
     // Handle matchmaking matched
     socket.on('peer_matched', (data) => {
@@ -105,7 +106,7 @@ export default function AnonymousChat() {
           if (prev.some(m => m._id === msg._id)) return prev
           return [...prev, msg]
         })
-      } else if (msg.room === `admin-support-${user.id}`) {
+      } else if (msg.room === `admin-support-${user.id || user._id}`) {
         setAdminMessages(prev => {
           if (prev.some(m => m._id === msg._id)) return prev
           return [...prev, msg]
@@ -187,10 +188,10 @@ export default function AnonymousChat() {
     if (!adminInput.trim() || !socketRef.current || !user) return
 
     socketRef.current.emit('send_message', {
-      sender: user.id,
+      sender: user.id || user._id,
       receiver: null, // Admin
       text: adminInput.trim(),
-      room: `admin-support-${user.id}`,
+      room: `admin-support-${user.id || user._id}`,
       senderName: user.name
     })
     setAdminInput('')
@@ -420,7 +421,9 @@ export default function AnonymousChat() {
                 </div>
               ) : (
                 adminMessages.map((msg, index) => {
-                  const isOwnMessage = msg.sender?._id === user?.id || msg.sender === user?.id
+                  const currentUserId = user?.id || user?._id
+                  const messageSenderId = msg.sender?._id || msg.sender
+                  const isOwnMessage = currentUserId && messageSenderId && (messageSenderId.toString() === currentUserId.toString())
                   const senderRole = msg.sender?.role || (isOwnMessage ? 'student' : 'admin')
                   return (
                     <div 

@@ -72,12 +72,17 @@ router.get('/', auth, async (req, res) => {
   }
 })
 
-// Update booking status
+// Update booking status (Only assigned counselor can approve/reject)
 router.put('/:id', auth, async (req, res) => {
   try {
-    if (req.user.role !== 'admin' && req.user.role !== 'counsellor') {
-      return res.status(403).json({ message: 'Access denied: Counsellors/Admins only' })
+    const bookingCheck = await Booking.findById(req.params.id)
+    if (!bookingCheck) return res.status(404).json({ message: 'Booking not found' })
+
+    // Enforce that only the assigned counselor has access to update status
+    if (req.user.role !== 'counsellor' || bookingCheck.counsellor.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied: Only the assigned counselor can approve/reject this booking' })
     }
+
     const { status, rejectionReason } = req.body
     if (!['pending', 'approved', 'rejected', 'cancelled'].includes(status)) {
       return res.status(400).json({ message: 'Invalid status' })
@@ -96,8 +101,6 @@ router.put('/:id', auth, async (req, res) => {
       { new: true }
     ).populate('student', 'name email').populate('counsellor', 'name email profilePhoto')
 
-    if (!booking) return res.status(404).json({ message: 'Booking not found' })
-
     // If status is approved, send automated confirmation message and trigger payment creation
     if (status === 'approved') {
       const Message = require('../models/Message')
@@ -109,8 +112,8 @@ router.put('/:id', auth, async (req, res) => {
         senderName: booking.counsellor ? booking.counsellor.name : 'System'
       })
 
-      // Create or update payment log for Counselor
-      if (booking.counsellor) {
+      // Create or update payment log for Counselor only if the student has paid
+      if (booking.counsellor && booking.paymentStatus === 'paid') {
         let payment = await Payment.findOne({ booking: booking._id })
         if (!payment) {
           await Payment.create({
@@ -157,6 +160,23 @@ router.put('/:id/pay', auth, async (req, res) => {
     booking.paymentStatus = 'paid'
     booking.paymentDetails = paymentDetails || {}
     await booking.save()
+
+    // If the booking is already approved, trigger counselor payout payment creation
+    if (booking.status === 'approved' && booking.counsellor) {
+      let payment = await Payment.findOne({ booking: booking._id })
+      if (!payment) {
+        await Payment.create({
+          counsellor: booking.counsellor,
+          booking: booking._id,
+          student: booking.student,
+          amount: 1500,
+          status: 'pending'
+        })
+      } else {
+        payment.status = 'pending'
+        await payment.save()
+      }
+    }
 
     res.json(booking)
   } catch (err) {

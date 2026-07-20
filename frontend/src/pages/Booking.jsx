@@ -213,6 +213,7 @@ export default function Booking() {
   const [feedbackMsg, setFeedbackMsg] = useState('')
   const [feedbackLoading, setFeedbackLoading] = useState(false)
   const [feedbackStatusMsg, setFeedbackStatusMsg] = useState('')
+  const [showFeedbackSuccessModal, setShowFeedbackSuccessModal] = useState(false)
 
   // Chat States
   const [activeChatBooking, setActiveChatBooking] = useState(null)
@@ -311,7 +312,7 @@ export default function Booking() {
     setPaymentCardCvc(val)
   }
 
-  const handleBooking = (e) => {
+  const handleBooking = async (e) => {
     e.preventDefault()
     if (!selectedCounsellor || !selectedDate || !selectedSlot) {
       setMessage({ text: 'Please fill in all booking fields.', type: 'error' })
@@ -327,22 +328,31 @@ export default function Booking() {
     const chosenCounsellorObj = counsellorList.find(c => c.name === selectedCounsellor)
     const counsellorId = chosenCounsellorObj ? chosenCounsellorObj.id : null
 
-    // Pre-populate card name with user name if available
-    setPaymentCardName(currentUser?.name || '')
-    setPaymentCardNum('')
-    setPaymentCardExpiry('')
-    setPaymentCardCvc('')
-    setPaymentError('')
-    
-    // Save temp data and open payment checkout modal
-    setBookingTempData({
-      counsellorId,
-      counsellorName: selectedCounsellor,
-      date: selectedDate,
-      timeSlot: selectedSlot,
-      note
-    })
-    setShowPaymentModal(true)
+    setPaymentProcessing(true)
+    try {
+      await axios.post(`${API_URL}/api/bookings`, 
+        { 
+          counsellorId,
+          counsellorName: selectedCounsellor,
+          date: selectedDate,
+          timeSlot: selectedSlot,
+          note,
+          paymentStatus: 'unpaid'
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      setMessage({ text: `📅 Appointment requested successfully! Please wait for Counselor approval. Once approved, you can complete the LKR 1,500 payment.`, type: 'success' })
+      
+      setSelectedCounsellor('')
+      setSelectedDate('')
+      setSelectedSlot('')
+      setNote('')
+      fetchBookings()
+    } catch (err) {
+      setMessage({ text: err.response?.data?.message || 'Failed to request appointment.', type: 'error' })
+    } finally {
+      setPaymentProcessing(false)
+    }
   }
 
   const handleCompletePaymentAndBook = async (e) => {
@@ -395,22 +405,6 @@ export default function Booking() {
           )
           setMessage({ text: `💳 Payment successful (Txn ID: ${transactionId})! Session marked as paid.`, type: 'success' })
           setPayingBookingId(null)
-        } else {
-          // Create a new booking
-          await axios.post(`${API_URL}/api/bookings`, 
-            { 
-              ...bookingTempData, 
-              paymentStatus: 'paid',
-              paymentDetails: {
-                cardHolderName: paymentCardName,
-                cardNumberMasked: maskedCard,
-                transactionId,
-                paidAt: new Date()
-              }
-            },
-            { headers: { Authorization: `Bearer ${token}` } }
-          )
-          setMessage({ text: `💳 Payment successful (Txn ID: ${transactionId})! Session booked successfully.`, type: 'success' })
         }
         
         setSelectedCounsellor('')
@@ -516,6 +510,7 @@ export default function Booking() {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       setFeedbackStatusMsg('✅ Feedback submitted successfully to Administrators.')
+      setShowFeedbackSuccessModal(true)
       setFeedbackSubject('')
       setFeedbackMsg('')
     } catch (err) {
@@ -527,10 +522,10 @@ export default function Booking() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'approved': return { bg: '#d1fae5', text: '#065f46', label: '✅ Approved' }
-      case 'rejected': return { bg: '#fee2e2', text: '#991b1b', label: '❌ Rejected' }
-      case 'cancelled': return { bg: '#fee2e2', text: '#991b1b', label: '❌ Cancelled' }
-      default: return { bg: '#fef3c7', text: '#92400e', label: '⏳ Pending' }
+      case 'approved': return { bg: '#d1fae5', text: '#065f46', label: 'Approved' }
+      case 'rejected': return { bg: '#fee2e2', text: '#991b1b', label: 'Rejected' }
+      case 'cancelled': return { bg: '#fee2e2', text: '#991b1b', label: 'Cancelled' }
+      default: return { bg: '#fef3c7', text: '#92400e', label: 'Pending' }
     }
   }
 
@@ -543,7 +538,7 @@ export default function Booking() {
         {/* Booking Form or Counselor Portal */}
         {currentUser?.role === 'counsellor' ? (
           <div style={{ background: 'white', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', gap: '20px', height: 'fit-content' }}>
-            <h2 style={{ color: '#1f2937', marginBottom: '4px' }}>🤝 Counselor Portal</h2>
+            <h2 style={{ color: '#1f2937', marginBottom: '4px' }}>Counselor Portal</h2>
             <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '16px' }}>Manage student appointment bookings and conduct secure chat sessions.</p>
 
             <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -586,7 +581,6 @@ export default function Booking() {
             {matchStep === 0 ? (
               /* --- LANDING STATE --- */
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                <div style={{ fontSize: '50px', marginBottom: '16px' }}>🤝</div>
                 <h2 style={{ color: '#1f2937', marginBottom: '8px', fontSize: '24px', fontWeight: 'bold' }}>Find Your Perfect Advisor Match</h2>
                 <p style={{ color: '#6b7280', fontSize: '15px', lineHeight: '1.6', marginBottom: '28px', maxWidth: '480px', margin: '0 auto 28px' }}>
                   Answer a few simple questions about your needs and preferences. We will match you with the counselor best suited for you.
@@ -609,7 +603,7 @@ export default function Booking() {
                     maxWidth: '280px'
                   }}
                 >
-                  🚀 Find My Advisor
+                  Find My Advisor
                 </button>
                 
                 <div style={{ marginTop: '20px' }}>
@@ -1396,7 +1390,7 @@ export default function Booking() {
                         </div>
                       )}
 
-                      {currentUser?.role === 'counsellor' && book.status === 'approved' && (
+                      {currentUser?.role === 'counsellor' && book.status === 'approved' && book.paymentStatus === 'paid' && (
                         <div style={{ display: 'flex', gap: '8px', marginTop: '8px', width: '100%' }}>
                           <button 
                             onClick={() => openBookingChat(book)}
@@ -1448,8 +1442,14 @@ export default function Booking() {
                         </div>
                       )}
 
+                      {currentUser?.role === 'counsellor' && book.status === 'approved' && book.paymentStatus === 'unpaid' && (
+                        <div style={{ fontSize: '12.5px', color: '#d97706', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', background: '#fffbeb', border: '1px solid #fde68a', padding: '8px 12px', borderRadius: '8px' }}>
+                          <span>⏳</span> Awaiting Student Session Payment
+                        </div>
+                      )}
+
                       {/* Student Actions */}
-                      {currentUser?.role !== 'counsellor' && book.paymentStatus === 'unpaid' && (
+                      {currentUser?.role !== 'counsellor' && book.status === 'approved' && book.paymentStatus === 'unpaid' && (
                         <button 
                           onClick={() => {
                             setPayingBookingId(book._id)
@@ -1483,8 +1483,14 @@ export default function Booking() {
                             boxShadow: '0 2px 6px rgba(245, 158, 11, 0.2)'
                           }}
                         >
-                          💳 Pay LKR 1,500
+                          💳 Pay LKR 1,500 & Start Session
                         </button>
+                      )}
+
+                      {currentUser?.role !== 'counsellor' && book.status === 'pending' && book.paymentStatus === 'unpaid' && (
+                        <div style={{ fontSize: '12.5px', color: '#4b5563', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', background: '#f3f4f6', border: '1px solid #e5e7eb', padding: '8px 12px', borderRadius: '8px' }}>
+                          <span>⏳</span> Counselor review pending. Payment available after approval.
+                        </div>
                       )}
 
                       {currentUser?.role !== 'counsellor' && book.status === 'approved' && book.counsellor && book.paymentStatus === 'paid' && (
@@ -1649,6 +1655,101 @@ export default function Booking() {
                 Submit Rejection
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Feedback Success Modal */}
+      {showFeedbackSuccessModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10000
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '28px',
+            width: '420px',
+            padding: '40px 32px',
+            textAlign: 'center',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            border: '1px solid rgba(226, 232, 240, 0.8)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '24px'
+          }}>
+            {/* Circular Green Checkmark Icon */}
+            <div style={{
+              width: '80px',
+              height: '80px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #10b981, #059669)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 10px 20px rgba(16, 185, 129, 0.3)',
+              fontSize: '40px',
+              color: 'white',
+              fontWeight: 'bold'
+            }}>
+              ✓
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <h3 style={{
+                color: '#047857',
+                fontSize: '24px',
+                fontWeight: '800',
+                margin: 0,
+                letterSpacing: '-0.5px'
+              }}>
+                Thank You!
+              </h3>
+              <p style={{
+                color: '#10b981',
+                fontSize: '16px',
+                fontWeight: '700',
+                lineHeight: '1.5',
+                margin: 0
+              }}>
+                Thank you for your feedback
+              </p>
+              <p style={{
+                color: '#64748b',
+                fontSize: '13.5px',
+                lineHeight: '1.5',
+                margin: 0,
+                padding: '0 10px'
+              }}>
+                We highly appreciate your response. Your complaints and feedback help us make the system better.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setShowFeedbackSuccessModal(false)}
+              style={{
+                width: '100%',
+                padding: '14px',
+                background: 'linear-gradient(135deg, #10b981, #059669)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '14px',
+                fontSize: '15px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                boxShadow: '0 8px 16px rgba(16, 185, 129, 0.2)',
+                transition: 'all 0.2s ease',
+                outline: 'none'
+              }}
+            >
+              Okay
+            </button>
           </div>
         </div>
       )}
@@ -1886,7 +1987,7 @@ export default function Booking() {
                   </>
                 ) : (
                   <>
-                    <span>🔒</span> Pay LKR 1,500.00 & Book
+                    <span>🔒</span> Pay LKR 1,500.00 & Confirm Session
                   </>
                 )}
               </button>

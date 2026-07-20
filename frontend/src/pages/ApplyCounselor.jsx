@@ -203,7 +203,7 @@ export default function ApplyCounselor() {
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: '#f0f4f8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <h3>⏳ Checking application status...</h3>
+        <h3>Checking application status...</h3>
       </div>
     )
   }
@@ -221,7 +221,6 @@ export default function ApplyCounselor() {
           <div style={{ background: 'white', padding: '40px', borderRadius: '24px', boxShadow: '0 4px 25px rgba(0,0,0,0.05)', textAlign: 'center' }}>
             {activeApp.status === 'pending' && (
               <>
-                <div style={{ fontSize: '64px', marginBottom: '20px' }}>⏳</div>
                 <h2 style={{ color: '#d97706', marginBottom: '12px' }}>Verification Under Review</h2>
                 <p style={{ color: '#4b5563', fontSize: '15px', lineHeight: '1.6', marginBottom: '24px' }}>
                   Your application to become a counselor has been submitted successfully. Our administrative staff will review your credentials, license number, and certificates shortly.
@@ -234,7 +233,6 @@ export default function ApplyCounselor() {
 
             {activeApp.status === 'approved' && (
               <>
-                <div style={{ fontSize: '64px', marginBottom: '20px' }}>✅</div>
                 <h2 style={{ color: '#10b981', marginBottom: '12px' }}>Application Approved!</h2>
                 <p style={{ color: '#4b5563', fontSize: '15px', lineHeight: '1.6', marginBottom: '24px' }}>
                   Congratulations! You have been verified as a Counselor. You are now registered on the bookings panel and can conduct sessions.
@@ -250,7 +248,6 @@ export default function ApplyCounselor() {
 
             {activeApp.status === 'rejected' && (
               <>
-                <div style={{ fontSize: '64px', marginBottom: '20px' }}>❌</div>
                 <h2 style={{ color: '#ef4444', marginBottom: '12px' }}>Application Rejected</h2>
                 <p style={{ color: '#4b5563', fontSize: '15px', lineHeight: '1.6', marginBottom: '24px' }}>
                   We were unable to verify your qualifications or professional license number. Please check your credentials and try again.
@@ -268,7 +265,7 @@ export default function ApplyCounselor() {
           
           // Case 2: Multi-step Application Wizard
           <div style={{ background: 'white', padding: '40px', borderRadius: '24px', boxShadow: '0 4px 25px rgba(0,0,0,0.05)' }}>
-            <h2 style={{ color: '#1f2937', marginBottom: '8px' }}>🤝 Counselor Verification Wizard</h2>
+            <h2 style={{ color: '#1f2937', marginBottom: '8px' }}>Counselor Verification Wizard</h2>
             <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '32px' }}>Provide your professional credentials. Approved applicants receive counsellor credentials.</p>
 
             {/* Steps Indicator */}
@@ -357,7 +354,7 @@ export default function ApplyCounselor() {
 
                 {/* Both-side Counselor ID Card Upload */}
                 <div style={{ background: '#f9fafb', padding: '16px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-                  <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#111827' }}>📁 Counselor ID Card Verification</h4>
+                  <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#111827' }}>Counselor ID Card Verification</h4>
                   
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                     <div>
@@ -435,7 +432,7 @@ export default function ApplyCounselor() {
                 <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
                   <button type="button" onClick={handleBack} style={{ flex: 1, padding: '14px', background: '#f3f4f6', color: '#4b5563', border: 'none', borderRadius: '12px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>← Back</button>
                   <button type="submit" disabled={submitting} style={{ flex: 1, padding: '14px', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', fontSize: '15px', cursor: 'pointer' }}>
-                    {submitting ? '⏳ Submitting...' : '🚀 Submit Verification'}
+                    {submitting ? 'Submitting...' : 'Submit Verification'}
                   </button>
                 </div>
               </form>

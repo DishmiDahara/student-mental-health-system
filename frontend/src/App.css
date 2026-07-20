@@ -7,8 +7,106 @@
 
 body {
   background: #f0f4f8;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+html {
+  width: 100%;
+  overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.navbar-actions::-webkit-scrollbar,
+.admin-sidebar-menu::-webkit-scrollbar {
+  display: none;
+}
+.navbar-actions,
+.admin-sidebar-menu {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Mobile Hamburger Button Display */
+.mobile-hamburger-btn {
+  display: none !important;
+}
+
+/* Mobile Responsive Optimization (Up to 1024px screen width) */
+@media (max-width: 1024px) {
+  body {
+    font-size: 14px;
+  }
+
+  .navbar-header {
+    padding: 10px 14px !important;
+  }
+
+  /* Completely hide horizontal desktop buttons on mobile/tablet */
+  .desktop-nav-menu {
+    display: none !important;
+  }
+  .desktop-logout-btn {
+    display: none !important;
+  }
+  
+  /* Display clean hamburger button (☰) */
+  .mobile-hamburger-btn {
+    display: flex !important;
+  }
+
+  /* Admin Dashboard Mobile Responsiveness */
+  .admin-dashboard-container {
+    flex-direction: column !important;
+  }
+  .admin-sidebar {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid #334155 !important;
+    padding: 16px 0 !important;
+  }
+  .admin-sidebar-menu {
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    padding: 0 14px 8px 14px !important;
+    gap: 8px !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .admin-sidebar-menu button {
+    flex: 0 0 auto !important;
+    padding: 8px 14px !important;
+    font-size: 12.5px !important;
+    border-radius: 8px !important;
+  }
+  .admin-main-content {
+    padding: 20px 14px !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Responsive Cards & Grids */
+  div[style*="display: grid"],
+  div[style*="display: flex"] {
+    max-width: 100%;
+  }
+
+  /* Prevent text overflow */
+  h1, h2, h3, p, span, button {
+    overflow-wrap: break-word;
+  }
+
+  /* Form inputs & buttons touch target optimization */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  select,
+  textarea,
+  button {
+    font-size: 14px !important;
+  }
 }

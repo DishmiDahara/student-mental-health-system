@@ -798,11 +798,28 @@ router.get('/counselor-view/:studentId', counselorAuth, async (req, res) => {
         emoji: m.emoji,
         note: m.note,
         trigger: m.trigger,
+        isCustomTrigger: m.isCustomTrigger,
         activities: m.activities,
         sleepHours: m.sleepHours,
         waterIntake: m.waterIntake,
         screenTime: m.screenTime,
-        date: new Date(m.createdAt).toLocaleDateString()
+        exerciseDuration: m.exerciseDuration,
+        energyLevel: m.energyLevel,
+        voiceNote: m.voiceNote,
+        photo: m.photo,
+        weather: m.weather,
+        music: m.music,
+        isExamPeriod: m.isExamPeriod,
+        color: m.color,
+        whatHelped: m.whatHelped,
+        aiSentiment: m.aiSentiment,
+        date: new Date(m.createdAt).toLocaleString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
       }))
     })
   } catch (err) {

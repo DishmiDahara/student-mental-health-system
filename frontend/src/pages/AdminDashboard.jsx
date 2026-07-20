@@ -14,6 +14,17 @@ export default function AdminDashboard() {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('analytics')
   const [currentUser, setCurrentUser] = useState(null)
+  const [adminMobileMenuOpen, setAdminMobileMenuOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 1024 : false)
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 1024)
+    }
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
   
   // Data lists
   const [users, setUsers] = useState([])
@@ -128,7 +139,7 @@ export default function AdminDashboard() {
         { game: counselGame, activity: counselActivity },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      setCounselMessage('🎯 Custom recommendation assigned successfully!')
+      setCounselMessage('Custom recommendation assigned successfully!')
       setCounselActivity('')
       // Reload student details to refresh local state
       const res = await axios.get(`${API_URL}/api/mood/counselor-view/${studentId}`, {
@@ -358,7 +369,7 @@ export default function AdminDashboard() {
       await axios.put(`${API_URL}/api/payments/${paymentId}/pay`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      alert('💸 Payout marked as paid successfully!')
+      alert('Payout marked as paid successfully!')
       fetchPayments()
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to process payment.')
@@ -418,7 +429,7 @@ export default function AdminDashboard() {
         { title: resTitle, content: resContent, category: resCategory, readTime: resReadTime },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      setResMessage('✅ Resource article added successfully!')
+      setResMessage('Resource article added successfully!')
       setResTitle('')
       setResContent('')
       setResReadTime(5)
@@ -436,7 +447,7 @@ export default function AdminDashboard() {
         editResource,
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      alert('✅ Resource article updated successfully!')
+      alert('Resource article updated successfully!')
       setEditResource(null)
       fetchResources()
     } catch (err) {
@@ -468,7 +479,7 @@ export default function AdminDashboard() {
         { game: recGame, activity: recActivity },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      alert('🎯 Custom recommendation assigned successfully!')
+      alert('Custom recommendation assigned successfully!')
       setRecActivity('')
       setRecUser('')
       fetchUsers() // reload stats
@@ -502,7 +513,7 @@ export default function AdminDashboard() {
         { title: announceTitle, content: announceContent, targetRole: announceTarget },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      setAnnounceMessage('📢 Announcement broadcasted successfully!')
+      setAnnounceMessage('Announcement broadcasted successfully!')
       setAnnounceTitle('')
       setAnnounceContent('')
       fetchAnnouncements()
@@ -517,7 +528,7 @@ export default function AdminDashboard() {
       await axios.delete(`${API_URL}/api/announcements/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      alert('📢 Announcement deleted successfully!')
+      alert('Announcement deleted successfully!')
       fetchAnnouncements()
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete announcement')
@@ -585,7 +596,7 @@ export default function AdminDashboard() {
         headers: { Authorization: `Bearer ${token}` }
       })
       
-      setBankUpdateMsg('🏦 Bank details updated successfully!')
+      setBankUpdateMsg('Bank details updated successfully!')
       setTimeout(() => setBankUpdateMsg(''), 4500)
       
       const updatedUser = { ...currentUser, bankDetails: res.data.bankDetails }
@@ -650,7 +661,7 @@ export default function AdminDashboard() {
     if (!chatInput.trim() || !socketRef.current || !currentUser || !activeStudentId) return
 
     socketRef.current.emit('send_message', {
-      sender: currentUser.id,
+      sender: currentUser.id || currentUser._id,
       receiver: activeStudentId,
       text: chatInput.trim(),
       room: `admin-support-${activeStudentId}`,
@@ -767,87 +778,209 @@ export default function AdminDashboard() {
   }))
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0f172a', color: '#e2e8f0', display: 'flex' }}>
+    <div className="admin-dashboard-container" style={{ minHeight: '100vh', background: '#0f172a', color: '#e2e8f0', display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}>
       
-      {/* Sidebar Navigation Panel */}
-      <div className="no-print" style={{ width: '280px', background: '#1e293b', borderRight: '1px solid #334155', display: 'flex', flexDirection: 'column', padding: '24px 0', flexShrink: 0 }}>
-        <div style={{ padding: '0 24px', marginBottom: '24px' }}>
-          <h1 style={{ color: '#6366f1', fontSize: '24px', margin: 0, fontWeight: 'bold' }}>🧠 MindSpace</h1>
-          <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            {currentUser?.role === 'admin' ? 'Admin Console' : 'Counselor Console'}
-          </span>
+      {/* Sidebar Navigation Panel (Desktop Only) */}
+      {!isMobile && (
+        <div className="no-print admin-sidebar" style={{ width: '280px', background: '#1e293b', borderRight: '1px solid #334155', display: 'flex', flexDirection: 'column', padding: '24px 0', flexShrink: 0 }}>
+          <div style={{ padding: '0 24px', marginBottom: '24px' }}>
+            <h1 style={{ color: '#6366f1', fontSize: '24px', margin: 0, fontWeight: 'bold' }}>🧠 MindSpace</h1>
+            <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px' }}>
+              {currentUser?.role === 'admin' ? 'Admin Console' : 'Counselor Console'}
+            </span>
+          </div>
+
+          <div className="admin-sidebar-menu" style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, overflowY: 'auto' }}>
+            {(() => {
+              const menuItems = [
+                { id: 'analytics', label: 'Mood Analytics' }
+              ]
+              if (currentUser?.role === 'admin') {
+                menuItems.push({ id: 'users', label: 'User Accounts' })
+                menuItems.push({ id: 'resources', label: 'Resources (Articles)' })
+              }
+              menuItems.push({ id: 'recommendation', label: 'Curate Games/Tips' })
+              if (currentUser?.role === 'admin') {
+                menuItems.push({ id: 'chats', label: 'Private Live Help' })
+                menuItems.push({ id: 'feedback', label: 'Complaints & Feedback' })
+                menuItems.push({ id: 'announcements', label: 'Post Announcements' })
+                menuItems.push({ id: 'monitoring', label: 'Activity Logs' })
+                menuItems.push({ id: 'moderator', label: 'Peer Chat Moderator' })
+                menuItems.push({ id: 'emergency', label: 'Emergency Alarms' })
+              }
+              menuItems.push({ id: 'bookings', label: 'Appointment Bookings' })
+              if (currentUser?.role === 'admin') {
+                menuItems.push({ id: 'reporting', label: 'Report Exporter' })
+                menuItems.push({ 
+                  id: 'counselorapps', 
+                  label: 'Counselor Approvals',
+                  badgeCount: counselorApps.filter(app => app.status === 'pending').length
+                })
+                menuItems.push({ id: 'payments', label: 'Counselor Payments' })
+              } else {
+                menuItems.push({ id: 'payments', label: 'My Earnings' })
+              }
+
+              return menuItems.map((item, index) => {
+                const labelNumber = index + 1
+                if (item.id === 'counselorapps') {
+                  return (
+                    <button 
+                      key={item.id}
+                      onClick={() => setActiveTab('counselorapps')} 
+                      style={{
+                        ...getSidebarButtonStyle(activeTab === 'counselorapps', true),
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <span>{labelNumber}. {item.label}</span>
+                      {item.badgeCount > 0 && (
+                        <span style={{
+                          background: '#ef4444',
+                          color: 'white',
+                          fontSize: '11px',
+                          padding: '2px 8px',
+                          borderRadius: '10px',
+                          fontWeight: 'bold',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                          marginRight: '12px'
+                        }}>
+                          {item.badgeCount}
+                        </span>
+                      )}
+                    </button>
+                  )
+                }
+
+                return (
+                  <button 
+                    key={item.id}
+                    onClick={() => setActiveTab(item.id)} 
+                    style={getSidebarButtonStyle(activeTab === item.id)}
+                  >
+                    {labelNumber}. {item.label}
+                  </button>
+                )
+              })
+            })()}
+          </div>
+
+          <div style={{ padding: '24px', borderTop: '1px solid #334155' }}>
+            <button onClick={() => navigate('/dashboard')} style={{ width: '100%', padding: '10px', background: '#334155', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>User Dashboard</button>
+          </div>
         </div>
+      )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, overflowY: 'auto' }}>
-          <button onClick={() => setActiveTab('analytics')} style={getSidebarButtonStyle(activeTab === 'analytics')}>1. Mood Analytics</button>
-          
-          {currentUser?.role === 'admin' && (
-            <>
-              <button onClick={() => setActiveTab('users')} style={getSidebarButtonStyle(activeTab === 'users')}>2. User Accounts</button>
-              <button onClick={() => setActiveTab('resources')} style={getSidebarButtonStyle(activeTab === 'resources')}>3. Resources (Articles)</button>
-            </>
-          )}
+      {/* Mobile Top Header & Hamburger Menu (Mobile Only) */}
+      {isMobile && (
+        <div style={{ background: '#1e293b', borderBottom: '1px solid #334155', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px', sticky: 'top', top: 0, zIndex: 100 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h1 style={{ color: '#6366f1', fontSize: '18px', margin: 0, fontWeight: 'bold' }}>🧠 MindSpace</h1>
+              <span style={{ fontSize: '10.5px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {currentUser?.role === 'admin' ? 'Admin Console' : 'Counselor Console'}
+              </span>
+            </div>
 
-          <button onClick={() => setActiveTab('recommendation')} style={getSidebarButtonStyle(activeTab === 'recommendation')}>4. Curate Games/Tips</button>
+            <button
+              onClick={() => setAdminMobileMenuOpen(!adminMobileMenuOpen)}
+              style={{
+                background: '#4f46e5',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                padding: '8px 14px',
+                fontWeight: 'bold',
+                fontSize: '14px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <span>{adminMobileMenuOpen ? '✕' : '☰'}</span> Menu
+            </button>
+          </div>
 
-          {currentUser?.role === 'admin' && (
-            <>
-              <button onClick={() => setActiveTab('chats')} style={getSidebarButtonStyle(activeTab === 'chats')}>5. Private Live Help</button>
-              <button onClick={() => setActiveTab('feedback')} style={getSidebarButtonStyle(activeTab === 'feedback')}>6. Complaints & Feedback</button>
-              <button onClick={() => setActiveTab('announcements')} style={getSidebarButtonStyle(activeTab === 'announcements')}>7. Post Announcements</button>
-              <button onClick={() => setActiveTab('monitoring')} style={getSidebarButtonStyle(activeTab === 'monitoring')}>8. Activity Logs</button>
-              <button onClick={() => setActiveTab('moderator')} style={getSidebarButtonStyle(activeTab === 'moderator')}>9. Peer Chat Moderator</button>
-              <button onClick={() => setActiveTab('emergency')} style={getSidebarButtonStyle(activeTab === 'emergency')}>10. Emergency Alarms</button>
-            </>
-          )}
+          {/* Collapsible Mobile Menu Drawer */}
+          {adminMobileMenuOpen && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingTop: '12px', borderTop: '1px solid #334155', maxHeight: '70vh', overflowY: 'auto' }}>
+              {(() => {
+                const menuItems = [
+                  { id: 'analytics', label: 'Mood Analytics' }
+                ]
+                if (currentUser?.role === 'admin') {
+                  menuItems.push({ id: 'users', label: 'User Accounts' })
+                  menuItems.push({ id: 'resources', label: 'Resources (Articles)' })
+                }
+                menuItems.push({ id: 'recommendation', label: 'Curate Games/Tips' })
+                if (currentUser?.role === 'admin') {
+                  menuItems.push({ id: 'chats', label: 'Private Live Help' })
+                  menuItems.push({ id: 'feedback', label: 'Complaints & Feedback' })
+                  menuItems.push({ id: 'announcements', label: 'Post Announcements' })
+                  menuItems.push({ id: 'monitoring', label: 'Activity Logs' })
+                  menuItems.push({ id: 'moderator', label: 'Peer Chat Moderator' })
+                  menuItems.push({ id: 'emergency', label: 'Emergency Alarms' })
+                }
+                menuItems.push({ id: 'bookings', label: 'Appointment Bookings' })
+                if (currentUser?.role === 'admin') {
+                  menuItems.push({ id: 'reporting', label: 'Report Exporter' })
+                  menuItems.push({ 
+                    id: 'counselorapps', 
+                    label: 'Counselor Approvals',
+                    badgeCount: counselorApps.filter(app => app.status === 'pending').length
+                  })
+                  menuItems.push({ id: 'payments', label: 'Counselor Payments' })
+                } else {
+                  menuItems.push({ id: 'payments', label: 'My Earnings' })
+                }
 
-          <button onClick={() => setActiveTab('bookings')} style={getSidebarButtonStyle(activeTab === 'bookings')}>11. Appointment Bookings</button>
+                return menuItems.map((item, index) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveTab(item.id);
+                      setAdminMobileMenuOpen(false);
+                    }}
+                    style={{
+                      padding: '12px 16px',
+                      background: activeTab === item.id ? '#6366f1' : '#0f172a',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '10px',
+                      fontWeight: activeTab === item.id ? 'bold' : '500',
+                      textAlign: 'left',
+                      fontSize: '13.5px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <span>{index + 1}. {item.label}</span>
+                    {item.badgeCount > 0 && (
+                      <span style={{ background: '#ef4444', color: 'white', fontSize: '11px', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>
+                        {item.badgeCount}
+                      </span>
+                    )}
+                  </button>
+                ))
+              })()}
 
-          {currentUser?.role === 'admin' && (
-            <>
-              <button onClick={() => setActiveTab('reporting')} style={getSidebarButtonStyle(activeTab === 'reporting')}>12. Report Exporter</button>
-              <button 
-                onClick={() => setActiveTab('counselorapps')} 
-                style={{
-                  ...getSidebarButtonStyle(activeTab === 'counselorapps', true),
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center'
-                }}
+              <button
+                onClick={() => { setAdminMobileMenuOpen(false); navigate('/dashboard'); }}
+                style={{ padding: '12px 16px', background: '#334155', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px', marginTop: '6px' }}
               >
-                <span>13. Counselor Approvals</span>
-                {counselorApps.filter(app => app.status === 'pending').length > 0 && (
-                  <span style={{
-                    background: '#ef4444',
-                    color: 'white',
-                    fontSize: '11px',
-                    padding: '2px 8px',
-                    borderRadius: '10px',
-                    fontWeight: 'bold',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                    marginRight: '12px'
-                  }}>
-                    {counselorApps.filter(app => app.status === 'pending').length}
-                  </span>
-                )}
+                ← Return to User Dashboard
               </button>
-            </>
-          )}
-
-          {currentUser?.role === 'admin' ? (
-            <button onClick={() => setActiveTab('payments')} style={getSidebarButtonStyle(activeTab === 'payments')}>14. Counselor Payments</button>
-          ) : (
-            <button onClick={() => setActiveTab('payments')} style={getSidebarButtonStyle(activeTab === 'payments')}>14. My Earnings</button>
+            </div>
           )}
         </div>
-
-        <div style={{ padding: '24px', borderTop: '1px solid #334155' }}>
-          <button onClick={() => navigate('/dashboard')} style={{ width: '100%', padding: '10px', background: '#334155', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>User Dashboard</button>
-        </div>
-      </div>
+      )}
 
       {/* Main Content Pane */}
-      <div style={{ flex: 1, padding: '40px', overflowY: 'auto', minWidth: 0 }}>
+      <div className="admin-main-content" style={{ flex: 1, padding: '40px', overflowY: 'auto', minWidth: 0 }}>
         
         {/* Dashboard Header with Welcome and Notification Bell */}
         <div style={{
@@ -868,135 +1001,174 @@ export default function AdminDashboard() {
           </div>
 
           {/* Notifications Bell Dropdown */}
-          {currentUser?.role === 'admin' && (
-            <div style={{ position: 'relative' }}>
-              <button 
-                onClick={() => setIsNotificationOpen(!isNotificationOpen)}
-                style={{
-                  background: '#1e293b',
-                  border: '1px solid #334155',
-                  borderRadius: '12px',
-                  padding: '10px 14px',
-                  color: 'white',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  position: 'relative',
-                  transition: 'all 0.2s',
-                  outline: 'none'
-                }}
-              >
-                <span style={{ fontSize: '18px' }}>🔔</span>
-                <span style={{ fontSize: '13px', fontWeight: '600' }}>Notifications</span>
-                {counselorApps.filter(app => app.status === 'pending').length > 0 && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '-5px',
-                    right: '-5px',
-                    background: '#ef4444',
+          {currentUser?.role === 'admin' && (() => {
+            const pendingAppCount = counselorApps.filter(app => app.status === 'pending').length;
+            const totalNotificationCount = pendingAppCount + announcements.length;
+
+            return (
+              <div style={{ position: 'relative' }}>
+                <button 
+                  onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                  style={{
+                    background: '#1e293b',
+                    border: '1px solid #334155',
+                    borderRadius: '12px',
+                    padding: '10px 14px',
                     color: 'white',
-                    fontSize: '10px',
-                    width: '18px',
-                    height: '18px',
-                    borderRadius: '50%',
+                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 'bold',
-                    boxShadow: '0 0 0 2px #0f172a'
-                  }}>
-                    {counselorApps.filter(app => app.status === 'pending').length}
-                  </span>
-                )}
-              </button>
-
-              {isNotificationOpen && (
-                <div style={{
-                  position: 'absolute',
-                  top: '48px',
-                  right: 0,
-                  width: '320px',
-                  background: '#1e293b',
-                  border: '1px solid #475569',
-                  borderRadius: '16px',
-                  boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
-                  zIndex: 2000,
-                  overflow: 'hidden',
-                  animation: 'fadeIn 0.2s'
-                }}>
-                  <div style={{
-                    padding: '14px 18px',
-                    borderBottom: '1px solid #334155',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    background: '#1e1b4b'
-                  }}>
-                    <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#cbd5e1' }}>System Notifications</span>
+                    gap: '8px',
+                    position: 'relative',
+                    transition: 'all 0.2s',
+                    outline: 'none'
+                  }}
+                >
+                  <span style={{ fontSize: '13px', fontWeight: '600' }}>Notifications</span>
+                  {totalNotificationCount > 0 && (
                     <span style={{
-                      fontSize: '11px',
-                      background: '#312e81',
-                      color: '#a5b4fc',
-                      padding: '2px 8px',
-                      borderRadius: '8px',
-                      fontWeight: 'bold'
+                      position: 'absolute',
+                      top: '-5px',
+                      right: '-5px',
+                      background: '#ef4444',
+                      color: 'white',
+                      fontSize: '10px',
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 'bold',
+                      boxShadow: '0 0 0 2px #0f172a'
                     }}>
-                      {counselorApps.filter(app => app.status === 'pending').length} Pending
+                      {totalNotificationCount}
                     </span>
-                  </div>
+                  )}
+                </button>
 
-                  <div style={{ maxHeight: '280px', overflowY: 'auto' }}>
-                    {counselorApps.filter(app => app.status === 'pending').length === 0 ? (
-                      <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
-                        <span style={{ fontSize: '24px', display: 'block', marginBottom: '8px' }}>🎉</span>
-                        No new counselor applications pending.
-                      </div>
-                    ) : (
-                      counselorApps.filter(app => app.status === 'pending').map(app => (
-                        <div key={app._id} style={{
-                          padding: '14px 18px',
-                          borderBottom: '1px solid #334155',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: '6px',
-                          transition: 'background 0.2s',
-                          cursor: 'pointer'
-                        }}
-                        onClick={() => {
-                          setActiveTab('counselorapps');
-                          setIsNotificationOpen(false);
-                        }}
-                        >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <span style={{ fontWeight: 'bold', fontSize: '13px', color: 'white' }}>{app.fullName}</span>
-                            <span style={{ fontSize: '10px', color: '#94a3b8' }}>
-                              {new Date(app.createdAt).toLocaleDateString()}
-                            </span>
+                {isNotificationOpen && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '48px',
+                    right: 0,
+                    width: '340px',
+                    background: '#1e293b',
+                    border: '1px solid #475569',
+                    borderRadius: '16px',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
+                    zIndex: 2000,
+                    overflow: 'hidden',
+                    animation: 'fadeIn 0.2s'
+                  }}>
+                    <div style={{
+                      padding: '14px 18px',
+                      borderBottom: '1px solid #334155',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      background: '#1e1b4b'
+                    }}>
+                      <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#cbd5e1' }}>System Notifications</span>
+                      <span style={{
+                        fontSize: '11px',
+                        background: '#312e81',
+                        color: '#a5b4fc',
+                        padding: '2px 8px',
+                        borderRadius: '8px',
+                        fontWeight: 'bold'
+                      }}>
+                        {totalNotificationCount} Total
+                      </span>
+                    </div>
+
+                    <div style={{ maxHeight: '320px', overflowY: 'auto' }}>
+                      {/* Section 1: Counselor Apps */}
+                      {pendingAppCount > 0 && (
+                        <div>
+                          <div style={{ background: '#0f172a', padding: '6px 18px', fontSize: '10.5px', color: '#818cf8', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            Applications ({pendingAppCount})
                           </div>
-                          <span style={{ fontSize: '11.5px', color: '#cbd5e1' }}>
-                            Applied as a Counselor ({app.specialization?.join(', ')})
-                          </span>
-                          <div style={{
-                            alignSelf: 'flex-start',
-                            marginTop: '4px',
-                            fontSize: '10.5px',
-                            color: '#818cf8',
-                            fontWeight: 'bold',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}>
-                            Review Details →
-                          </div>
+                          {counselorApps.filter(app => app.status === 'pending').map(app => (
+                            <div key={app._id} style={{
+                              padding: '12px 18px',
+                              borderBottom: '1px solid #334155',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '4px',
+                              transition: 'background 0.2s',
+                              cursor: 'pointer'
+                            }}
+                            onClick={() => {
+                              setActiveTab('counselorapps');
+                              setIsNotificationOpen(false);
+                            }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <span style={{ fontWeight: 'bold', fontSize: '12.5px', color: 'white' }}>{app.fullName}</span>
+                                <span style={{ fontSize: '9.5px', color: '#94a3b8' }}>
+                                  {new Date(app.createdAt).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <span style={{ fontSize: '11.5px', color: '#cbd5e1' }}>
+                                Applied as a Counselor ({app.specialization?.join(', ')})
+                              </span>
+                              <div style={{
+                                alignSelf: 'flex-start',
+                                marginTop: '4px',
+                                fontSize: '10.5px',
+                                color: '#818cf8',
+                                fontWeight: 'bold',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}>
+                                Review Details →
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))
-                    )}
+                      )}
+
+                      {/* Section 2: System Announcements */}
+                      {announcements.length > 0 && (
+                        <div>
+                          <div style={{ background: '#0f172a', padding: '6px 18px', fontSize: '10.5px', color: '#fbbf24', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                            Announcements ({announcements.length})
+                          </div>
+                          {announcements.map(ann => (
+                            <div key={ann._id} style={{
+                              padding: '12px 18px',
+                              borderBottom: '1px solid #334155',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '4px'
+                            }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+                                <span style={{ fontWeight: 'bold', fontSize: '12.5px', color: '#fbbf24', wordBreak: 'break-word', overflowWrap: 'break-word', flex: 1 }}>{ann.title}</span>
+                                <span style={{ fontSize: '9px', background: '#334155', color: '#fbbf24', padding: '1px 5px', borderRadius: '6px', textTransform: 'uppercase', fontWeight: 'bold', flexShrink: 0 }}>
+                                  {ann.targetRole}
+                                </span>
+                              </div>
+                              <p style={{ margin: 0, fontSize: '11.5px', color: '#cbd5e1', lineHeight: '1.4', wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}>
+                                {ann.content}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {totalNotificationCount === 0 && (
+                        <div style={{ padding: '32px 24px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                          No pending notifications or active announcements.
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Toast Notification Container */}
@@ -1069,38 +1241,7 @@ export default function AdminDashboard() {
           }
         `}</style>
 
-        {/* System Announcements Board */}
-        {announcements.length > 0 && (
-          <div style={{ 
-            background: '#1e293b', 
-            border: '1px solid #334155', 
-            borderRadius: '16px', 
-            padding: '20px', 
-            marginBottom: '24px', 
-            boxShadow: '0 4px 15px rgba(0,0,0,0.1)' 
-          }}>
-            <h3 style={{ color: '#fbbf24', margin: '0 0 12px', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}>
-              <span>📢</span> MindSpace System Announcements
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {announcements.map((ann, idx) => (
-                <div key={ann._id} style={{ 
-                  paddingBottom: idx === announcements.length - 1 ? '0' : '12px', 
-                  borderBottom: idx === announcements.length - 1 ? 'none' : '1px solid #334155',
-                  marginTop: idx > 0 ? '12px' : '0'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                    <h4 style={{ margin: 0, color: '#f8fafc', fontSize: '13.5px', fontWeight: 'bold' }}>{ann.title}</h4>
-                    <span style={{ fontSize: '9px', background: '#334155', color: '#fbbf24', padding: '1px 6px', borderRadius: '8px', textTransform: 'uppercase', fontWeight: 'bold' }}>
-                      {ann.targetRole}
-                    </span>
-                  </div>
-                  <p style={{ margin: 0, fontSize: '12.5px', color: '#cbd5e1', lineHeight: '1.4' }}>{ann.content}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+
         
         {/* TAB 1: Mood Analytics */}
         {activeTab === 'analytics' && (
@@ -1306,44 +1447,115 @@ export default function AdminDashboard() {
                   </h4>
                   <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '20px' }}>Historical mood logs, emoji ratings, sleep/lifestyle stats, and personal journal notes recorded by the student.</p>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '400px', overflowY: 'auto', paddingRight: '8px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '550px', overflowY: 'auto', paddingRight: '6px' }}>
                     {(!studentCounselData.moods || studentCounselData.moods.length === 0) ? (
                       <p style={{ color: '#94a3b8', fontStyle: 'italic', margin: '20px 0', textAlign: 'center' }}>No mood logs recorded yet.</p>
                     ) : (
                       studentCounselData.moods.map(log => (
-                        <div key={log.id} style={{ background: '#0f172a', padding: '16px', borderRadius: '14px', border: '1px solid #1e293b' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '10px', alignItems: 'center' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ fontSize: '24px' }}>{log.emoji}</span>
+                        <div key={log.id} style={{ background: '#0f172a', padding: '18px', borderRadius: '16px', border: '1px solid #334155', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+                          {/* Header row */}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '12px', alignItems: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <span style={{ fontSize: '28px' }}>{log.emoji}</span>
                               <div>
-                                <strong style={{ color: 'white', fontSize: '14px' }}>{log.label} ({log.value}/5)</strong>
-                                <span style={{ fontSize: '11px', color: '#94a3b8', display: 'block' }}>Trigger: <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>{log.trigger || 'None'}</span></span>
+                                <strong style={{ color: 'white', fontSize: '15px' }}>{log.label} ({log.value}/5)</strong>
+                                <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
+                                  Trigger: <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>{log.trigger || 'None'}</span>
+                                  {log.isExamPeriod && <span style={{ background: '#7c3aed', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '6px', marginLeft: '8px', fontWeight: 'bold' }}>📝 Exam Period</span>}
+                                </div>
                               </div>
                             </div>
-                            <span style={{ fontSize: '12px', color: '#6366f1', fontWeight: 'bold', background: 'rgba(99, 102, 241, 0.1)', padding: '4px 8px', borderRadius: '8px' }}>{log.date}</span>
+                            <span style={{ fontSize: '12px', color: '#818cf8', fontWeight: 'bold', background: 'rgba(99, 102, 241, 0.15)', padding: '6px 12px', borderRadius: '10px', border: '1px solid rgba(99, 102, 241, 0.3)' }}>{log.date}</span>
                           </div>
 
-                          {/* Journal notes */}
+                          {/* Journal Text Note */}
                           {log.note ? (
-                            <div style={{ background: '#1e293b', padding: '10px 14px', borderRadius: '8px', color: '#cbd5e1', fontSize: '12.5px', fontStyle: 'italic', marginBottom: '10px', borderLeft: '3px solid #6366f1' }}>
+                            <div style={{ background: '#1e293b', padding: '12px 16px', borderRadius: '10px', color: '#e2e8f0', fontSize: '13px', fontStyle: 'italic', marginBottom: '12px', borderLeft: '4px solid #6366f1', lineHeight: '1.5' }}>
                               "{log.note}"
                             </div>
                           ) : (
-                            <div style={{ color: '#64748b', fontSize: '12px', fontStyle: 'italic', marginBottom: '10px' }}>No journal notes attached.</div>
+                            <div style={{ color: '#64748b', fontSize: '12px', fontStyle: 'italic', marginBottom: '10px' }}>No journal notes written.</div>
                           )}
 
-                          {/* Activities & Lifestyle */}
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '11.5px', color: '#94a3b8' }}>
+                          {/* Voice Note Recording Audio Player */}
+                          {log.voiceNote && (
+                            <div style={{ background: '#1e293b', padding: '14px 16px', borderRadius: '12px', marginBottom: '12px', border: '1px solid #6366f1' }}>
+                              <div style={{ fontSize: '12.5px', color: '#a5b4fc', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '8px' }}>
+                                <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>🎙️ Voice Note Recording:</span>
+                                <button
+                                  onClick={() => {
+                                    const audio = new Audio(log.voiceNote)
+                                    audio.play().catch(err => alert('Playback error: ' + err.message))
+                                  }}
+                                  style={{
+                                    background: '#4f46e5',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    padding: '5px 12px',
+                                    fontSize: '11.5px',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  ▶ Play Voice
+                                </button>
+                              </div>
+                              <audio controls preload="auto" src={log.voiceNote} style={{ width: '100%', height: '40px', outline: 'none' }} />
+                            </div>
+                          )}
+
+                          {/* Attached Photo */}
+                          {log.photo && (
+                            <div style={{ background: '#1e293b', padding: '12px 14px', borderRadius: '12px', marginBottom: '12px', border: '1px solid #334155' }}>
+                              <div style={{ fontSize: '12px', color: '#a5b4fc', fontWeight: 'bold', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span>📷</span> Attached Photo Memory:
+                              </div>
+                              <img src={log.photo} alt="Journal Attachment" style={{ maxWidth: '100%', maxHeight: '250px', borderRadius: '10px', border: '1px solid #475569', objectFit: 'cover' }} />
+                            </div>
+                          )}
+
+                          {/* AI Sentiment Analysis */}
+                          {log.aiSentiment && log.aiSentiment.label && (
+                            <div style={{ background: '#1e1b4b', padding: '12px 14px', borderRadius: '10px', marginBottom: '12px', border: '1px solid #312e81' }}>
+                              <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#a5b4fc', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                🤖 AI Sentiment Analysis: 
+                                <span style={{ 
+                                  color: log.aiSentiment.label === 'Positive' ? '#34d399' : log.aiSentiment.label === 'Negative' ? '#f87171' : '#cbd5e1',
+                                  background: 'rgba(255,255,255,0.05)',
+                                  padding: '2px 8px',
+                                  borderRadius: '6px'
+                                }}>
+                                  {log.aiSentiment.label}
+                                </span>
+                              </div>
+                              {log.aiSentiment.suggestions && log.aiSentiment.suggestions.length > 0 && (
+                                <div style={{ fontSize: '11.5px', color: '#cbd5e1', marginTop: '6px', lineHeight: '1.4' }}>
+                                  💡 <strong style={{ color: '#818cf8' }}>Insight:</strong> {log.aiSentiment.suggestions[0]}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Lifestyle & Health Stats */}
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', fontSize: '12px', color: '#cbd5e1', background: '#1e293b', padding: '12px', borderRadius: '10px' }}>
                             {log.activities && log.activities.length > 0 && (
-                              <div>
-                                <span style={{ color: '#cbd5e1', fontWeight: 'bold' }}>Activities:</span> {log.activities.join(', ')}
+                              <div style={{ width: '100%', borderBottom: '1px solid #334155', paddingBottom: '6px', marginBottom: '2px' }}>
+                                <span style={{ color: '#94a3b8', fontWeight: 'bold' }}>Activities:</span> {log.activities.join(', ')}
                               </div>
                             )}
-                            <div style={{ display: 'flex', gap: '12px', flex: 1 }}>
-                              <span>🛌 Sleep: <strong>{log.sleepHours} hrs</strong></span>
-                              <span>💧 Water: <strong>{log.waterIntake} ml</strong></span>
-                              <span>📱 Screen: <strong>{log.screenTime} hrs</strong></span>
-                            </div>
+                            <div>🛌 Sleep: <strong style={{ color: '#60a5fa' }}>{log.sleepHours || 0} hrs</strong></div>
+                            <div>💧 Water: <strong style={{ color: '#38bdf8' }}>{log.waterIntake || 0} ml</strong></div>
+                            <div>📱 Screen: <strong style={{ color: '#f472b6' }}>{log.screenTime || 0} hrs</strong></div>
+                            {log.exerciseDuration > 0 && <div>🏃 Exercise: <strong style={{ color: '#4ade80' }}>{log.exerciseDuration} mins</strong></div>}
+                            {log.energyLevel && <div>⚡ Energy: <strong style={{ color: '#fbbf24' }}>{log.energyLevel}/5</strong></div>}
+                            {log.weather && <div>☀️ Weather: <strong style={{ color: '#fbbf24' }}>{log.weather}</strong></div>}
+                            {log.music && <div>🎵 Music: <strong style={{ color: '#c084fc' }}>{log.music}</strong></div>}
+                            {log.whatHelped && log.whatHelped.length > 0 && (
+                              <div style={{ width: '100%', marginTop: '4px', fontSize: '11.5px', color: '#a78bfa' }}>
+                                💡 What helped: <strong>{log.whatHelped.join(', ')}</strong>
+                              </div>
+                            )}
                           </div>
                         </div>
                       ))
@@ -1425,30 +1637,6 @@ export default function AdminDashboard() {
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '40px' }}>
-                  {/* Line graph */}
-                  <div style={{ background: '#1e293b', padding: '24px', borderRadius: '20px', border: '1px solid #334155' }}>
-                    <h3 style={{ color: 'white', fontSize: '16px', marginBottom: '20px' }}>📈 Average Mood Index Over Time</h3>
-                    <div style={{ width: '100%', height: '220px' }}>
-                      <ResponsiveContainer>
-                        <LineChart data={[
-                          { date: '06-03', avg: 4.2 },
-                          { date: '06-04', avg: 3.8 },
-                          { date: '06-05', avg: 3.9 },
-                          { date: '06-06', avg: 3.5 },
-                          { date: '06-07', avg: 3.2 },
-                          { date: '06-08', avg: 3.6 },
-                          { date: '06-09', avg: 4.0 }
-                        ]}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                          <XAxis dataKey="date" stroke="#94a3b8" />
-                          <YAxis stroke="#94a3b8" domain={[1, 5]} />
-                          <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155' }} />
-                          <Line type="monotone" dataKey="avg" stroke="#6366f1" strokeWidth={3} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-
                   {/* Pie graph */}
                   <div style={{ background: '#1e293b', padding: '24px', borderRadius: '20px', border: '1px solid #334155', display: 'flex', flexDirection: 'column' }}>
                     <h3 style={{ color: 'white', fontSize: '16px', marginBottom: '16px' }}>📊 Mood Distribution Breakdown</h3>
@@ -1846,14 +2034,12 @@ export default function AdminDashboard() {
                     <th style={{ padding: '16px 24px' }}>Student</th>
                     <th style={{ padding: '16px 24px' }}>Subject</th>
                     <th style={{ padding: '16px 24px' }}>Message</th>
-                    <th style={{ padding: '16px 24px' }}>Status</th>
-                    <th style={{ padding: '16px 24px', textAlign: 'right' }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {feedbacks.length === 0 ? (
                     <tr>
-                      <td colSpan="5" style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>No feedback submissions found.</td>
+                      <td colSpan="3" style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>No feedback submissions found.</td>
                     </tr>
                   ) : (
                     feedbacks.map(f => (
@@ -1861,32 +2047,6 @@ export default function AdminDashboard() {
                         <td style={{ padding: '16px 24px', fontWeight: 'bold' }}>{f.student?.name || 'Anonymous Student'}</td>
                         <td style={{ padding: '16px 24px' }}>{f.subject}</td>
                         <td style={{ padding: '16px 24px', color: '#cbd5e1', fontStyle: 'italic' }}>"{f.message}"</td>
-                        <td style={{ padding: '16px 24px' }}>
-                          <span style={{
-                            background: (f.status === 'resolved' || f.status === 'done') ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                            color: (f.status === 'resolved' || f.status === 'done') ? '#10b981' : '#f59e0b',
-                            padding: '4px 10px',
-                            borderRadius: '12px',
-                            fontSize: '11px',
-                            fontWeight: 'bold',
-                            textTransform: 'uppercase'
-                          }}>
-                            {/* *** METHANADI STATUS EKA 'DONE' KIYALA DISPLAY KARANNE (DISPLAY STATUS AS 'DONE' HERE) *** */}
-                            {f.status === 'resolved' || f.status === 'done' ? 'done' : f.status}
-                          </span>
-                        </td>
-                        <td style={{ padding: '16px 24px', textAlign: 'right' }}>
-                          {f.status === 'pending' && (
-                            /* *** METHANA THAMAI UI EKE PENDING FEEDBACK RESOLVE KARANA BUTTON EKA THIYENNE *** */
-                            /* (This is the button in the UI that triggers handleResolveFeedback to resolve/done the pending feedback) */
-                            <button 
-                              onClick={() => handleResolveFeedback(f._id)}
-                              style={{ padding: '6px 12px', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}
-                            >
-                              Resolved
-                            </button>
-                          )}
-                        </td>
                       </tr>
                     ))
                   )}
@@ -1941,9 +2101,9 @@ export default function AdminDashboard() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '420px', overflowY: 'auto' }}>
                 {announcements.map(ann => (
                   <div key={ann._id} style={{ padding: '16px', background: '#0f172a', borderRadius: '12px', border: '1px solid #334155' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <h4 style={{ margin: 0, color: 'white', fontSize: '14px' }}>{ann.title}</h4>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', gap: '12px' }}>
+                      <h4 style={{ margin: 0, color: 'white', fontSize: '14px', wordBreak: 'break-word', overflowWrap: 'break-word', flex: 1 }}>{ann.title}</h4>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
                         <span style={{ fontSize: '10px', background: '#334155', color: '#818cf8', padding: '2px 8px', borderRadius: '10px', textTransform: 'uppercase', fontWeight: 'bold' }}>{ann.targetRole}</span>
                         {currentUser?.role === 'admin' && (
                           <button 
@@ -1956,7 +2116,7 @@ export default function AdminDashboard() {
                         )}
                       </div>
                     </div>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#cbd5e1', lineHeight: '1.4' }}>{ann.content}</p>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#cbd5e1', lineHeight: '1.4', wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}>{ann.content}</p>
                     <div style={{ fontSize: '10px', color: '#64748b', marginTop: '8px' }}>{new Date(ann.createdAt).toLocaleString()}</div>
                   </div>
                 ))}
@@ -2045,31 +2205,31 @@ export default function AdminDashboard() {
                   <p style={{ color: '#94a3b8', margin: 0, fontSize: '14.5px' }}>No active emergency alerts. All student mood logs are within safe thresholds.</p>
                 </div>
               ) : (
-                emergencyAlerts.map(alert => (
-                  <div key={alert.id} style={{ background: '#1e293b', borderLeft: '6px solid #ef4444', borderRadius: '12px', padding: '24px', borderTop: '1px solid #334155', borderRight: '1px solid #334155', borderBottom: '1px solid #334155' }}>
+                emergencyAlerts.map(alertItem => (
+                  <div key={alertItem.id} style={{ background: '#1e293b', borderLeft: '6px solid #ef4444', borderRadius: '12px', padding: '24px', borderTop: '1px solid #334155', borderRight: '1px solid #334155', borderBottom: '1px solid #334155' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                       <div>
-                        <h3 style={{ margin: 0, color: 'white', fontSize: '18px' }}>{alert.name}</h3>
-                        <span style={{ fontSize: '13px', color: '#ef4444', fontWeight: 'bold' }}>{alert.email}</span>
+                        <h3 style={{ margin: 0, color: 'white', fontSize: '18px' }}>{alertItem.name}</h3>
+                        <span style={{ fontSize: '13px', color: '#ef4444', fontWeight: 'bold' }}>{alertItem.email}</span>
                       </div>
-                      <span style={{ fontSize: '12px', color: '#94a3b8' }}>Logged Date: {alert.date}</span>
+                      <span style={{ fontSize: '12px', color: '#94a3b8' }}>Logged Date: {alertItem.date}</span>
                     </div>
 
                     <div style={{ background: '#0f172a', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #1e293b' }}>
-                      <div style={{ fontSize: '13px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px' }}>Logged Mood Rating: {alert.mood}</div>
+                      <div style={{ fontSize: '13px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px' }}>Logged Mood Rating: {alertItem.mood}</div>
                       <p style={{ color: '#f3f4f6', fontSize: '14px', lineHeight: '1.6', fontStyle: 'italic', margin: 0 }}>
-                        "{alert.note}"
+                        "{alertItem.note}"
                       </p>
                     </div>
 
                     <div style={{ display: 'flex', gap: '12px' }}>
                       <button 
                         onClick={() => {
-                          if (alert.userId) {
+                          if (alertItem.userId) {
                             setActiveTab('chats')
-                            openSupportChat(alert.userId, alert.name)
+                            openSupportChat(alertItem.userId, alertItem.name)
                           } else {
-                            alert('Cannot initiate chat: student ID is not available.')
+                            window.alert('Cannot initiate chat: student ID is not available.')
                           }
                         }} 
                         style={{ padding: '10px 20px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
@@ -2077,7 +2237,7 @@ export default function AdminDashboard() {
                         💬 Message Student Immediately
                       </button>
                       <button 
-                        onClick={() => alert(`Escalated case to student counseling department for ${alert.name}.`)} 
+                        onClick={() => window.alert(`Escalated case to student counseling department for ${alertItem.name}.`)} 
                         style={{ padding: '10px 20px', background: '#334155', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
                       >
                         📞 Escalate Case
@@ -2179,13 +2339,16 @@ export default function AdminDashboard() {
                             )}
                           </td>
                           <td style={{ padding: '16px 24px', textAlign: 'right', display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
-                            {book.status === 'pending' && (
+                            {currentUser?.role === 'admin' && (
+                              <span style={{ fontSize: '11.5px', color: '#94a3b8', fontStyle: 'italic', fontWeight: '500' }}>View-Only History</span>
+                            )}
+                            {currentUser?.role === 'counsellor' && book.status === 'pending' && (book.counsellor?._id === currentUser?.id || book.counsellor === currentUser?.id) && (
                               <>
                                 <button onClick={() => handleBookingAction(book._id, 'approved')} style={{ padding: '4px 8px', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>Approve</button>
                                 <button onClick={() => setRejectBookingId(book._id)} style={{ padding: '4px 8px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>Reject</button>
                               </>
                             )}
-                            {book.status === 'approved' && (
+                            {book.status === 'approved' && currentUser?.role === 'counsellor' && (book.counsellor?._id === currentUser?.id || book.counsellor === currentUser?.id) && (
                               <div style={{ display: 'flex', gap: '6px' }}>
                                 <button 
                                   onClick={() => openBookingChat(book)} 
@@ -2702,39 +2865,6 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                 </div>
-
-                {/* Monthly Auto Settlement Trigger */}
-                <div className="no-print" style={{ background: '#1e1b4b', padding: '24px', borderRadius: '20px', border: '1px solid #4338ca', marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-                  <div>
-                    <h4 style={{ color: '#a5b4fc', margin: '0 0 4px 0', fontSize: '15px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span>⚙️</span> Monthly Automated Settlement System
-                    </h4>
-                    <p style={{ color: '#cbd5e1', margin: 0, fontSize: '12.5px', lineHeight: '1.4' }}>
-                      MindSpace pays out all pending counselor fees on the 1st of every month. Pressing settle now simulates direct bank deposit wires for all active counselors.
-                    </p>
-                  </div>
-                  <button 
-                    onClick={handleAutoSettlement}
-                    disabled={payments.filter(p => p.status === 'pending').length === 0}
-                    style={{
-                      padding: '12px 24px',
-                      background: payments.filter(p => p.status === 'pending').length === 0 ? '#475569' : '#10b981',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '8px',
-                      cursor: payments.filter(p => p.status === 'pending').length === 0 ? 'not-allowed' : 'pointer',
-                      fontWeight: 'bold',
-                      fontSize: '13px',
-                      transition: 'background 0.2s',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
-                  >
-                    ⚡ Run Monthly Settlement Now
-                  </button>
-                </div>
-
                 {/* Table */}
                 <div style={{ background: '#1e293b', borderRadius: '20px', overflowX: 'auto', border: '1px solid #334155' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13.5px' }}>

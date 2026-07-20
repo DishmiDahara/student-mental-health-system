@@ -15,7 +15,18 @@ export default function Navbar() {
   const [announcements, setAnnouncements] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
   const [hasNewNotifications, setHasNewNotifications] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 1024 : false)
   const dropdownRef = useRef(null)
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 1024)
+    }
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const token = localStorage.getItem('token')
 
@@ -144,68 +155,73 @@ export default function Navbar() {
   const isAdmin = user.role === 'admin' || user.role === 'counsellor'
 
   return (
-    <div style={{ background: 'white', padding: '14px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', position: 'sticky', top: 0, zIndex: 1000 }}>
+    <div className="navbar-header" style={{ background: 'white', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', position: 'sticky', top: 0, zIndex: 1000, flexWrap: 'wrap', gap: '10px' }}>
       
       {/* Brand logo */}
-      <h1 onClick={() => navigate('/dashboard')} style={{ color: '#4f46e5', fontSize: '22px', margin: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800', fontFamily: '"Outfit", "Inter", sans-serif' }}>
+      <h1 onClick={() => { setMobileMenuOpen(false); navigate('/dashboard'); }} style={{ color: '#4f46e5', fontSize: '22px', margin: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800', fontFamily: '"Outfit", "Inter", sans-serif', whiteSpace: 'nowrap' }}>
         <span>🧠</span> MindSpace
       </h1>
       
-      {/* Nav Actions */}
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-        <button 
-          onClick={() => navigate('/mood')} 
-          style={{ padding: '9px 16px', background: location.pathname === '/mood' ? '#e0e7ff' : '#f3f4f6', color: location.pathname === '/mood' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
-        >
-          😊 Mood
-        </button>
-        
-        <button 
-          onClick={() => navigate('/anonymous-chat')} 
-          style={{ padding: '9px 16px', background: location.pathname === '/anonymous-chat' ? '#e0e7ff' : '#f3f4f6', color: location.pathname === '/anonymous-chat' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
-        >
-          👥 Peer Chat
-        </button>
-        
-        <button 
-          onClick={() => navigate('/chat')} 
-          style={{ padding: '9px 16px', background: location.pathname === '/chat' ? '#e0e7ff' : '#f3f4f6', color: location.pathname === '/chat' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
-        >
-          💬 AI Aura
-        </button>
-
-        <button 
-          onClick={() => navigate('/resources')} 
-          style={{ padding: '9px 16px', background: location.pathname === '/resources' ? '#e0e7ff' : '#f3f4f6', color: location.pathname === '/resources' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
-        >
-          📚 Resources
-        </button>
-
-        <button 
-          onClick={() => navigate('/booking')} 
-          style={{ padding: '9px 16px', background: location.pathname === '/booking' ? '#e0e7ff' : '#f3f4f6', color: location.pathname === '/booking' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
-        >
-          📅 Bookings
-        </button>
-
-        {user.role === 'student' && (
+      {/* Desktop Nav Actions */}
+      {!isMobile && (
+        <div className="desktop-nav-menu" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <button 
-            onClick={() => navigate('/apply-counselor')} 
-            style={{ padding: '9px 16px', background: location.pathname === '/apply-counselor' ? '#0284c7' : '#e0f2fe', color: location.pathname === '/apply-counselor' ? 'white' : '#0369a1', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px', transition: 'all 0.2s' }}
+            onClick={() => navigate('/mood')} 
+            style={{ padding: '9px 16px', background: location.pathname === '/mood' ? '#e0e7ff' : '#f3f4f6', color: location.pathname === '/mood' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
           >
-            🤝 Apply as Counselor
+            Mood
           </button>
-        )}
-        
-        {isAdmin && (
+          
           <button 
-            onClick={() => navigate('/admin')} 
-            style={{ padding: '9px 16px', background: location.pathname === '/admin' ? '#4f46e5' : '#e0e7ff', color: location.pathname === '/admin' ? 'white' : '#4f46e5', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px', transition: 'all 0.2s' }}
+            onClick={() => navigate('/anonymous-chat')} 
+            style={{ padding: '9px 16px', background: location.pathname === '/anonymous-chat' ? '#e0e7ff' : '#f3f4f6', color: location.pathname === '/anonymous-chat' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
           >
-            🛠️ Admin Console
+            Peer Chat
           </button>
-        )}
+          
+          <button 
+            onClick={() => navigate('/chat')} 
+            style={{ padding: '9px 16px', background: location.pathname === '/chat' ? '#e0e7ff' : '#f3f4f6', color: location.pathname === '/chat' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
+          >
+            AI Aura
+          </button>
 
+          <button 
+            onClick={() => navigate('/resources')} 
+            style={{ padding: '9px 16px', background: location.pathname === '/resources' ? '#e0e7ff' : '#f3f4f6', color: location.pathname === '/resources' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
+          >
+            Resources
+          </button>
+
+          <button 
+            onClick={() => navigate('/booking')} 
+            style={{ padding: '9px 16px', background: location.pathname === '/booking' ? '#e0e7ff' : '#f3f4f6', color: location.pathname === '/booking' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
+          >
+            Bookings
+          </button>
+
+          {user.role === 'student' && (
+            <button 
+              onClick={() => navigate('/apply-counselor')} 
+              style={{ padding: '9px 16px', background: location.pathname === '/apply-counselor' ? '#0284c7' : '#e0f2fe', color: location.pathname === '/apply-counselor' ? 'white' : '#0369a1', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px', transition: 'all 0.2s' }}
+            >
+              Apply as Counselor
+            </button>
+          )}
+          
+          {isAdmin && (
+            <button 
+              onClick={() => navigate('/admin')} 
+              style={{ padding: '9px 16px', background: location.pathname === '/admin' ? '#4f46e5' : '#e0e7ff', color: location.pathname === '/admin' ? 'white' : '#4f46e5', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px', transition: 'all 0.2s' }}
+            >
+              {user?.role === 'counsellor' ? 'Counsellor Console' : 'Admin Console'}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Right Controls */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         {/* Notifications Bell Dropdown */}
         <div ref={dropdownRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
           <button 
@@ -250,7 +266,7 @@ export default function Navbar() {
               position: 'absolute',
               top: '48px',
               right: 0,
-              width: '360px',
+              width: '320px',
               background: 'rgba(255, 255, 255, 0.98)',
               backdropFilter: 'blur(10px)',
               border: '1px solid #e2e8f0',
@@ -308,7 +324,6 @@ export default function Navbar() {
               <div style={{ maxHeight: '300px', overflowY: 'auto' }} className="custom-scrollbar">
                 {announcements.length === 0 ? (
                   <div style={{ padding: '32px 20px', textAlign: 'center', color: '#64748b' }}>
-                    <span style={{ fontSize: '32px', display: 'block', marginBottom: '8px' }}>✨</span>
                     <p style={{ margin: 0, fontSize: '13.5px', fontWeight: '500' }}>You're all caught up!</p>
                     <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: '#94a3b8' }}>No active system announcements.</p>
                   </div>
@@ -325,10 +340,10 @@ export default function Navbar() {
                       }}
                       className="announcement-item"
                     >
-                      <h4 style={{ margin: '0 0 4px', color: '#1f2937', fontSize: '13.5px', fontWeight: 'bold', lineHeight: '1.3' }}>
+                      <h4 style={{ margin: '0 0 4px', color: '#1f2937', fontSize: '13.5px', fontWeight: 'bold', lineHeight: '1.3', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                         {ann.title}
                       </h4>
-                      <p style={{ margin: 0, fontSize: '12.5px', color: '#4b5563', lineHeight: '1.45' }}>
+                      <p style={{ margin: 0, fontSize: '12.5px', color: '#4b5563', lineHeight: '1.45', wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}>
                         {ann.content}
                       </p>
                       <div style={{
@@ -339,7 +354,6 @@ export default function Navbar() {
                         alignItems: 'center',
                         gap: '4px'
                       }}>
-                        <span>🕒</span>
                         <span>{new Date(ann.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
                     </div>
@@ -350,12 +364,10 @@ export default function Navbar() {
           )}
         </div>
 
-        <div style={{ width: '1px', height: '28px', background: '#e5e7eb', margin: '0 8px' }} />
-
         {/* User profile avatar / settings trigger */}
         <div 
           onClick={() => setIsModalOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '4px', borderRadius: '20px', transition: 'background 0.2s' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '2px', borderRadius: '20px', transition: 'background 0.2s' }}
           title="Profile Settings"
         >
           {user.profilePhoto ? (
@@ -371,13 +383,123 @@ export default function Navbar() {
           )}
         </div>
 
-        <button 
-          onClick={handleLogout} 
-          style={{ padding: '9px 16px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
-        >
-          Logout
-        </button>
+        {!isMobile && (
+          <button 
+            onClick={handleLogout} 
+            className="desktop-logout-btn"
+            style={{ padding: '9px 16px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
+          >
+            Logout
+          </button>
+        )}
+
+        {/* Mobile Hamburger Toggle Button (☰) */}
+        {isMobile && (
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="mobile-hamburger-btn"
+            style={{
+              background: '#f1f5f9',
+              border: 'none',
+              borderRadius: '10px',
+              padding: '8px 12px',
+              fontSize: '20px',
+              cursor: 'pointer',
+              color: '#1e293b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              lineHeight: 1
+            }}
+            title="Toggle Menu"
+          >
+            {mobileMenuOpen ? '✕' : '☰'}
+          </button>
+        )}
       </div>
+
+      {/* Mobile Drawer Menu (Slide Down on ☰ click) */}
+      {mobileMenuOpen && (
+        <div 
+          style={{
+            width: '100%',
+            background: 'white',
+            borderTop: '1px solid #f1f5f9',
+            padding: '16px 0 8px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px'
+          }} 
+          className="mobile-drawer-menu"
+        >
+          <button 
+            onClick={() => { setMobileMenuOpen(false); navigate('/mood'); }} 
+            style={{ padding: '12px 16px', background: location.pathname === '/mood' ? '#e0e7ff' : '#f8fafc', color: location.pathname === '/mood' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+          >
+            <span>😊</span> Mood Journal
+          </button>
+
+          <button 
+            onClick={() => { setMobileMenuOpen(false); navigate('/anonymous-chat'); }} 
+            style={{ padding: '12px 16px', background: location.pathname === '/anonymous-chat' ? '#e0e7ff' : '#f8fafc', color: location.pathname === '/anonymous-chat' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+          >
+            <span>👥</span> Peer Support Chat
+          </button>
+
+          <button 
+            onClick={() => { setMobileMenuOpen(false); navigate('/chat'); }} 
+            style={{ padding: '12px 16px', background: location.pathname === '/chat' ? '#e0e7ff' : '#f8fafc', color: location.pathname === '/chat' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+          >
+            <span>💬</span> AI Aura Assistant
+          </button>
+
+          <button 
+            onClick={() => { setMobileMenuOpen(false); navigate('/resources'); }} 
+            style={{ padding: '12px 16px', background: location.pathname === '/resources' ? '#e0e7ff' : '#f8fafc', color: location.pathname === '/resources' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+          >
+            <span>📚</span> Resources & Breathing
+          </button>
+
+          <button 
+            onClick={() => { setMobileMenuOpen(false); navigate('/booking'); }} 
+            style={{ padding: '12px 16px', background: location.pathname === '/booking' ? '#e0e7ff' : '#f8fafc', color: location.pathname === '/booking' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+          >
+            <span>📅</span> Bookings & Counseling
+          </button>
+
+          {user.role === 'student' && (
+            <button 
+              onClick={() => { setMobileMenuOpen(false); navigate('/apply-counselor'); }} 
+              style={{ padding: '12px 16px', background: location.pathname === '/apply-counselor' ? '#0284c7' : '#e0f2fe', color: location.pathname === '/apply-counselor' ? 'white' : '#0369a1', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+            >
+              <span>🤝</span> Apply as Counselor
+            </button>
+          )}
+          
+          {isAdmin && (
+            <button 
+              onClick={() => { setMobileMenuOpen(false); navigate('/admin'); }} 
+              style={{ padding: '12px 16px', background: location.pathname === '/admin' ? '#4f46e5' : '#e0e7ff', color: location.pathname === '/admin' ? 'white' : '#4f46e5', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+            >
+              <span>🛠️</span> {user?.role === 'counsellor' ? 'Counsellor Console' : 'Admin Console'}
+            </button>
+          )}
+
+          <button 
+            onClick={() => { setMobileMenuOpen(false); setIsModalOpen(true); }} 
+            style={{ padding: '12px 16px', background: '#f1f5f9', color: '#334155', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+          >
+            <span>👤</span> My Profile Settings
+          </button>
+
+          <button 
+            onClick={() => { setMobileMenuOpen(false); handleLogout(); }} 
+            style={{ padding: '12px 16px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+          >
+            <span>🚪</span> Logout
+          </button>
+        </div>
+      )}
 
       {/* --- PROFILE MODAL --- */}
       {isModalOpen && (
@@ -456,7 +578,7 @@ export default function Navbar() {
               disabled={uploading}
               style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(118, 75, 162, 0.2)' }}
             >
-              {uploading ? '⏳ Saving Photo...' : '💾 Save Profile Photo'}
+              {uploading ? 'Saving Photo...' : 'Save Profile Photo'}
             </button>
           </div>
         </div>
