@@ -177,8 +177,13 @@ export default function Login() {
   }
 
   return (
-    <div className="animated-bg" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto', boxSizing: 'border-box' }}>
-      <div className="animated-card" key={isLogin ? 'login-card' : 'register-card'} style={{ background: 'white', padding: '32px 24px', borderRadius: '24px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', boxSizing: 'border-box', margin: 'auto', backdropFilter: 'blur(10px)' }}>
+    <div className="animated-bg" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', overflow: 'hidden', position: 'relative', boxSizing: 'border-box' }}>
+      {/* Background Animated Blobs */}
+      <div className="bg-blob-1" />
+      <div className="bg-blob-2" />
+      <div className="bg-blob-3" />
+
+      <div className="animated-card" key={isLogin ? 'login-card' : 'register-card'} style={{ background: 'rgba(255, 255, 255, 0.95)', padding: '32px 24px', borderRadius: '24px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', boxSizing: 'border-box', margin: 'auto', backdropFilter: 'blur(16px)', zIndex: 2, border: '1px solid rgba(255,255,255,0.4)' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div className="animated-brain-icon" style={{ fontSize: '48px', filter: 'drop-shadow(0 4px 12px rgba(79,70,229,0.3))' }}>🧠</div>
           <h2 style={{ color: '#4f46e5', fontSize: '26px', margin: '6px 0 2px', fontWeight: '800', letterSpacing: '-0.5px' }}>MindSpace</h2>

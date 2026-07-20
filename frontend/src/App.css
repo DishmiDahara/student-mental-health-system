@@ -55,6 +55,64 @@ body {
   animation: calmPulse 3s ease-in-out infinite;
 }
 
+/* Animated Floating Background Blobs */
+@keyframes floatBlob1 {
+  0% { transform: translate(0px, 0px) scale(1); }
+  50% { transform: translate(70px, 50px) scale(1.3); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@keyframes floatBlob2 {
+  0% { transform: translate(0px, 0px) scale(1.1); }
+  50% { transform: translate(-80px, -60px) scale(0.85); }
+  100% { transform: translate(0px, 0px) scale(1.1); }
+}
+
+@keyframes floatBlob3 {
+  0% { transform: translate(0px, 0px) scale(0.9); }
+  50% { transform: translate(50px, -70px) scale(1.25); }
+  100% { transform: translate(0px, 0px) scale(0.9); }
+}
+
+.bg-blob-1 {
+  position: absolute;
+  top: -40px;
+  left: -40px;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(168,85,247,0.75) 0%, rgba(126,34,206,0) 70%);
+  border-radius: 50%;
+  filter: blur(40px);
+  animation: floatBlob1 9s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.bg-blob-2 {
+  position: absolute;
+  bottom: -50px;
+  right: -50px;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(59,130,246,0.75) 0%, rgba(29,78,216,0) 70%);
+  border-radius: 50%;
+  filter: blur(45px);
+  animation: floatBlob2 11s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.bg-blob-3 {
+  position: absolute;
+  top: 35%;
+  left: 50%;
+  width: 240px;
+  height: 240px;
+  background: radial-gradient(circle, rgba(236,72,153,0.55) 0%, rgba(190,24,93,0) 70%);
+  border-radius: 50%;
+  filter: blur(50px);
+  animation: floatBlob3 13s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
 /* Fix input field text visibility for browser dark mode and autofill */
 input, select, textarea {
   color: #1e293b !important;
