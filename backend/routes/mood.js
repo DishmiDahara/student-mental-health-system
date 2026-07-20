@@ -10,13 +10,18 @@ router.get('/search-music', async (req, res) => {
     const query = req.query.q || 'Relaxing Meditation'
     const response = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&limit=15`)
     const data = await response.json()
-    const tracks = (data.results || []).map(t => ({
-      trackId: t.trackId,
-      trackName: t.trackName,
-      artistName: t.artistName,
-      artworkUrl: t.artworkUrl100 || t.artworkUrl60,
-      previewUrl: t.previewUrl
-    }))
+    const tracks = (data.results || []).map(t => {
+      const art = t.artworkUrl100 || t.artworkUrl60 || t.artworkUrl30 || ''
+      return {
+        trackId: t.trackId,
+        trackName: t.trackName,
+        artistName: t.artistName,
+        artworkUrl: art,
+        artworkUrl100: art,
+        artworkUrl60: art,
+        previewUrl: t.previewUrl
+      }
+    })
     res.json(tracks)
   } catch (err) {
     res.status(500).json({ message: 'Error searching music' })

@@ -251,6 +251,16 @@ export default function MoodTracker() {
     fetchMusicSearchResults('Relaxing Meditation Piano')
   }, [])
 
+  const getTrackCoverImage = (t) => {
+    const fallback = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=80'
+    if (!t) return fallback
+    const url = t.artworkUrl || t.artworkUrl100 || t.artworkUrl60
+    if (url && typeof url === 'string' && url.startsWith('http')) {
+      return url
+    }
+    return fallback
+  }
+
   const fetchMusicSearchResults = async (queryTerm) => {
     if (!queryTerm || !queryTerm.trim()) return
     setIsSearchingMusic(true)
@@ -262,13 +272,18 @@ export default function MoodTracker() {
       } else {
         const fallbackRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(queryTerm.trim())}&media=music&limit=15`)
         const data = await fallbackRes.json()
-        list = (data.results || []).map(t => ({
-          trackId: t.trackId,
-          trackName: t.trackName,
-          artistName: t.artistName,
-          artworkUrl: t.artworkUrl100 || t.artworkUrl60,
-          previewUrl: t.previewUrl
-        }))
+        list = (data.results || []).map(t => {
+          const art = t.artworkUrl100 || t.artworkUrl60 || t.artworkUrl30 || ''
+          return {
+            trackId: t.trackId,
+            trackName: t.trackName,
+            artistName: t.artistName,
+            artworkUrl: art,
+            artworkUrl100: art,
+            artworkUrl60: art,
+            previewUrl: t.previewUrl
+          }
+        })
       }
       setMusicSearchResults(list)
     } catch (e) {
@@ -3770,7 +3785,12 @@ export default function MoodTracker() {
                       touchAction: 'manipulation'
                     }}
                   >
-                    <img src={track.artworkUrl100 || track.artworkUrl60} alt={track.trackName} style={{ width: '64px', height: '64px', borderRadius: '12px', objectFit: 'cover', marginBottom: '8px' }} />
+                    <img 
+                      src={getTrackCoverImage(track)} 
+                      onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=80' }} 
+                      alt={track.trackName} 
+                      style={{ width: '64px', height: '64px', borderRadius: '12px', objectFit: 'cover', marginBottom: '8px' }} 
+                    />
                     <div style={{ fontSize: '12.5px', fontWeight: '700', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {track.trackName}
                     </div>
@@ -3784,7 +3804,12 @@ export default function MoodTracker() {
               {/* Now Playing Audio Control Bar */}
               {nowPlayingTrack && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(0,0,0,0.5)', padding: '14px 20px', borderRadius: '16px', border: '1px solid rgba(129,140,248,0.4)' }}>
-                  <img src={nowPlayingTrack.artworkUrl60} alt="Now Playing" style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover' }} />
+                  <img 
+                    src={getTrackCoverImage(nowPlayingTrack)} 
+                    onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=80' }} 
+                    alt="Now Playing" 
+                    style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover' }} 
+                  />
                   
                   <div style={{ flex: 1, overflow: 'hidden' }}>
                     <div style={{ fontSize: '14px', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
