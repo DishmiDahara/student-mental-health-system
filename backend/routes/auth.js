@@ -8,15 +8,18 @@ const User = require('../models/User')
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Please enter name, email and password' })
+    }
     const normalizedEmail = email.toLowerCase().trim()
     const exists = await User.findOne({ email: normalizedEmail })
-    if (exists) return res.status(400).json({ message: 'Email already registered' })
+    if (exists) return res.status(400).json({ message: 'This email is already registered. Please use Login.' })
 
     const hashed = await bcrypt.hash(password, 10)
-    const user = await User.create({ name, email: normalizedEmail, password: hashed })
+    const user = await User.create({ name, email: normalizedEmail, password: hashed, role: 'student' })
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' })
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, profilePhoto: user.profilePhoto } })
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role || 'student', profilePhoto: user.profilePhoto } })
   } catch (err) {
     res.status(500).json({ message: 'Server error' })
   }
