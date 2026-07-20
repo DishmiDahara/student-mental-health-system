@@ -607,6 +607,58 @@ export default function MoodTracker() {
     }
   }, [active3DGame])
 
+  // --- CRAZYGAMES UNLIMITED ARCADE PORTAL STATES ---
+  const [crazySearchInput, setCrazySearchInput] = useState('')
+  const [selectedCrazyCategory, setSelectedCrazyCategory] = useState('All')
+  const [activeCrazyGameModal, setActiveCrazyGameModal] = useState(null)
+
+  const defaultCrazyGamesList = [
+    { title: 'Pop It Master 3D 🧸', category: 'Antistress', slug: 'pop-it-master', icon: '🧸', desc: '3D Fidget popping antistress toy' },
+    { title: 'Fluid Simulation 3D 🌊', category: 'Fluids', slug: 'fluid-simulation', icon: '🌊', desc: 'Real-time relaxing liquid physics' },
+    { title: 'Zen Coloring Book 🎨', category: 'Coloring', slug: 'zen-coloring-book', icon: '🎨', desc: 'Mindful 3D color shading' },
+    { title: 'Antistress Toy Box 3D 🎯', category: 'Antistress', slug: 'antistress-relaxing-games', icon: '🎯', desc: 'Collection of 30+ 3D fidget toys' },
+    { title: 'Spiral Roll 🌀', category: 'Relaxing', slug: 'spiral-roll', icon: '🌀', desc: 'Soothing wood carving mechanics' },
+    { title: 'Slime Simulator 3D 🧪', category: 'Antistress', slug: 'satisfying-slime-simulator-3d', icon: '🧪', desc: 'Tactile slime squeezing soundscape' },
+    { title: 'Color Water Sort 🧪', category: 'Logic', slug: 'water-sort-puzzle-2', icon: '🧪', desc: 'Calming liquid sorting puzzle' },
+    { title: 'Merge Ocean Fish 🐠', category: 'Relaxing', slug: 'fish-eat-fish-3-players', icon: '🐠', desc: 'Deep sea aquatic exploration' },
+    { title: 'Bubble Shooter Zen 🫧', category: 'Puzzle', slug: 'bubble-shooter-hd', icon: '🫧', desc: 'Classic relaxing bubble popping' },
+    { title: 'Mahjong Solitaire 🀄', category: 'Logic', slug: 'mahjongg-solitaire', icon: '🀄', desc: 'Traditional zen tile matching' },
+    { title: 'Jigsaw Puzzles 🧩', category: 'Puzzle', slug: 'jigsaw-cities-and-nature', icon: '🧩', desc: 'Beautiful nature landscape puzzles' },
+    { title: 'Piano Tiles Relaxation 🎹', category: 'Music', slug: 'magic-piano-tiles-2', icon: '🎹', desc: 'Play soothing melodies on key taps' }
+  ]
+
+  const getCrazyEmbedUrl = (rawInput) => {
+    if (!rawInput) return ''
+    const str = rawInput.trim()
+    if (str.startsWith('http://') || str.startsWith('https://')) {
+      const parts = str.split('/game/')
+      if (parts.length > 1) {
+        return `https://www.crazygames.com/embed/${parts[1].replace(/\/$/, '')}`
+      }
+      return str
+    }
+    const cleanSlug = str.toLowerCase().replace(/[^a-z0-9-]/g, '')
+    return `https://www.crazygames.com/embed/${cleanSlug}`
+  }
+
+  const launchCrazyGame = (gameObj) => {
+    const embedUrl = getCrazyEmbedUrl(gameObj.slug || gameObj.url)
+    setActiveCrazyGameModal({
+      title: gameObj.title || 'CrazyGame',
+      embedUrl
+    })
+  }
+
+  const handleCustomCrazySubmit = (e) => {
+    e.preventDefault()
+    if (!crazySearchInput.trim()) return
+    const embedUrl = getCrazyEmbedUrl(crazySearchInput)
+    setActiveCrazyGameModal({
+      title: `CrazyGame: ${crazySearchInput.trim()}`,
+      embedUrl
+    })
+  }
+
   const [petStats, setPetStats] = useState({ hunger: 50, love: 50, energy: 50 })
   const [petMessage, setPetMessage] = useState('Click buttons to interact with your pet! 🐱')
 
@@ -4246,6 +4298,99 @@ export default function MoodTracker() {
                       <div style={{ fontSize: '10.5px', color: '#94a3b8' }}>{g.desc}</div>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* 🌐 CRAZYGAMES UNLIMITED RELAXING ARCADE PORTAL */}
+              <div style={{
+                background: 'linear-gradient(135deg, #020617 0%, #1e1b4b 50%, #312e81 100%)',
+                padding: '24px',
+                borderRadius: '24px',
+                border: '1px solid rgba(255,255,255,0.15)',
+                color: 'white',
+                marginBottom: '24px',
+                boxShadow: '0 12px 32px rgba(2, 6, 23, 0.4)'
+              }}>
+                <div style={{ marginBottom: '16px' }}>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '17px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    🌐 CrazyGames Unlimited Relaxing Arcade 🎮
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '12.5px', color: '#94a3b8' }}>
+                    Search or play any relaxing, antistress & puzzle game from CrazyGames directly inside MindSpace:
+                  </p>
+                </div>
+
+                {/* Search / Direct Game URL Loader Form */}
+                <form onSubmit={handleCustomCrazySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                  <input 
+                    value={crazySearchInput} 
+                    onChange={(e) => setCrazySearchInput(e.target.value)} 
+                    placeholder="Type any CrazyGame name or URL (e.g. pop-it-master, fluid-simulation)..." 
+                    style={{ width: '100%', height: '44px', padding: '0 14px', borderRadius: '12px', border: '1px solid #475569', background: '#0f172a', color: 'white', fontSize: '13.5px', outline: 'none', boxSizing: 'border-box', colorScheme: 'dark' }}
+                  />
+                  <button 
+                    type="submit" 
+                    style={{ width: '100%', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer', fontSize: '14px', touchAction: 'manipulation' }}
+                  >
+                    🚀 Launch CrazyGame
+                  </button>
+                </form>
+
+                {/* Category Filter Pills */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
+                  {['All', 'Antistress', 'Fluids', 'Coloring', 'Relaxing', 'Logic', 'Puzzle', 'Music'].map(cat => (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setSelectedCrazyCategory(cat)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '8px',
+                        border: selectedCrazyCategory === cat ? '1.5px solid #818cf8' : '1px solid rgba(255,255,255,0.12)',
+                        background: selectedCrazyCategory === cat ? 'rgba(99, 102, 241, 0.35)' : 'rgba(255,255,255,0.06)',
+                        color: selectedCrazyCategory === cat ? 'white' : '#cbd5e1',
+                        fontSize: '11.5px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        touchAction: 'manipulation'
+                      }}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Pre-loaded CrazyGames Library Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px', maxHeight: '280px', overflowY: 'auto', paddingRight: '4px' }}>
+                  {defaultCrazyGamesList
+                    .filter(g => selectedCrazyCategory === 'All' || g.category === selectedCrazyCategory)
+                    .map(gameObj => (
+                      <div
+                        key={gameObj.slug}
+                        onClick={() => launchCrazyGame(gameObj)}
+                        style={{
+                          background: 'rgba(255,255,255,0.07)',
+                          border: '1px solid rgba(255,255,255,0.12)',
+                          borderRadius: '14px',
+                          padding: '10px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          textAlign: 'center',
+                          touchAction: 'manipulation'
+                        }}
+                      >
+                        <div style={{ fontSize: '26px', marginBottom: '4px' }}>{gameObj.icon}</div>
+                        <div style={{ fontSize: '11.5px', fontWeight: '700', color: 'white', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {gameObj.title}
+                        </div>
+                        <div style={{ fontSize: '10.5px', color: '#94a3b8', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
+                          {gameObj.desc}
+                        </div>
+                      </div>
+                    ))}
                 </div>
               </div>
 
@@ -8401,6 +8546,60 @@ export default function MoodTracker() {
                 Done Relaxing ✨
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* CRAZYGAMES FULLSCREEN EMBED MODAL */}
+      {activeCrazyGameModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(2, 6, 23, 0.92)',
+          backdropFilter: 'blur(10px)',
+          zIndex: 999999,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '850px',
+            height: '85vh',
+            background: '#0f172a',
+            borderRadius: '24px',
+            border: '1px solid rgba(255,255,255,0.15)',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7)',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            {/* Header Bar */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+              <h3 style={{ margin: 0, color: 'white', fontSize: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                🎮 {activeCrazyGameModal.title}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setActiveCrazyGameModal(null)}
+                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Embedded Iframe Player */}
+            <iframe
+              src={activeCrazyGameModal.embedUrl}
+              title={activeCrazyGameModal.title}
+              style={{ flex: 1, width: '100%', border: 'none', background: '#000' }}
+              allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope"
+            />
           </div>
         </div>
       )}
