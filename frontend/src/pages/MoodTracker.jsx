@@ -239,37 +239,48 @@ export default function MoodTracker() {
   const [gtsOptions, setGtsOptions] = useState([])
   const [gtsAnswered, setGtsAnswered] = useState(null)
 
-  // --- SOOTHING MENTAL HEALTH MUSIC PLAYER STATES ---
-  const [selectedTrackKey, setSelectedTrackKey] = useState('rain')
-  const [isPlayerPlaying, setIsPlayerPlaying] = useState(false)
-  const [playerVolume, setPlayerVolume] = useState(0.8)
-  const playerAudioRef = useRef(null)
+  // --- MUSIC SEARCH & PLAYER STATES ---
+  const [musicSearchQuery, setMusicSearchQuery] = useState('')
+  const [musicSearchResults, setMusicSearchResults] = useState([])
+  const [isSearchingMusic, setIsSearchingMusic] = useState(false)
+  const [nowPlayingTrack, setNowPlayingTrack] = useState(null)
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false)
+  const musicAudioRef = useRef(null)
 
-  const soothingPlaylist = [
-    { key: 'rain', name: 'Gentle Rain & Soft Piano 🌧️', audioUrl: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=soft-rain-ambient-111154.mp3' },
-    { key: 'ocean', name: 'Ocean Swells & Deep Peace 🌊', audioUrl: 'https://cdn.pixabay.com/download/audio/2021/08/09/audio_884fe92c21.mp3?filename=ocean-waves-112906.mp3' },
-    { key: 'nature', name: 'Forest Breeze & Song Birds 🍃', audioUrl: 'https://cdn.pixabay.com/download/audio/2022/03/09/audio_c8c8a82b4a.mp3?filename=forest-birds-ambient-10255.mp3' },
-    { key: 'tone', name: '432Hz Healing Frequency 🧘', audioUrl: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3?filename=meditation-432hz-18076.mp3' },
-    { key: 'lofi', name: 'Lofi Chill & Study Beats ☕', audioUrl: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=lofi-study-112191.mp3' }
-  ]
+  useEffect(() => {
+    fetchMusicSearchResults('Relaxing Meditation Piano')
+  }, [])
 
-  const handleTogglePlayMusic = () => {
-    if (!playerAudioRef.current) return
-    if (isPlayerPlaying) {
-      playerAudioRef.current.pause()
-      setIsPlayerPlaying(false)
-    } else {
-      playerAudioRef.current.play().then(() => setIsPlayerPlaying(true)).catch(() => {})
+  const fetchMusicSearchResults = async (queryTerm) => {
+    if (!queryTerm || !queryTerm.trim()) return
+    setIsSearchingMusic(true)
+    try {
+      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(queryTerm.trim())}&media=music&limit=12`)
+      const data = await res.json()
+      if (data.results) {
+        setMusicSearchResults(data.results)
+      }
+    } catch (e) {
+      console.error('Music search error:', e)
+    }
+    setIsSearchingMusic(false)
+  }
+
+  const handlePlayTrack = (track) => {
+    setNowPlayingTrack(track)
+    if (musicAudioRef.current) {
+      musicAudioRef.current.src = track.previewUrl
+      musicAudioRef.current.play().then(() => setIsMusicPlaying(true)).catch(() => {})
     }
   }
 
-  const handleSelectMusicTrack = (trackKey) => {
-    setSelectedTrackKey(trackKey)
-    const trk = soothingPlaylist.find(t => t.key === trackKey)
-    if (playerAudioRef.current && trk) {
-      playerAudioRef.current.src = trk.audioUrl
-      playerAudioRef.current.volume = playerVolume
-      playerAudioRef.current.play().then(() => setIsPlayerPlaying(true)).catch(() => {})
+  const handleTogglePlayPause = () => {
+    if (!musicAudioRef.current) return
+    if (isMusicPlaying) {
+      musicAudioRef.current.pause()
+      setIsMusicPlaying(false)
+    } else {
+      musicAudioRef.current.play().then(() => setIsMusicPlaying(true)).catch(() => {})
     }
   }
 
@@ -3522,6 +3533,122 @@ export default function MoodTracker() {
                     </div>
                   )}
                 </div>
+              </div>
+
+              {/* --- MUSIC & SONG SEARCH PLAYER CARD --- */}
+              <div style={{
+                marginBottom: '24px',
+                background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%)',
+                borderRadius: '20px',
+                padding: '20px',
+                color: 'white',
+                boxShadow: '0 12px 32px rgba(15, 23, 42, 0.4)',
+                border: '1px solid rgba(255, 255, 255, 0.15)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      🎵 MindSpace Music & Song Search Player 🎧
+                    </h3>
+                    <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#94a3b8' }}>
+                      Search for any song, artist, or relaxing track to listen while journaling
+                    </p>
+                  </div>
+                </div>
+
+                {/* Search Bar Input */}
+                <form onSubmit={(e) => { e.preventDefault(); fetchMusicSearchResults(musicSearchQuery); }} style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+                  <input 
+                    value={musicSearchQuery} 
+                    onChange={(e) => setMusicSearchQuery(e.target.value)} 
+                    placeholder="Search any song or artist (e.g. Rain, Lofi, Sinhala)..." 
+                    style={{ flex: 1, height: '42px', padding: '0 14px', borderRadius: '12px', border: '1px solid #475569', background: '#1e293b', color: 'white', fontSize: '13.5px', outline: 'none', colorScheme: 'dark' }}
+                  />
+                  <button 
+                    type="submit" 
+                    disabled={isSearchingMusic}
+                    style={{ padding: '0 18px', height: '42px', borderRadius: '12px', background: '#6366f1', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer', fontSize: '13.5px', touchAction: 'manipulation' }}
+                  >
+                    {isSearchingMusic ? 'Searching...' : '🔍 Search'}
+                  </button>
+                </form>
+
+                {/* Quick Search Shortcut Tags */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
+                  {['🌧️ Rain & Piano', '🌊 Ocean Waves', '☕ Lofi Chill', '🧘 Meditation', '🎸 Acoustic', '🇱🇰 Sinhala Songs'].map(tag => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => { setMusicSearchQuery(tag); fetchMusicSearchResults(tag); }}
+                      style={{ padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.15)', background: 'rgba(255,255,255,0.08)', color: '#cbd5e1', fontSize: '11.5px', cursor: 'pointer', fontWeight: '500', touchAction: 'manipulation' }}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Search Results List */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px', maxHeight: '200px', overflowY: 'auto', marginBottom: '14px', paddingRight: '4px' }}>
+                  {musicSearchResults.map(track => (
+                    <div 
+                      key={track.trackId}
+                      onClick={() => handlePlayTrack(track)}
+                      style={{
+                        background: nowPlayingTrack?.trackId === track.trackId ? 'rgba(99, 102, 241, 0.4)' : 'rgba(255, 255, 255, 0.06)',
+                        border: nowPlayingTrack?.trackId === track.trackId ? '1.5px solid #818cf8' : '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '12px',
+                        padding: '10px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        touchAction: 'manipulation'
+                      }}
+                    >
+                      <img src={track.artworkUrl100 || track.artworkUrl60} alt={track.trackName} style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover', marginBottom: '6px' }} />
+                      <div style={{ fontSize: '11.5px', fontWeight: '700', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {track.trackName}
+                      </div>
+                      <div style={{ fontSize: '10.5px', color: '#94a3b8', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {track.artistName}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Now Playing Audio Control Bar */}
+                {nowPlayingTrack && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(0,0,0,0.45)', padding: '10px 14px', borderRadius: '14px', border: '1px solid rgba(129,140,248,0.35)' }}>
+                    <img src={nowPlayingTrack.artworkUrl60} alt="Now Playing" style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover' }} />
+                    
+                    <div style={{ flex: 1, overflow: 'hidden' }}>
+                      <div style={{ fontSize: '12.5px', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {nowPlayingTrack.trackName}
+                      </div>
+                      <div style={{ fontSize: '11px', color: '#a5b4fc' }}>
+                        {nowPlayingTrack.artistName}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleTogglePlayPause}
+                      style={{ width: '40px', height: '40px', borderRadius: '50%', background: isMusicPlaying ? '#ef4444' : '#10b981', color: 'white', border: 'none', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'manipulation' }}
+                    >
+                      {isMusicPlaying ? '⏸' : '▶'}
+                    </button>
+
+                    <audio 
+                      ref={musicAudioRef} 
+                      src={nowPlayingTrack.previewUrl} 
+                      loop
+                      onPlay={() => setIsMusicPlaying(true)}
+                      onPause={() => setIsMusicPlaying(false)}
+                    />
+                  </div>
+                )}
               </div>
 
               <label style={{ display: 'block', color: '#475569', fontWeight: '700', marginBottom: '10px', fontSize: '13.5px' }}>6. Unique Factors & Integration</label>
