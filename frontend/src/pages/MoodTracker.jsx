@@ -8957,8 +8957,75 @@ export default function MoodTracker() {
             {/* 3D WebGL Canvas Container */}
             <div 
               ref={threeContainerRef} 
-              style={{ width: '100%', height: '400px', background: '#020617', position: 'relative', cursor: 'grab', touchAction: 'none' }} 
+              style={{ width: '100%', height: '380px', background: '#020617', position: 'relative', cursor: 'grab', touchAction: 'none' }} 
             />
+
+            {/* PROMINENT AMBIENT SOUND CONTROLLER */}
+            <div style={{
+              padding: '12px 20px',
+              background: 'rgba(30, 41, 59, 0.8)',
+              borderTop: '1px solid rgba(255,255,255,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '10px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#38bdf8', fontSize: '13px', fontWeight: 'bold' }}>
+                <span>🎵 3D Zen Soundscape:</span>
+                <span style={{ color: 'white', background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '8px' }}>
+                  {active3DGame === 'starfield' && '🌌 432 Hz Stardust Space Harp'}
+                  {active3DGame === 'water' && '🌊 174 Hz Liquid Ocean Wave Drop'}
+                  {active3DGame === 'sakura' && '🌸 285 Hz Japanese Zen Wind Chime'}
+                  {active3DGame === 'crystal' && '🔮 528 Hz Solfeggio Crystal Bowl'}
+                  {active3DGame === 'saturn' && '🪐 392 Hz Celestial Ring Orbit'}
+                  {active3DGame === 'autumn' && '🍃 220 Hz Golden Forest Breeze'}
+                  {active3DGame === 'prism' && '💎 396 Hz Rainbow Glass Harp'}
+                  {active3DGame === 'warp' && '🌌 440 Hz Soft Time Swirl'}
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    play3DTouchChime(active3DGame, false);
+                  }}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '10px',
+                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    color: 'white',
+                    border: 'none',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                    touchAction: 'manipulation'
+                  }}
+                >
+                  🔔 Play Touch Chime
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIs3DAudioMuted(prev => !prev)}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '10px',
+                    background: is3DAudioMuted ? 'rgba(239,68,68,0.25)' : 'rgba(99,102,241,0.25)',
+                    border: is3DAudioMuted ? '1px solid #ef4444' : '1px solid #818cf8',
+                    color: is3DAudioMuted ? '#f87171' : '#a5b4fc',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    touchAction: 'manipulation'
+                  }}
+                >
+                  {is3DAudioMuted ? '🔇 Sound Muted' : '🔊 Sound Playing'}
+                </button>
+              </div>
+            </div>
 
             {/* Footer Instructions */}
             <div style={{ padding: '14px 24px', background: 'rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontSize: '12.5px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
