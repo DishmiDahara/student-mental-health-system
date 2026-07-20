@@ -3355,7 +3355,7 @@ export default function MoodTracker() {
               
               <textarea value={note} onChange={(e) => setNote(e.target.value)}
                 placeholder="Vibe check... what is on your mind today?"
-                style={{ width: '100%', padding: '14px', border: '2px solid #e2e8f0', borderRadius: '12px', fontSize: '13.5px', outline: 'none', resize: 'none', height: '80px', boxSizing: 'border-box', fontFamily: 'inherit', marginBottom: '16px' }} />
+                style={{ width: '100%', padding: '14px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', outline: 'none', minHeight: '100px', boxSizing: 'border-box', fontFamily: 'inherit', marginBottom: '16px' }} />
 
               {/* Photo Upload widget */}
               <div style={{ marginBottom: '16px' }}>

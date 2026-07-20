@@ -3,12 +3,30 @@
   padding: 0;
   box-sizing: border-box;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   background: #f0f4f8;
   overflow-x: hidden;
   width: 100%;
+}
+
+/* Fix input field text visibility for browser dark mode and autofill */
+input, select, textarea {
+  color: #1e293b !important;
+  background-color: #ffffff !important;
+  color-scheme: light !important;
+  caret-color: #4f46e5 !important;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
+  -webkit-text-fill-color: #1e293b !important;
+  caret-color: #1e293b !important;
 }
 
 html {
@@ -105,8 +123,15 @@ h1, h2, h3, h4, h5, h6 {
   input[type="email"],
   input[type="password"],
   select,
-  textarea,
+  textarea {
+    font-size: 16px !important; /* Prevents iOS Safari auto-zoom & focus shift on touch */
+    touch-action: manipulation !important;
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
+
   button {
     font-size: 14px !important;
+    touch-action: manipulation !important;
   }
 }

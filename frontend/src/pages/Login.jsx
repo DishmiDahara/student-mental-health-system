@@ -86,8 +86,8 @@ export default function Login() {
 
   if (forgotMode) {
     return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ background: 'white', padding: '40px', borderRadius: '20px', width: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
+      <div style={{ minHeight: '100dvh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto', boxSizing: 'border-box' }}>
+        <div style={{ background: 'white', padding: '32px 24px', borderRadius: '20px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', boxSizing: 'border-box', margin: 'auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '30px' }}>
             <h2 style={{ color: '#4f46e5', fontSize: '24px' }}>Reset Password</h2>
             <p style={{ color: '#6b7280', fontSize: '14px' }}>MindSpace Security Console</p>
@@ -106,7 +106,7 @@ export default function Login() {
                 onChange={e => { setForgotEmail(e.target.value); setError(''); }} 
                 placeholder="Enter email address" 
                 type="email" 
-                style={{ width: '100%', padding: '14px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} 
+                style={{ width: '100%', padding: '14px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', color: '#1e293b', background: '#ffffff', colorScheme: 'light', textAlign: 'left', opacity: 1, pointerEvents: 'auto' }} 
               />
               <button 
                 onClick={handleRequestOtp} 
@@ -129,7 +129,7 @@ export default function Login() {
                   placeholder="Enter 123456" 
                   type="text" 
                   maxLength={6}
-                  style={{ width: '100%', padding: '14px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', letterSpacing: '2px', textAlign: 'center', fontWeight: 'bold' }} 
+                  style={{ width: '100%', padding: '14px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', letterSpacing: '2px', textAlign: 'center', fontWeight: 'bold', color: '#1e293b', background: '#ffffff', colorScheme: 'light', opacity: 1, pointerEvents: 'auto' }} 
                 />
               </div>
               <div>
@@ -139,7 +139,7 @@ export default function Login() {
                   onChange={e => { setNewPasswordInput(e.target.value); setError(''); }} 
                   placeholder="Enter new secure password" 
                   type="password" 
-                  style={{ width: '100%', padding: '14px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} 
+                  style={{ width: '100%', padding: '14px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', color: '#1e293b', background: '#ffffff', colorScheme: 'light', textAlign: 'left', opacity: 1, pointerEvents: 'auto' }} 
                 />
               </div>
               <button 
@@ -170,48 +170,81 @@ export default function Login() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: 'white', padding: '40px', borderRadius: '20px', width: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)' }}>
-        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <div style={{ fontSize: '48px' }}>🧠</div>
-          <h2 style={{ color: '#4f46e5', fontSize: '24px' }}>MindSpace</h2>
-          <p style={{ color: '#6b7280', fontSize: '14px' }}>Student Mental Health Support</p>
+    <div style={{ minHeight: '100dvh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto', boxSizing: 'border-box' }}>
+      <div style={{ background: 'white', padding: '32px 24px', borderRadius: '20px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', boxSizing: 'border-box', margin: 'auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <div style={{ fontSize: '44px' }}>🧠</div>
+          <h2 style={{ color: '#4f46e5', fontSize: '24px', margin: '4px 0' }}>MindSpace</h2>
+          <p style={{ color: '#6b7280', fontSize: '13.5px', margin: 0 }}>Student Mental Health Support</p>
         </div>
 
-        <div style={{ display: 'flex', marginBottom: '24px', background: '#f3f4f6', borderRadius: '10px', padding: '4px' }}>
-          <button onClick={() => setIsLogin(true)} style={{ flex: 1, padding: '10px', background: isLogin ? '#4f46e5' : 'transparent', color: isLogin ? 'white' : '#6b7280', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>Login</button>
-          <button onClick={() => setIsLogin(false)} style={{ flex: 1, padding: '10px', background: !isLogin ? '#4f46e5' : 'transparent', color: !isLogin ? 'white' : '#6b7280', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600' }}>Register</button>
+        <div style={{ display: 'flex', marginBottom: '20px', background: '#f3f4f6', borderRadius: '10px', padding: '4px' }}>
+          <button type="button" onClick={() => setIsLogin(true)} style={{ flex: 1, padding: '10px', background: isLogin ? '#4f46e5' : 'transparent', color: isLogin ? 'white' : '#6b7280', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', touchAction: 'manipulation' }}>Login</button>
+          <button type="button" onClick={() => setIsLogin(false)} style={{ flex: 1, padding: '10px', background: !isLogin ? '#4f46e5' : 'transparent', color: !isLogin ? 'white' : '#6b7280', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', touchAction: 'manipulation' }}>Register</button>
         </div>
 
-        {error && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>{error}</div>}
+        {error && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '13.5px' }}>{error}</div>}
 
-        {!isLogin && <input value={name} onChange={e => setName(e.target.value)} placeholder="Full Name" style={{ width: '100%', padding: '14px', marginBottom: '12px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />}
-        <input value={email} onChange={e => { setEmail(e.target.value); setError(''); }} placeholder="Email address" type="email" style={{ width: '100%', padding: '14px', marginBottom: '12px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
-        <input value={password} onChange={e => { setPassword(e.target.value); setError(''); }} placeholder="Password" type="password" style={{ width: '100%', padding: '14px', marginBottom: '20px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+        <form onSubmit={e => { e.preventDefault(); handleSubmit(); }}>
+          {!isLogin && (
+            <input 
+              value={name} 
+              onChange={e => setName(e.target.value)} 
+              placeholder="Full Name" 
+              autoCapitalize="words"
+              autoCorrect="off"
+              spellCheck="false"
+              style={{ width: '100%', height: '50px', lineHeight: '1.5', padding: '12px 16px', marginBottom: '14px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', color: '#1e293b', background: '#ffffff', outline: 'none', boxSizing: 'border-box', textAlign: 'left', colorScheme: 'light' }} 
+            />
+          )}
+          <input 
+            value={email} 
+            onChange={e => setEmail(e.target.value)} 
+            placeholder="Email address" 
+            type="email" 
+            autoComplete="email" 
+            inputMode="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck="false"
+            style={{ width: '100%', height: '50px', lineHeight: '1.5', padding: '12px 16px', marginBottom: '14px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', color: '#1e293b', background: '#ffffff', outline: 'none', boxSizing: 'border-box', textAlign: 'left', colorScheme: 'light' }} 
+          />
+          <input 
+            value={password} 
+            onChange={e => setPassword(e.target.value)} 
+            placeholder="Password" 
+            type="password" 
+            autoComplete="current-password" 
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck="false"
+            style={{ width: '100%', height: '50px', lineHeight: '1.5', padding: '12px 16px', marginBottom: '16px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', color: '#1e293b', background: '#ffffff', outline: 'none', boxSizing: 'border-box', textAlign: 'left', colorScheme: 'light' }} 
+          />
 
-        {isLogin && (
-          <div style={{ textAlign: 'right', marginBottom: '16px', marginTop: '-8px' }}>
-            <span 
-              onClick={() => {
-                setForgotMode(true)
-                setOtpSent(false)
-                setForgotEmail(email)
-                setOtpCode('')
-                setNewPasswordInput('')
-                setError('')
-                setSuccessMessage('')
-              }}
-              style={{ color: '#4f46e5', fontSize: '13px', cursor: 'pointer', fontWeight: '500' }}
-            >
-              Forgot Password?
-            </span>
-          </div>
-        )}
+          {isLogin && (
+            <div style={{ textAlign: 'right', marginBottom: '16px', marginTop: '-6px' }}>
+              <span 
+                onClick={() => {
+                  setForgotMode(true)
+                  setOtpSent(false)
+                  setForgotEmail(email)
+                  setOtpCode('')
+                  setNewPasswordInput('')
+                  setError('')
+                  setSuccessMessage('')
+                }}
+                style={{ color: '#4f46e5', fontSize: '13px', cursor: 'pointer', fontWeight: '500' }}
+              >
+                Forgot Password?
+              </span>
+            </div>
+          )}
 
-        <button onClick={handleSubmit} disabled={loading}
-          style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '16px', fontWeight: '600', cursor: 'pointer' }}>
-          {loading ? 'Please wait...' : isLogin ? 'Login' : 'Create Account'}
-        </button>
+          <button type="submit" disabled={loading}
+            style={{ width: '100%', height: '50px', padding: '0 16px', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', border: 'none', borderRadius: '12px', fontSize: '16px', fontWeight: '600', cursor: 'pointer' }}>
+            {loading ? 'Please wait...' : isLogin ? 'Login' : 'Create Account'}
+          </button>
+        </form>
       </div>
     </div>
   )
