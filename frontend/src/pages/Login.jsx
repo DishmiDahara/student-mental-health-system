@@ -8,6 +8,7 @@ export default function Login() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
@@ -22,6 +23,10 @@ export default function Login() {
 
   const handleSubmit = async () => {
     setError('')
+    if (!isLogin && password !== confirmPassword) {
+      setError('Passwords do not match. Please check and try again.')
+      return
+    }
     setLoading(true)
     try {
       const url = isLogin ? `${API_URL}/api/auth/login` : `${API_URL}/api/auth/register`
@@ -218,8 +223,22 @@ export default function Login() {
             autoCapitalize="none"
             autoCorrect="off"
             spellCheck="false"
-            style={{ width: '100%', height: '50px', lineHeight: '1.5', padding: '12px 16px', marginBottom: '16px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', color: '#1e293b', background: '#ffffff', outline: 'none', boxSizing: 'border-box', textAlign: 'left', colorScheme: 'light' }} 
+            style={{ width: '100%', height: '50px', lineHeight: '1.5', padding: '12px 16px', marginBottom: isLogin ? '16px' : '14px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', color: '#1e293b', background: '#ffffff', outline: 'none', boxSizing: 'border-box', textAlign: 'left', colorScheme: 'light' }} 
           />
+
+          {!isLogin && (
+            <input 
+              value={confirmPassword} 
+              onChange={e => { setConfirmPassword(e.target.value); setError(''); }} 
+              placeholder="Confirm Password" 
+              type="password" 
+              autoComplete="new-password" 
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck="false"
+              style={{ width: '100%', height: '50px', lineHeight: '1.5', padding: '12px 16px', marginBottom: '16px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', color: '#1e293b', background: '#ffffff', outline: 'none', boxSizing: 'border-box', textAlign: 'left', colorScheme: 'light' }} 
+            />
+          )}
 
           {isLogin && (
             <div style={{ textAlign: 'right', marginBottom: '16px', marginTop: '-6px' }}>
