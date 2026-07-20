@@ -431,7 +431,45 @@ export default function MoodTracker() {
   const [is3DAudioMuted, setIs3DAudioMuted] = useState(false)
   const threeContainerRef = useRef(null)
 
-  // Web Audio 3D Ambient Sound Synthesizer (8 Unique Soundscapes)
+  // Web Audio 3D Interactive Touch Chime Synthesizer
+  const play3DTouchChime = (gameType, isMuted) => {
+    if (isMuted) return
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext
+      if (!AudioCtx) return
+      const ctx = new AudioCtx()
+
+      const touchFreqs = {
+        starfield: [523.25, 659.25, 783.99, 1046.50, 1174.66], // Stardust Harp
+        water: [440.00, 523.25, 659.25, 880.00],               // Water Drop
+        sakura: [587.33, 659.25, 783.99, 880.00, 1046.50],      // Wind Chimes
+        crystal: [528.00, 1056.00, 1584.00],                    // Solfeggio Crystal
+        saturn: [392.00, 523.25, 659.25, 783.99],               // Celestial Ring
+        autumn: [349.23, 440.00, 523.25, 659.25],               // Golden Marimba
+        prism: [698.46, 880.00, 1046.50, 1396.91],              // Glass Harp
+        warp: [440.00, 587.33, 659.25, 880.00]                  // Quantum Chime
+      }
+
+      const notes = touchFreqs[gameType] || [523.25, 659.25, 783.99]
+      const note = notes[Math.floor(Math.random() * notes.length)]
+
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(note, ctx.currentTime)
+
+      gain.gain.setValueAtTime(0.08, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.2)
+
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+
+      osc.start()
+      osc.stop(ctx.currentTime + 1.25)
+    } catch (e) {}
+  }
+
+  // Web Audio 3D Ambient Sound Synthesizer (Ultra-Calm Pure Sine Harmonics)
   const play3DAmbientSoundscape = (gameType, isMuted) => {
     if (isMuted) return null
     try {
@@ -440,7 +478,7 @@ export default function MoodTracker() {
       const ctx = new AudioCtx()
 
       const masterGain = ctx.createGain()
-      masterGain.gain.setValueAtTime(0.12, ctx.currentTime)
+      masterGain.gain.setValueAtTime(0.06, ctx.currentTime) // Very soft & calm
       masterGain.connect(ctx.destination)
 
       let osc1 = ctx.createOscillator()
@@ -448,77 +486,63 @@ export default function MoodTracker() {
       let lfo = ctx.createOscillator()
       let lfoGain = ctx.createGain()
 
+      // Pure Soft Sine Waves for 100% Calming Zen Vibe
+      osc1.type = 'sine'
+      osc2.type = 'sine'
+
       if (gameType === 'starfield') {
-        // 🌌 Cosmic 432Hz Stardust Space Drone
-        osc1.type = 'sine'
-        osc1.frequency.setValueAtTime(108, ctx.currentTime)
-        osc2.type = 'triangle'
-        osc2.frequency.setValueAtTime(432, ctx.currentTime)
-        lfo.frequency.setValueAtTime(0.15, ctx.currentTime)
-        lfoGain.gain.setValueAtTime(8, ctx.currentTime)
-      } else if (gameType === 'water') {
-        // 🌊 174Hz Ocean Liquid Waves
-        osc1.type = 'sine'
-        osc1.frequency.setValueAtTime(174, ctx.currentTime)
-        osc2.type = 'sine'
-        osc2.frequency.setValueAtTime(261, ctx.currentTime)
-        lfo.frequency.setValueAtTime(0.8, ctx.currentTime)
-        lfoGain.gain.setValueAtTime(25, ctx.currentTime)
-      } else if (gameType === 'sakura') {
-        // 🌸 285Hz Japanese Zen Garden Breeze
-        osc1.type = 'triangle'
-        osc1.frequency.setValueAtTime(285, ctx.currentTime)
-        osc2.type = 'sine'
-        osc2.frequency.setValueAtTime(570, ctx.currentTime)
-        lfo.frequency.setValueAtTime(0.3, ctx.currentTime)
-        lfoGain.gain.setValueAtTime(15, ctx.currentTime)
-      } else if (gameType === 'crystal') {
-        // 🔮 528Hz Solfeggio Crystal Singing Bowl
-        osc1.type = 'sine'
-        osc1.frequency.setValueAtTime(528, ctx.currentTime)
-        osc2.type = 'sine'
-        osc2.frequency.setValueAtTime(1056, ctx.currentTime)
-        lfo.frequency.setValueAtTime(0.08, ctx.currentTime)
-        lfoGain.gain.setValueAtTime(5, ctx.currentTime)
-      } else if (gameType === 'saturn') {
-        // 🪐 144Hz Saturn Deep Space Bass Orbit
-        osc1.type = 'sawtooth'
-        osc1.frequency.setValueAtTime(72, ctx.currentTime)
-        osc2.type = 'triangle'
-        osc2.frequency.setValueAtTime(144, ctx.currentTime)
-        lfo.frequency.setValueAtTime(0.2, ctx.currentTime)
-        lfoGain.gain.setValueAtTime(18, ctx.currentTime)
-      } else if (gameType === 'autumn') {
-        // 🍃 220Hz Warm Autumn Foliage Wind
-        osc1.type = 'triangle'
-        osc1.frequency.setValueAtTime(220, ctx.currentTime)
-        osc2.type = 'triangle'
-        osc2.frequency.setValueAtTime(330, ctx.currentTime)
-        lfo.frequency.setValueAtTime(0.4, ctx.currentTime)
-        lfoGain.gain.setValueAtTime(14, ctx.currentTime)
-      } else if (gameType === 'prism') {
-        // 💎 396Hz Solfeggio Rainbow Glass Harp
-        osc1.type = 'sine'
-        osc1.frequency.setValueAtTime(396, ctx.currentTime)
-        osc2.type = 'sine'
-        osc2.frequency.setValueAtTime(792, ctx.currentTime)
-        lfo.frequency.setValueAtTime(0.5, ctx.currentTime)
-        lfoGain.gain.setValueAtTime(10, ctx.currentTime)
-      } else if (gameType === 'warp') {
-        // 🌌 96Hz Quantum Warp Tunnel Pulsation
-        osc1.type = 'sawtooth'
-        osc1.frequency.setValueAtTime(96, ctx.currentTime)
-        osc2.type = 'sine'
-        osc2.frequency.setValueAtTime(192, ctx.currentTime)
-        lfo.frequency.setValueAtTime(1.2, ctx.currentTime)
-        lfoGain.gain.setValueAtTime(30, ctx.currentTime)
-      } else {
-        osc1.type = 'sine'
+        // 🌌 Gentle 432Hz Stardust Ambient Pad
         osc1.frequency.setValueAtTime(216, ctx.currentTime)
-        osc2.type = 'sine'
         osc2.frequency.setValueAtTime(432, ctx.currentTime)
-        lfo.frequency.setValueAtTime(0.2, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.1, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(4, ctx.currentTime)
+      } else if (gameType === 'water') {
+        // 🌊 Gentle Soft Water Stream (174Hz Solfeggio)
+        osc1.frequency.setValueAtTime(174, ctx.currentTime)
+        osc2.frequency.setValueAtTime(348, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.4, ctx.currentTime)
         lfoGain.gain.setValueAtTime(10, ctx.currentTime)
+      } else if (gameType === 'sakura') {
+        // 🌸 Gentle 285Hz Sakura Breeze
+        osc1.frequency.setValueAtTime(285, ctx.currentTime)
+        osc2.frequency.setValueAtTime(570, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.15, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(6, ctx.currentTime)
+      } else if (gameType === 'crystal') {
+        // 🔮 Pure 528Hz Solfeggio Crystal Bowl
+        osc1.frequency.setValueAtTime(528, ctx.currentTime)
+        osc2.frequency.setValueAtTime(792, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.05, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(3, ctx.currentTime)
+      } else if (gameType === 'saturn') {
+        // 🪐 Soft 392Hz Celestial Orbit Harmonic
+        osc1.frequency.setValueAtTime(196, ctx.currentTime)
+        osc2.frequency.setValueAtTime(392, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.12, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(5, ctx.currentTime)
+      } else if (gameType === 'autumn') {
+        // 🍃 Warm 220Hz Forest Breeze Pad
+        osc1.frequency.setValueAtTime(220, ctx.currentTime)
+        osc2.frequency.setValueAtTime(440, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.2, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(6, ctx.currentTime)
+      } else if (gameType === 'prism') {
+        // 💎 Magical 396Hz Solfeggio Glass Harp
+        osc1.frequency.setValueAtTime(396, ctx.currentTime)
+        osc2.frequency.setValueAtTime(792, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.25, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(8, ctx.currentTime)
+      } else if (gameType === 'warp') {
+        // 🌌 Soft 440Hz Time Swirl
+        osc1.frequency.setValueAtTime(220, ctx.currentTime)
+        osc2.frequency.setValueAtTime(330, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.3, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(8, ctx.currentTime)
+      } else {
+        osc1.frequency.setValueAtTime(216, ctx.currentTime)
+        osc2.frequency.setValueAtTime(432, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.1, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(5, ctx.currentTime)
       }
 
       lfo.connect(lfoGain)
@@ -569,11 +593,18 @@ export default function MoodTracker() {
     let animFrameId
     let mouseX = 0, mouseY = 0
 
+    let lastChimeTime = 0
     const handlePointerMove = (e) => {
       const rect = container.getBoundingClientRect()
       if (!rect) return
       mouseX = ((e.clientX || e.touches?.[0]?.clientX) - rect.left - rect.width / 2) * 0.005
       mouseY = ((e.clientY || e.touches?.[0]?.clientY) - rect.top - rect.height / 2) * 0.005
+
+      const now = Date.now()
+      if (now - lastChimeTime > 220) {
+        lastChimeTime = now
+        play3DTouchChime(active3DGame, is3DAudioMuted)
+      }
     }
 
     window.addEventListener('mousemove', handlePointerMove)
