@@ -431,7 +431,7 @@ export default function MoodTracker() {
   const [is3DAudioMuted, setIs3DAudioMuted] = useState(false)
   const threeContainerRef = useRef(null)
 
-  // Web Audio 3D Ambient Sound Synthesizer
+  // Web Audio 3D Ambient Sound Synthesizer (8 Unique Soundscapes)
   const play3DAmbientSoundscape = (gameType, isMuted) => {
     if (isMuted) return null
     try {
@@ -440,36 +440,89 @@ export default function MoodTracker() {
       const ctx = new AudioCtx()
 
       const masterGain = ctx.createGain()
-      masterGain.gain.setValueAtTime(0.1, ctx.currentTime)
+      masterGain.gain.setValueAtTime(0.12, ctx.currentTime)
       masterGain.connect(ctx.destination)
 
-      const freqMap = {
-        starfield: 108,
-        water: 174,
-        sakura: 285,
-        crystal: 528,
-        saturn: 144,
-        autumn: 220,
-        prism: 432,
-        warp: 96
+      let osc1 = ctx.createOscillator()
+      let osc2 = ctx.createOscillator()
+      let lfo = ctx.createOscillator()
+      let lfoGain = ctx.createGain()
+
+      if (gameType === 'starfield') {
+        // 🌌 Cosmic 432Hz Stardust Space Drone
+        osc1.type = 'sine'
+        osc1.frequency.setValueAtTime(108, ctx.currentTime)
+        osc2.type = 'triangle'
+        osc2.frequency.setValueAtTime(432, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.15, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(8, ctx.currentTime)
+      } else if (gameType === 'water') {
+        // 🌊 174Hz Ocean Liquid Waves
+        osc1.type = 'sine'
+        osc1.frequency.setValueAtTime(174, ctx.currentTime)
+        osc2.type = 'sine'
+        osc2.frequency.setValueAtTime(261, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.8, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(25, ctx.currentTime)
+      } else if (gameType === 'sakura') {
+        // 🌸 285Hz Japanese Zen Garden Breeze
+        osc1.type = 'triangle'
+        osc1.frequency.setValueAtTime(285, ctx.currentTime)
+        osc2.type = 'sine'
+        osc2.frequency.setValueAtTime(570, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.3, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(15, ctx.currentTime)
+      } else if (gameType === 'crystal') {
+        // 🔮 528Hz Solfeggio Crystal Singing Bowl
+        osc1.type = 'sine'
+        osc1.frequency.setValueAtTime(528, ctx.currentTime)
+        osc2.type = 'sine'
+        osc2.frequency.setValueAtTime(1056, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.08, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(5, ctx.currentTime)
+      } else if (gameType === 'saturn') {
+        // 🪐 144Hz Saturn Deep Space Bass Orbit
+        osc1.type = 'sawtooth'
+        osc1.frequency.setValueAtTime(72, ctx.currentTime)
+        osc2.type = 'triangle'
+        osc2.frequency.setValueAtTime(144, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.2, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(18, ctx.currentTime)
+      } else if (gameType === 'autumn') {
+        // 🍃 220Hz Warm Autumn Foliage Wind
+        osc1.type = 'triangle'
+        osc1.frequency.setValueAtTime(220, ctx.currentTime)
+        osc2.type = 'triangle'
+        osc2.frequency.setValueAtTime(330, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.4, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(14, ctx.currentTime)
+      } else if (gameType === 'prism') {
+        // 💎 396Hz Solfeggio Rainbow Glass Harp
+        osc1.type = 'sine'
+        osc1.frequency.setValueAtTime(396, ctx.currentTime)
+        osc2.type = 'sine'
+        osc2.frequency.setValueAtTime(792, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.5, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(10, ctx.currentTime)
+      } else if (gameType === 'warp') {
+        // 🌌 96Hz Quantum Warp Tunnel Pulsation
+        osc1.type = 'sawtooth'
+        osc1.frequency.setValueAtTime(96, ctx.currentTime)
+        osc2.type = 'sine'
+        osc2.frequency.setValueAtTime(192, ctx.currentTime)
+        lfo.frequency.setValueAtTime(1.2, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(30, ctx.currentTime)
+      } else {
+        osc1.type = 'sine'
+        osc1.frequency.setValueAtTime(216, ctx.currentTime)
+        osc2.type = 'sine'
+        osc2.frequency.setValueAtTime(432, ctx.currentTime)
+        lfo.frequency.setValueAtTime(0.2, ctx.currentTime)
+        lfoGain.gain.setValueAtTime(10, ctx.currentTime)
       }
 
-      const baseFreq = freqMap[gameType] || 216
-
-      const osc1 = ctx.createOscillator()
-      osc1.type = gameType === 'crystal' ? 'sine' : 'triangle'
-      osc1.frequency.setValueAtTime(baseFreq, ctx.currentTime)
-
-      const lfo = ctx.createOscillator()
-      lfo.frequency.setValueAtTime(0.2, ctx.currentTime)
-      const lfoGain = ctx.createGain()
-      lfoGain.gain.setValueAtTime(12, ctx.currentTime)
       lfo.connect(lfoGain)
       lfoGain.connect(osc1.frequency)
-
-      const osc2 = ctx.createOscillator()
-      osc2.type = 'sine'
-      osc2.frequency.setValueAtTime(baseFreq * 1.5, ctx.currentTime)
 
       osc1.connect(masterGain)
       osc2.connect(masterGain)
