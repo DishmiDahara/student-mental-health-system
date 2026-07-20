@@ -4388,7 +4388,7 @@ export default function MoodTracker() {
                 </div>
               </div>
 
-              {/* 🌐 CRAZYGAMES UNLIMITED RELAXING ARCADE PORTAL */}
+              {/* ⚡ 100% NATIVE PURE-REACT RELAXING ARCADE */}
               <div style={{
                 background: 'linear-gradient(135deg, #020617 0%, #1e1b4b 50%, #312e81 100%)',
                 padding: '24px',
@@ -4400,84 +4400,53 @@ export default function MoodTracker() {
               }}>
                 <div style={{ marginBottom: '16px' }}>
                   <h3 style={{ margin: '0 0 4px 0', fontSize: '17px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    🌐 CrazyGames Unlimited Relaxing Arcade 🎮
+                    ⚡ Native Built-in Mind Relaxation Games 🎮
                   </h3>
                   <p style={{ margin: 0, fontSize: '12.5px', color: '#94a3b8' }}>
-                    Search or play any relaxing, antistress & puzzle game from CrazyGames directly inside MindSpace:
+                    100% Native WebGL & Canvas Games built directly inside MindSpace (Zero lag, zero iframe errors):
                   </p>
                 </div>
 
-                {/* Search / Direct Game URL Loader Form */}
-                <form onSubmit={handleCustomCrazySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-                  <input 
-                    value={crazySearchInput} 
-                    onChange={(e) => setCrazySearchInput(e.target.value)} 
-                    placeholder="Type any CrazyGame name or URL (e.g. pop-it-master, fluid-simulation)..." 
-                    style={{ width: '100%', height: '44px', padding: '0 14px', borderRadius: '12px', border: '1px solid #475569', background: '#0f172a', color: 'white', fontSize: '13.5px', outline: 'none', boxSizing: 'border-box', colorScheme: 'dark' }}
-                  />
-                  <button 
-                    type="submit" 
-                    style={{ width: '100%', height: '42px', borderRadius: '12px', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer', fontSize: '14px', touchAction: 'manipulation' }}
-                  >
-                    🚀 Launch CrazyGame
-                  </button>
-                </form>
-
-                {/* Category Filter Pills */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
-                  {['All', 'Antistress', 'Fluids', 'Coloring', 'Relaxing', 'Logic', 'Puzzle', 'Music'].map(cat => (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => setSelectedCrazyCategory(cat)}
+                {/* Pre-loaded 100% Native Games Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(135px, 1fr))', gap: '10px' }}>
+                  {[
+                    { id: 'popit', title: 'Pop-It 3D Fidget 🧸', desc: 'Interactive popping bubbles', icon: '🧸', action: () => setShowPopItModal(true) },
+                    { id: 'watersort', title: 'Water Sort Liquid 🧪', desc: 'Color liquid sorting puzzle', icon: '🧪', action: () => setShowWaterSortModal(true) },
+                    { id: 'starfield', title: '3D Cosmic Space 🌌', desc: 'Interactive 3D particle universe', icon: '🌌', action: () => setActive3DGame('starfield') },
+                    { id: 'water', title: '3D Water Waves 🌊', desc: '3D kinetic liquid wave pool', icon: '🌊', action: () => setActive3DGame('water') },
+                    { id: 'sakura', title: '3D Sakura Sanctuary 🌸', desc: '3D cherry tree in falling petals', icon: '🌸', action: () => setActive3DGame('sakura') },
+                    { id: 'crystal', title: '3D Breathing Orb 🔮', desc: '4-7-8 pulsing 3D glass crystal', icon: '🔮', action: () => setActive3DGame('crystal') },
+                    { id: 'drawing', title: 'Zen Painting 🎨', desc: 'Color drawing & brush board', icon: '🎨', action: () => setActiveGame('drawing') },
+                    { id: 'breathing', title: '4-7-8 Breathwork 🎈', desc: 'Guided sound bath & breathing', icon: '🎈', action: () => setActiveGame('breathing') },
+                    { id: 'pet', title: 'Virtual Zen Pet 🐱', desc: 'Feed & pet your virtual cat', icon: '🐱', action: () => setActiveGame('pet') },
+                    { id: 'memory', title: 'Memory Tiles 🀄', desc: 'Focus & memory tile matching', icon: '🀄', action: () => setActiveGame('memory') }
+                  ].map(gameObj => (
+                    <div
+                      key={gameObj.id}
+                      onClick={gameObj.action}
                       style={{
-                        padding: '6px 12px',
-                        borderRadius: '8px',
-                        border: selectedCrazyCategory === cat ? '1.5px solid #818cf8' : '1px solid rgba(255,255,255,0.12)',
-                        background: selectedCrazyCategory === cat ? 'rgba(99, 102, 241, 0.35)' : 'rgba(255,255,255,0.06)',
-                        color: selectedCrazyCategory === cat ? 'white' : '#cbd5e1',
-                        fontSize: '11.5px',
-                        fontWeight: '600',
+                        background: 'rgba(255,255,255,0.08)',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        borderRadius: '16px',
+                        padding: '12px',
                         cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center',
                         touchAction: 'manipulation'
                       }}
                     >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Pre-loaded CrazyGames Library Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '10px', maxHeight: '280px', overflowY: 'auto', paddingRight: '4px' }}>
-                  {defaultCrazyGamesList
-                    .filter(g => selectedCrazyCategory === 'All' || g.category === selectedCrazyCategory)
-                    .map(gameObj => (
-                      <div
-                        key={gameObj.slug}
-                        onClick={() => launchCrazyGame(gameObj)}
-                        style={{
-                          background: 'rgba(255,255,255,0.07)',
-                          border: '1px solid rgba(255,255,255,0.12)',
-                          borderRadius: '14px',
-                          padding: '10px',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          textAlign: 'center',
-                          touchAction: 'manipulation'
-                        }}
-                      >
-                        <div style={{ fontSize: '26px', marginBottom: '4px' }}>{gameObj.icon}</div>
-                        <div style={{ fontSize: '11.5px', fontWeight: '700', color: 'white', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {gameObj.title}
-                        </div>
-                        <div style={{ fontSize: '10.5px', color: '#94a3b8', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
-                          {gameObj.desc}
-                        </div>
+                      <div style={{ fontSize: '28px', marginBottom: '6px' }}>{gameObj.icon}</div>
+                      <div style={{ fontSize: '12px', fontWeight: '700', color: 'white', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {gameObj.title}
                       </div>
-                    ))}
+                      <div style={{ fontSize: '10.5px', color: '#94a3b8', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
+                        {gameObj.desc}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
