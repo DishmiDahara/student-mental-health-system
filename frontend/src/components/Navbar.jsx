@@ -21,23 +21,24 @@ export default function Navbar() {
   const [transitionParticles, setTransitionParticles] = useState([])
 
   const triggerNavTransition = (targetPath, emojiSet) => {
-    // Create 28 rich floating burst particles across screen that float gracefully for EXACT 5.0 seconds
+    // 1. Instant 1st-click Navigation!
+    navigate(targetPath)
+
+    // 2. Trigger 28 rich floating burst particles across screen that float gracefully for 5.0s
     const particles = Array.from({ length: 28 }).map((_, index) => ({
       id: Date.now() + index + Math.random(),
       emoji: emojiSet[Math.floor(Math.random() * emojiSet.length)],
       left: Math.random() * 88 + 4,
       top: Math.random() * 30 + 60,
       size: Math.floor(Math.random() * 22) + 28,
-      duration: '5.00', // Exact 5.0s animation duration for all 6 buttons
-      delay: (index * 0.05).toFixed(2) // Staggered delays up to 1.4s for continuous 5-second stream
+      duration: '5.00',
+      delay: (index * 0.05).toFixed(2)
     }))
 
     setTransitionParticles(particles)
     setTimeout(() => {
       setTransitionParticles([])
-    }, 6500) // 6.5s timeout ensures complete 5.0s float animation for all particles
-
-    navigate(targetPath)
+    }, 6500)
   }
 
   useEffect(() => {
@@ -641,6 +642,7 @@ export default function Navbar() {
                 fontSize: `${p.size}px`,
                 animation: `floatUpBurst ${p.duration}s cubic-bezier(0.22, 1, 0.36, 1) ${p.delay}s forwards`,
                 userSelect: 'none',
+                pointerEvents: 'none',
                 filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.15))'
               }}
             >
