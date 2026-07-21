@@ -18,14 +18,16 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/mood" element={<MoodTracker />} />
         <Route path="/booking" element={<Booking />} />
         <Route path="/resources" element={<Resources />} />
         <Route path="/chat" element={<AIChatbot />} />
         <Route path="/anonymous-chat" element={<AnonymousChat />} />
-        <Route path="/admin" style={{ background: '#0f172a' }} element={<AdminDashboard />} />
+        <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/apply-counselor" element={<ApplyCounselor />} />
+        <Route path="*" element={<Login />} />
       </Routes>
     </BrowserRouter>
   )
