@@ -167,35 +167,40 @@ export default function Navbar() {
         <div className="desktop-nav-menu" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <button 
             onClick={() => navigate('/mood')} 
-            style={{ padding: '9px 16px', background: location.pathname === '/mood' ? '#e0e7ff' : '#f3f4f6', color: location.pathname === '/mood' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
+            className="ms-nav-btn"
+            style={{ padding: '9px 16px', background: location.pathname === '/mood' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : '#f3f4f6', color: location.pathname === '/mood' ? 'white' : '#4b5563', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
           >
             Mood
           </button>
           
           <button 
             onClick={() => navigate('/anonymous-chat')} 
-            style={{ padding: '9px 16px', background: location.pathname === '/anonymous-chat' ? '#e0e7ff' : '#f3f4f6', color: location.pathname === '/anonymous-chat' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
+            className="ms-nav-btn"
+            style={{ padding: '9px 16px', background: location.pathname === '/anonymous-chat' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : '#f3f4f6', color: location.pathname === '/anonymous-chat' ? 'white' : '#4b5563', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
           >
             Peer Chat
           </button>
           
           <button 
             onClick={() => navigate('/chat')} 
-            style={{ padding: '9px 16px', background: location.pathname === '/chat' ? '#e0e7ff' : '#f3f4f6', color: location.pathname === '/chat' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
+            className="ms-nav-btn"
+            style={{ padding: '9px 16px', background: location.pathname === '/chat' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : '#f3f4f6', color: location.pathname === '/chat' ? 'white' : '#4b5563', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
           >
             AI Aura
           </button>
 
           <button 
             onClick={() => navigate('/resources')} 
-            style={{ padding: '9px 16px', background: location.pathname === '/resources' ? '#e0e7ff' : '#f3f4f6', color: location.pathname === '/resources' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
+            className="ms-nav-btn"
+            style={{ padding: '9px 16px', background: location.pathname === '/resources' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : '#f3f4f6', color: location.pathname === '/resources' ? 'white' : '#4b5563', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
           >
             Resources
           </button>
 
           <button 
             onClick={() => navigate('/booking')} 
-            style={{ padding: '9px 16px', background: location.pathname === '/booking' ? '#e0e7ff' : '#f3f4f6', color: location.pathname === '/booking' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
+            className="ms-nav-btn"
+            style={{ padding: '9px 16px', background: location.pathname === '/booking' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : '#f3f4f6', color: location.pathname === '/booking' ? 'white' : '#4b5563', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
           >
             Bookings
           </button>
@@ -203,7 +208,8 @@ export default function Navbar() {
           {user.role === 'student' && (
             <button 
               onClick={() => navigate('/apply-counselor')} 
-              style={{ padding: '9px 16px', background: location.pathname === '/apply-counselor' ? '#0284c7' : '#e0f2fe', color: location.pathname === '/apply-counselor' ? 'white' : '#0369a1', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px', transition: 'all 0.2s' }}
+              className="ms-nav-btn"
+              style={{ padding: '9px 16px', background: location.pathname === '/apply-counselor' ? 'linear-gradient(135deg, #0284c7, #0ea5e9)' : '#e0f2fe', color: location.pathname === '/apply-counselor' ? 'white' : '#0369a1', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px' }}
             >
               Apply as Counselor
             </button>
@@ -212,7 +218,8 @@ export default function Navbar() {
           {isAdmin && (
             <button 
               onClick={() => navigate('/admin')} 
-              style={{ padding: '9px 16px', background: location.pathname === '/admin' ? '#4f46e5' : '#e0e7ff', color: location.pathname === '/admin' ? 'white' : '#4f46e5', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px', transition: 'all 0.2s' }}
+              className="ms-nav-btn"
+              style={{ padding: '9px 16px', background: location.pathname === '/admin' ? 'linear-gradient(135deg, #4f46e5, #7c3aed)' : '#e0e7ff', color: location.pathname === '/admin' ? 'white' : '#4f46e5', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px' }}
             >
               {user?.role === 'counsellor' ? 'Counsellor Console' : 'Admin Console'}
             </button>
@@ -585,6 +592,25 @@ export default function Navbar() {
       )}
 
       <style>{`
+        .ms-nav-btn {
+          transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          position: relative !important;
+          outline: none !important;
+          user-select: none !important;
+        }
+        .ms-nav-btn:hover {
+          transform: translateY(-2px) scale(1.04) !important;
+          box-shadow: 0 6px 20px rgba(79, 70, 229, 0.25) !important;
+        }
+        .ms-nav-btn:active {
+          transform: scale(0.92) translateY(1px) !important;
+          box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4) !important;
+          animation: msRipple 0.3s ease-out !important;
+        }
+        @keyframes msRipple {
+          0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.6); }
+          100% { box-shadow: 0 0 0 12px rgba(99, 102, 241, 0); }
+        }
         .navbar-bell-btn:hover {
           background-color: #f3f4f6 !important;
           color: #4f46e5 !important;
