@@ -18,29 +18,9 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 1024 : false)
   const dropdownRef = useRef(null)
-  const [transitionParticles, setTransitionParticles] = useState([])
 
-  const triggerNavTransition = (targetPath, emojiSet) => {
-    // 1. Instant 1st-click Navigation!
+  const triggerNavTransition = (targetPath) => {
     navigate(targetPath)
-
-    // 2. Generate 30 floating burst particles for target tab floating gracefully for EXACT 5.0s
-    if (emojiSet && emojiSet.length > 0) {
-      const particles = Array.from({ length: 30 }).map((_, index) => ({
-        id: Date.now() + index + Math.random(),
-        emoji: emojiSet[Math.floor(Math.random() * emojiSet.length)],
-        left: Math.random() * 88 + 4,
-        top: Math.random() * 30 + 60,
-        size: Math.floor(Math.random() * 22) + 28,
-        duration: '5.00', // Exact 5.0s float animation duration for all tabs
-        delay: (index * 0.045).toFixed(2) // Staggered stream over 1.35s
-      }))
-
-      setTransitionParticles(particles)
-      setTimeout(() => {
-        setTransitionParticles([])
-      }, 6500)
-    }
   }
 
   useEffect(() => {
@@ -622,58 +602,7 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* --- 5.0 SECOND THEMED FLOATING EMOJI TRANSITION OVERLAY --- */}
-      {transitionParticles.length > 0 && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          pointerEvents: 'none',
-          touchAction: 'none',
-          zIndex: 999999,
-          overflow: 'hidden'
-        }}>
-          {transitionParticles.map((p) => (
-            <div
-              key={p.id}
-              style={{
-                position: 'absolute',
-                left: `${p.left}%`,
-                top: `${p.top}%`,
-                fontSize: `${p.size}px`,
-                animation: `floatUpBurst ${p.duration}s cubic-bezier(0.22, 1, 0.36, 1) ${p.delay}s forwards`,
-                userSelect: 'none',
-                pointerEvents: 'none',
-                filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.18))'
-              }}
-            >
-              {p.emoji}
-            </div>
-          ))}
-        </div>
-      )}
-
       <style>{`
-        @keyframes floatUpBurst {
-          0% {
-            opacity: 0;
-            transform: translateY(30px) scale(0.4) rotate(0deg);
-          }
-          15% {
-            opacity: 1;
-            transform: translateY(-80px) scale(1.3) rotate(12deg);
-          }
-          65% {
-            opacity: 0.85;
-            transform: translateY(-340px) scale(1.6) rotate(-15deg);
-          }
-          100% {
-            opacity: 0;
-            transform: translateY(-520px) scale(1.9) rotate(25deg);
-          }
-        }
         .ms-nav-btn {
           transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
           position: relative !important;
