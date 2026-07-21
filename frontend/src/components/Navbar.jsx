@@ -18,27 +18,32 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 1024 : false)
   const dropdownRef = useRef(null)
-  const [transitionParticles, setTransitionParticles] = useState([])
+  const [auraWave, setAuraWave] = useState(null)
 
-  const triggerNavTransition = (targetPath, emojiSet) => {
+  const triggerNavTransition = (targetPath, e) => {
     // 1. Instant 1st-click Navigation!
     navigate(targetPath)
 
-    // 2. Trigger 28 rich floating burst particles across screen that float gracefully for 5.0s
-    const particles = Array.from({ length: 28 }).map((_, index) => ({
-      id: Date.now() + index + Math.random(),
-      emoji: emojiSet[Math.floor(Math.random() * emojiSet.length)],
-      left: Math.random() * 88 + 4,
-      top: Math.random() * 30 + 60,
-      size: Math.floor(Math.random() * 22) + 28,
-      duration: '5.00',
-      delay: (index * 0.05).toFixed(2)
-    }))
+    // 2. Get click coordinates for Radiant Aura Ripple Wave
+    let x = typeof window !== 'undefined' ? window.innerWidth / 2 : 150
+    let y = 60
+    if (e && e.clientX && e.clientY) {
+      x = e.clientX
+      y = e.clientY
+    } else if (e && e.touches && e.touches[0]) {
+      x = e.touches[0].clientX
+      y = e.touches[0].clientY
+    }
 
-    setTransitionParticles(particles)
+    setAuraWave({
+      id: Date.now(),
+      x,
+      y
+    })
+
     setTimeout(() => {
-      setTransitionParticles([])
-    }, 6500)
+      setAuraWave(null)
+    }, 1100)
   }
 
   useEffect(() => {
@@ -620,8 +625,8 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* --- FLOATING EMOJI PAGE TRANSITION OVERLAY --- */}
-      {transitionParticles.length > 0 && (
+      {/* --- OPTION 1: RADIANT AURA RIPPLE WAVE OVERLAY --- */}
+      {auraWave && (
         <div style={{
           position: 'fixed',
           top: 0,
@@ -629,46 +634,45 @@ export default function Navbar() {
           right: 0,
           bottom: 0,
           pointerEvents: 'none',
-          zIndex: 99999,
+          touchAction: 'none',
+          zIndex: 999999,
           overflow: 'hidden'
         }}>
-          {transitionParticles.map((p) => (
-            <div
-              key={p.id}
-              style={{
-                position: 'absolute',
-                left: `${p.left}%`,
-                top: `${p.top}%`,
-                fontSize: `${p.size}px`,
-                animation: `floatUpBurst ${p.duration}s cubic-bezier(0.22, 1, 0.36, 1) ${p.delay}s forwards`,
-                userSelect: 'none',
-                pointerEvents: 'none',
-                filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.15))'
-              }}
-            >
-              {p.emoji}
-            </div>
-          ))}
+          {/* Hardware-accelerated Expanding Calming Radiant Wave Ring */}
+          <div style={{
+            position: 'absolute',
+            left: `${auraWave.x}px`,
+            top: `${auraWave.y}px`,
+            width: '10px',
+            height: '10px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(99, 102, 241, 0.5) 0%, rgba(168, 85, 247, 0.35) 40%, rgba(79, 70, 229, 0) 75%)',
+            boxShadow: '0 0 60px rgba(99, 102, 241, 0.65), inset 0 0 40px rgba(168, 85, 247, 0.45)',
+            backdropFilter: 'blur(8px)',
+            transform: 'translate(-50%, -50%)',
+            animation: 'msRadiantAuraWave 1.05s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+            willChange: 'width, height, opacity'
+          }} />
         </div>
       )}
 
       <style>{`
-        @keyframes floatUpBurst {
+        @keyframes msRadiantAuraWave {
           0% {
-            opacity: 0;
-            transform: translateY(20px) scale(0.4) rotate(0deg);
+            width: 0px;
+            height: 0px;
+            opacity: 0.95;
+            border: 3px solid rgba(168, 85, 247, 0.85);
           }
-          15% {
-            opacity: 1;
-            transform: translateY(-80px) scale(1.2) rotate(10deg);
-          }
-          70% {
+          35% {
             opacity: 0.85;
-            transform: translateY(-320px) scale(1.5) rotate(-15deg);
+            border: 2px solid rgba(99, 102, 241, 0.6);
           }
           100% {
+            width: 2400px;
+            height: 2400px;
             opacity: 0;
-            transform: translateY(-500px) scale(1.8) rotate(25deg);
+            border: 1px solid rgba(99, 102, 241, 0);
           }
         }
         .ms-nav-btn {
