@@ -18,32 +18,17 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 1024 : false)
   const dropdownRef = useRef(null)
-  const [auraWave, setAuraWave] = useState(null)
+  const [navProgress, setNavProgress] = useState(false)
 
-  const triggerNavTransition = (targetPath, e) => {
+  const triggerNavTransition = (targetPath) => {
     // 1. Instant 1st-click Navigation!
     navigate(targetPath)
 
-    // 2. Get click coordinates for Radiant Aura Ripple Wave
-    let x = typeof window !== 'undefined' ? window.innerWidth / 2 : 150
-    let y = 60
-    if (e && e.clientX && e.clientY) {
-      x = e.clientX
-      y = e.clientY
-    } else if (e && e.touches && e.touches[0]) {
-      x = e.touches[0].clientX
-      y = e.touches[0].clientY
-    }
-
-    setAuraWave({
-      id: Date.now(),
-      x,
-      y
-    })
-
+    // 2. Trigger Option 4 Sleek Top Glass Progress Bar & Smooth Page Fade
+    setNavProgress(true)
     setTimeout(() => {
-      setAuraWave(null)
-    }, 1100)
+      setNavProgress(false)
+    }, 650)
   }
 
   useEffect(() => {
@@ -625,54 +610,61 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* --- OPTION 1: RADIANT AURA RIPPLE WAVE OVERLAY --- */}
-      {auraWave && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          pointerEvents: 'none',
-          touchAction: 'none',
-          zIndex: 999999,
-          overflow: 'hidden'
-        }}>
-          {/* Hardware-accelerated Expanding Calming Radiant Wave Ring */}
+      {/* --- OPTION 4: TOP GLASS PROGRESS BAR & SMOOTH PAGE FADE --- */}
+      {navProgress && (
+        <>
+          {/* Top Progress Loading Bar */}
           <div style={{
-            position: 'absolute',
-            left: `${auraWave.x}px`,
-            top: `${auraWave.y}px`,
-            width: '10px',
-            height: '10px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(99, 102, 241, 0.5) 0%, rgba(168, 85, 247, 0.35) 40%, rgba(79, 70, 229, 0) 75%)',
-            boxShadow: '0 0 60px rgba(99, 102, 241, 0.65), inset 0 0 40px rgba(168, 85, 247, 0.45)',
-            backdropFilter: 'blur(8px)',
-            transform: 'translate(-50%, -50%)',
-            animation: 'msRadiantAuraWave 1.05s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-            willChange: 'width, height, opacity'
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '3.5px',
+            zIndex: 999999,
+            pointerEvents: 'none',
+            background: 'linear-gradient(90deg, #4f46e5 0%, #8b5cf6 50%, #ec4899 100%)',
+            boxShadow: '0 0 12px rgba(139, 92, 246, 0.8), 0 0 4px rgba(236, 72, 153, 0.6)',
+            animation: 'topProgressBar 0.65s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+            willChange: 'width, opacity'
           }} />
-        </div>
+
+          {/* Smooth Glass Backdrop Fade Overlay */}
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(255, 255, 255, 0.2)',
+            backdropFilter: 'blur(3px)',
+            pointerEvents: 'none',
+            zIndex: 999998,
+            animation: 'smoothPageFade 0.5s ease-out forwards'
+          }} />
+        </>
       )}
 
       <style>{`
-        @keyframes msRadiantAuraWave {
+        @keyframes topProgressBar {
           0% {
-            width: 0px;
-            height: 0px;
-            opacity: 0.95;
-            border: 3px solid rgba(168, 85, 247, 0.85);
+            width: 0%;
+            opacity: 1;
           }
-          35% {
-            opacity: 0.85;
-            border: 2px solid rgba(99, 102, 241, 0.6);
+          65% {
+            width: 85%;
+            opacity: 0.95;
           }
           100% {
-            width: 2400px;
-            height: 2400px;
+            width: 100%;
             opacity: 0;
-            border: 1px solid rgba(99, 102, 241, 0);
+          }
+        }
+        @keyframes smoothPageFade {
+          0% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0;
           }
         }
         .ms-nav-btn {
