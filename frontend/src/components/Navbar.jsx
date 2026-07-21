@@ -21,15 +21,15 @@ export default function Navbar() {
   const [transitionParticles, setTransitionParticles] = useState([])
 
   const triggerNavTransition = (targetPath, emojiSet) => {
-    // Create 20 floating burst particles across screen that float gracefully for 5 seconds
-    const particles = Array.from({ length: 20 }).map((_, index) => ({
+    // Create 26 rich floating burst particles across screen that float gracefully for 5 seconds
+    const particles = Array.from({ length: 26 }).map((_, index) => ({
       id: Date.now() + index + Math.random(),
       emoji: emojiSet[Math.floor(Math.random() * emojiSet.length)],
-      left: Math.random() * 85 + 5,
-      top: Math.random() * 35 + 50,
-      size: Math.floor(Math.random() * 22) + 28,
-      duration: (Math.random() * 1.2 + 3.6).toFixed(2), // 3.6s - 4.8s
-      delay: (Math.random() * 0.4).toFixed(2)
+      left: Math.random() * 88 + 4,
+      top: Math.random() * 35 + 55,
+      size: Math.floor(Math.random() * 24) + 26,
+      duration: (Math.random() * 1.4 + 3.6).toFixed(2), // 3.6s - 5.0s
+      delay: (Math.random() * 0.45).toFixed(2)
     }))
 
     setTransitionParticles(particles)
@@ -179,56 +179,62 @@ export default function Navbar() {
     <div className="navbar-header" style={{ background: 'white', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', position: 'sticky', top: 0, zIndex: 1000, flexWrap: 'wrap', gap: '10px' }}>
       
       {/* Brand logo */}
-      <h1 onClick={() => { setMobileMenuOpen(false); navigate('/dashboard'); }} style={{ color: '#4f46e5', fontSize: '22px', margin: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800', fontFamily: '"Outfit", "Inter", sans-serif', whiteSpace: 'nowrap' }}>
+      <h1 onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/dashboard', ['🧠', '✨', '💖', '🌿', '🌈', '🌟', '🕊️', '🧘‍♀️']); }} style={{ color: '#4f46e5', fontSize: '22px', margin: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800', fontFamily: '"Outfit", "Inter", sans-serif', whiteSpace: 'nowrap' }}>
         <span>🧠</span> MindSpace
       </h1>
       
       {/* Desktop Nav Actions */}
       {!isMobile && (
         <div className="desktop-nav-menu" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          {/* 1. Mood Button */}
           <button 
-            onClick={() => triggerNavTransition('/mood', ['😊', '😌', '🥰', '💖', '🎭', '🧘‍♀️', '🌸', '✨', '🌻', '🤩'])} 
+            onClick={() => triggerNavTransition('/mood', ['😊', '😌', '🥰', '💖', '🎭', '🧘‍♀️', '🌸', '✨', '🌻', '🤩', '😃', '🌿', '☁️', '🌈', '☀️', '💧', '🛌', '⚡'])} 
             className="ms-nav-btn"
             style={{ padding: '9px 16px', background: location.pathname === '/mood' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : '#f3f4f6', color: location.pathname === '/mood' ? 'white' : '#4b5563', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
           >
             Mood
           </button>
           
+          {/* 2. Peer Chat Button */}
           <button 
-            onClick={() => triggerNavTransition('/anonymous-chat', ['💬', '👥', '💌', '💭', '🤝', '🗨️', '✨', '💜'])} 
+            onClick={() => triggerNavTransition('/anonymous-chat', ['💬', '👥', '💌', '💭', '🤝', '🗨️', '✨', '💜', '🗣️', '🔒', '🛡️', '🫂', '🕊️', '💌', '🌟'])} 
             className="ms-nav-btn"
             style={{ padding: '9px 16px', background: location.pathname === '/anonymous-chat' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : '#f3f4f6', color: location.pathname === '/anonymous-chat' ? 'white' : '#4b5563', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
           >
             Peer Chat
           </button>
           
+          {/* 3. AI Aura Button */}
           <button 
-            onClick={() => triggerNavTransition('/chat', ['🤖', '✨', '⚡', '🔮', '🧠', '🌌', '💫', '💎'])} 
+            onClick={() => triggerNavTransition('/chat', ['🤖', '✨', '⚡', '🔮', '🧠', '🌌', '💫', '💎', '💡', '🚀', '🔮', '🌌', '🪐', '💫', '🤖'])} 
             className="ms-nav-btn"
             style={{ padding: '9px 16px', background: location.pathname === '/chat' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : '#f3f4f6', color: location.pathname === '/chat' ? 'white' : '#4b5563', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
           >
             AI Aura
           </button>
 
+          {/* 4. Resources Button */}
           <button 
-            onClick={() => triggerNavTransition('/resources', ['📚', '📖', '🎧', '🧘‍♀️', '💡', '🌱', '🌿', '✨'])} 
+            onClick={() => triggerNavTransition('/resources', ['📚', '📖', '🎧', '🧘‍♀️', '💡', '🌱', '🌿', '✨', '🎵', '📜', '🧩', '🎨', '🌊', '🍃', '🌸'])} 
             className="ms-nav-btn"
             style={{ padding: '9px 16px', background: location.pathname === '/resources' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : '#f3f4f6', color: location.pathname === '/resources' ? 'white' : '#4b5563', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
           >
             Resources
           </button>
 
+          {/* 5. Bookings Button */}
           <button 
-            onClick={() => triggerNavTransition('/booking', ['📅', '⏰', '🗓️', '🩺', '🤝', '🌟', '🤍'])} 
+            onClick={() => triggerNavTransition('/booking', ['📅', '⏰', '🗓️', '🩺', '🤝', '🌟', '🤍', '🧑‍⚕️', '📋', '💼', '📍', '💬', '🕒', '✅'])} 
             className="ms-nav-btn"
             style={{ padding: '9px 16px', background: location.pathname === '/booking' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : '#f3f4f6', color: location.pathname === '/booking' ? 'white' : '#4b5563', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
           >
             Bookings
           </button>
 
+          {/* 6. Apply as Counselor Button */}
           {user.role === 'student' && (
             <button 
-              onClick={() => triggerNavTransition('/apply-counselor', ['🤝', '🌟', '🎖️', '💼', '🏆', '💙', '✨'])} 
+              onClick={() => triggerNavTransition('/apply-counselor', ['🤝', '🌟', '🎖️', '💼', '🏆', '💙', '✨', '📜', '🎓', '✍️', '🖊️', '📄', '🚀', '👑'])} 
               className="ms-nav-btn"
               style={{ padding: '9px 16px', background: location.pathname === '/apply-counselor' ? 'linear-gradient(135deg, #0284c7, #0ea5e9)' : '#e0f2fe', color: location.pathname === '/apply-counselor' ? 'white' : '#0369a1', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px' }}
             >
@@ -236,9 +242,10 @@ export default function Navbar() {
             </button>
           )}
           
+          {/* Admin / Counselor Console Button */}
           {isAdmin && (
             <button 
-              onClick={() => triggerNavTransition('/admin', ['🛠️', '📊', '🛡️', '⚙️', '📋', '📈'])} 
+              onClick={() => triggerNavTransition('/admin', ['🛠️', '📊', '🛡️', '⚙️', '📋', '📈', '🔑', '⚡', '👨‍⚕️', '📊'])} 
               className="ms-nav-btn"
               style={{ padding: '9px 16px', background: location.pathname === '/admin' ? 'linear-gradient(135deg, #4f46e5, #7c3aed)' : '#e0e7ff', color: location.pathname === '/admin' ? 'white' : '#4f46e5', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px' }}
             >
