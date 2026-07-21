@@ -21,21 +21,21 @@ export default function Navbar() {
   const [transitionParticles, setTransitionParticles] = useState([])
 
   const triggerNavTransition = (targetPath, emojiSet) => {
-    // Create 26 rich floating burst particles across screen that float gracefully for 5 seconds
-    const particles = Array.from({ length: 26 }).map((_, index) => ({
+    // Create 28 rich floating burst particles across screen that float gracefully for EXACT 5.0 seconds
+    const particles = Array.from({ length: 28 }).map((_, index) => ({
       id: Date.now() + index + Math.random(),
       emoji: emojiSet[Math.floor(Math.random() * emojiSet.length)],
       left: Math.random() * 88 + 4,
-      top: Math.random() * 35 + 55,
-      size: Math.floor(Math.random() * 24) + 26,
-      duration: (Math.random() * 1.4 + 3.6).toFixed(2), // 3.6s - 5.0s
-      delay: (Math.random() * 0.45).toFixed(2)
+      top: Math.random() * 30 + 60,
+      size: Math.floor(Math.random() * 22) + 28,
+      duration: '5.00', // Exact 5.0s animation duration for all 6 buttons
+      delay: (index * 0.05).toFixed(2) // Staggered delays up to 1.4s for continuous 5-second stream
     }))
 
     setTransitionParticles(particles)
     setTimeout(() => {
       setTransitionParticles([])
-    }, 5000)
+    }, 6500) // 6.5s timeout ensures complete 5.0s float animation for all particles
 
     navigate(targetPath)
   }
