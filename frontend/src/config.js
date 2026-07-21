@@ -7,8 +7,11 @@ const getApiUrl = () => {
   if (isCapacitor) {
     return 'http://10.0.2.2:5000';
   }
-  // Same-domain API routing via Netlify /api/* rewrite proxy
-  return '';
+  // If running on Netlify or external phone/web domain, route to active Cloudflare backend tunnel
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return 'https://domestic-solved-declined-nutritional.trycloudflare.com';
+  }
+  return 'http://localhost:5000';
 };
 
 const API_URL = getApiUrl();
