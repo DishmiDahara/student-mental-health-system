@@ -9,7 +9,7 @@ const getApiUrl = () => {
   }
   // If running on Netlify or external phone/web domain, route to active Cloudflare backend tunnel
   if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-    return 'https://cards-believe-wav-potato.trycloudflare.com';
+    return 'https://domestic-solved-declined-nutritional.trycloudflare.com';
   }
   return '';
 };
