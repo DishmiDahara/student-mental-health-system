@@ -18,17 +18,29 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 1024 : false)
   const dropdownRef = useRef(null)
-  const [navProgress, setNavProgress] = useState(false)
+  const [transitionParticles, setTransitionParticles] = useState([])
 
-  const triggerNavTransition = (targetPath) => {
+  const triggerNavTransition = (targetPath, emojiSet) => {
     // 1. Instant 1st-click Navigation!
     navigate(targetPath)
 
-    // 2. Trigger Option 4 Sleek Top Glass Progress Bar & Smooth Page Fade for 5 seconds
-    setNavProgress(true)
-    setTimeout(() => {
-      setNavProgress(false)
-    }, 5000)
+    // 2. Generate 30 floating burst particles for target tab floating gracefully for EXACT 5.0s
+    if (emojiSet && emojiSet.length > 0) {
+      const particles = Array.from({ length: 30 }).map((_, index) => ({
+        id: Date.now() + index + Math.random(),
+        emoji: emojiSet[Math.floor(Math.random() * emojiSet.length)],
+        left: Math.random() * 88 + 4,
+        top: Math.random() * 30 + 60,
+        size: Math.floor(Math.random() * 22) + 28,
+        duration: '5.00', // Exact 5.0s float animation duration for all tabs
+        delay: (index * 0.045).toFixed(2) // Staggered stream over 1.35s
+      }))
+
+      setTransitionParticles(particles)
+      setTimeout(() => {
+        setTransitionParticles([])
+      }, 6500)
+    }
   }
 
   useEffect(() => {
@@ -610,68 +622,56 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* --- OPTION 4: TOP GLASS PROGRESS BAR & SMOOTH PAGE FADE --- */}
-      {navProgress && (
-        <>
-          {/* Top Progress Loading Bar */}
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '4px',
-            zIndex: 999999,
-            pointerEvents: 'none',
-            background: 'linear-gradient(90deg, #4f46e5 0%, #8b5cf6 50%, #ec4899 100%)',
-            boxShadow: '0 0 16px rgba(139, 92, 246, 0.9), 0 0 6px rgba(236, 72, 153, 0.7)',
-            animation: 'topProgressBar 5.0s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
-            willChange: 'width, opacity'
-          }} />
-
-          {/* Smooth Glass Backdrop Fade Overlay */}
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(255, 255, 255, 0.18)',
-            backdropFilter: 'blur(3px)',
-            pointerEvents: 'none',
-            zIndex: 999998,
-            animation: 'smoothPageFade 5.0s ease-out forwards'
-          }} />
-        </>
+      {/* --- 5.0 SECOND THEMED FLOATING EMOJI TRANSITION OVERLAY --- */}
+      {transitionParticles.length > 0 && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          pointerEvents: 'none',
+          touchAction: 'none',
+          zIndex: 999999,
+          overflow: 'hidden'
+        }}>
+          {transitionParticles.map((p) => (
+            <div
+              key={p.id}
+              style={{
+                position: 'absolute',
+                left: `${p.left}%`,
+                top: `${p.top}%`,
+                fontSize: `${p.size}px`,
+                animation: `floatUpBurst ${p.duration}s cubic-bezier(0.22, 1, 0.36, 1) ${p.delay}s forwards`,
+                userSelect: 'none',
+                pointerEvents: 'none',
+                filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.18))'
+              }}
+            >
+              {p.emoji}
+            </div>
+          ))}
+        </div>
       )}
 
       <style>{`
-        @keyframes topProgressBar {
+        @keyframes floatUpBurst {
           0% {
-            width: 0%;
-            opacity: 1;
-          }
-          40% {
-            width: 75%;
-            opacity: 0.95;
-          }
-          80% {
-            width: 95%;
-            opacity: 0.7;
-          }
-          100% {
-            width: 100%;
             opacity: 0;
+            transform: translateY(30px) scale(0.4) rotate(0deg);
           }
-        }
-        @keyframes smoothPageFade {
-          0% {
+          15% {
             opacity: 1;
+            transform: translateY(-80px) scale(1.3) rotate(12deg);
           }
-          70% {
-            opacity: 0.6;
+          65% {
+            opacity: 0.85;
+            transform: translateY(-340px) scale(1.6) rotate(-15deg);
           }
           100% {
             opacity: 0;
+            transform: translateY(-520px) scale(1.9) rotate(25deg);
           }
         }
         .ms-nav-btn {
