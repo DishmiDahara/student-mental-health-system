@@ -468,35 +468,35 @@ export default function Navbar() {
           className="mobile-drawer-menu"
         >
           <button 
-            onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/mood', ['😊', '😌', '🥰', '💖', '🎭', '🧘‍♀️', '🌸', '✨', '🌻', '🤩']); }} 
+            onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/mood', ['😊', '😌', '🥰', '💖', '🎭', '🧘‍♀️', '🌸', '✨', '🌻', '🤩', '😃', '🌿', '☁️', '🌈', '☀️', '💧', '🛌', '⚡']); }} 
             style={{ padding: '12px 16px', background: location.pathname === '/mood' ? '#e0e7ff' : '#f8fafc', color: location.pathname === '/mood' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
           >
             <span>😊</span> Mood Journal
           </button>
 
           <button 
-            onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/anonymous-chat', ['💬', '👥', '💌', '💭', '🤝', '🗨️', '✨', '💜']); }} 
+            onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/anonymous-chat', ['💬', '👥', '💌', '💭', '🤝', '🗨️', '✨', '💜', '🗣️', '🔒', '🛡️', '🫂', '🕊️', '💌', '🌟']); }} 
             style={{ padding: '12px 16px', background: location.pathname === '/anonymous-chat' ? '#e0e7ff' : '#f8fafc', color: location.pathname === '/anonymous-chat' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
           >
             <span>👥</span> Peer Support Chat
           </button>
 
           <button 
-            onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/chat', ['🤖', '✨', '⚡', '🔮', '🧠', '🌌', '💫', '💎']); }} 
+            onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/chat', ['🤖', '✨', '⚡', '🔮', '🧠', '🌌', '💫', '💎', '💡', '🚀', '🔮', '🌌', '🪐', '💫', '🤖']); }} 
             style={{ padding: '12px 16px', background: location.pathname === '/chat' ? '#e0e7ff' : '#f8fafc', color: location.pathname === '/chat' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
           >
             <span>💬</span> AI Aura Assistant
           </button>
 
           <button 
-            onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/resources', ['📚', '📖', '🎧', '🧘‍♀️', '💡', '🌱', '🌿', '✨']); }} 
+            onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/resources', ['📚', '📖', '🎧', '🧘‍♀️', '💡', '🌱', '🌿', '✨', '🎵', '📜', '🧩', '🎨', '🌊', '🍃', '🌸']); }} 
             style={{ padding: '12px 16px', background: location.pathname === '/resources' ? '#e0e7ff' : '#f8fafc', color: location.pathname === '/resources' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
           >
             <span>📚</span> Resources & Breathing
           </button>
 
           <button 
-            onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/booking', ['📅', '⏰', '🗓️', '🩺', '🤝', '🌟', '🤍']); }} 
+            onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/booking', ['📅', '⏰', '🗓️', '🩺', '🤝', '🌟', '🤍', '🧑‍⚕️', '📋', '💼', '📍', '💬', '🕒', '✅']); }} 
             style={{ padding: '12px 16px', background: location.pathname === '/booking' ? '#e0e7ff' : '#f8fafc', color: location.pathname === '/booking' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
           >
             <span>📅</span> Bookings & Counseling
@@ -504,7 +504,7 @@ export default function Navbar() {
 
           {user.role === 'student' && (
             <button 
-              onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/apply-counselor', ['🤝', '🌟', '🎖️', '💼', '🏆', '💙', '✨']); }} 
+              onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/apply-counselor', ['🤝', '🌟', '🎖️', '💼', '🏆', '💙', '✨', '📜', '🎓', '✍️', '🖊️', '📄', '🚀', '👑']); }} 
               style={{ padding: '12px 16px', background: location.pathname === '/apply-counselor' ? '#0284c7' : '#e0f2fe', color: location.pathname === '/apply-counselor' ? 'white' : '#0369a1', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
             >
               <span>🤝</span> Apply as Counselor
@@ -513,7 +513,7 @@ export default function Navbar() {
           
           {isAdmin && (
             <button 
-              onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/admin', ['🛠️', '📊', '🛡️', '⚙️', '📋', '📈']); }} 
+              onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/admin', ['🛠️', '📊', '🛡️', '⚙️', '📋', '📈', '🔑', '⚡', '👨‍⚕️', '📊']); }} 
               style={{ padding: '12px 16px', background: location.pathname === '/admin' ? '#4f46e5' : '#e0e7ff', color: location.pathname === '/admin' ? 'white' : '#4f46e5', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
             >
               <span>🛠️</span> {user?.role === 'counsellor' ? 'Counsellor Console' : 'Admin Console'}
