@@ -21,21 +21,21 @@ export default function Navbar() {
   const [transitionParticles, setTransitionParticles] = useState([])
 
   const triggerNavTransition = (targetPath, emojiSet) => {
-    // Create 15 floating burst particles across screen
-    const particles = Array.from({ length: 15 }).map((_, index) => ({
+    // Create 20 floating burst particles across screen that float gracefully for 5 seconds
+    const particles = Array.from({ length: 20 }).map((_, index) => ({
       id: Date.now() + index + Math.random(),
       emoji: emojiSet[Math.floor(Math.random() * emojiSet.length)],
       left: Math.random() * 85 + 5,
-      top: Math.random() * 45 + 40,
-      size: Math.floor(Math.random() * 18) + 26,
-      duration: (Math.random() * 0.35 + 0.65).toFixed(2),
-      delay: (Math.random() * 0.12).toFixed(2)
+      top: Math.random() * 35 + 50,
+      size: Math.floor(Math.random() * 22) + 28,
+      duration: (Math.random() * 1.2 + 3.6).toFixed(2), // 3.6s - 4.8s
+      delay: (Math.random() * 0.4).toFixed(2)
     }))
 
     setTransitionParticles(particles)
     setTimeout(() => {
       setTransitionParticles([])
-    }, 1000)
+    }, 5000)
 
     navigate(targetPath)
   }
@@ -646,16 +646,20 @@ export default function Navbar() {
       <style>{`
         @keyframes floatUpBurst {
           0% {
-            opacity: 1;
-            transform: translateY(0) scale(0.5) rotate(0deg);
+            opacity: 0;
+            transform: translateY(20px) scale(0.4) rotate(0deg);
           }
-          40% {
-            opacity: 0.95;
-            transform: translateY(-90px) scale(1.35) rotate(15deg);
+          15% {
+            opacity: 1;
+            transform: translateY(-80px) scale(1.2) rotate(10deg);
+          }
+          70% {
+            opacity: 0.85;
+            transform: translateY(-320px) scale(1.5) rotate(-15deg);
           }
           100% {
             opacity: 0;
-            transform: translateY(-220px) scale(1.75) rotate(-20deg);
+            transform: translateY(-500px) scale(1.8) rotate(25deg);
           }
         }
         .ms-nav-btn {
