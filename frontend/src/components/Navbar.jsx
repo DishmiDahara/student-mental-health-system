@@ -24,11 +24,11 @@ export default function Navbar() {
     // 1. Instant 1st-click Navigation!
     navigate(targetPath)
 
-    // 2. Trigger Option 4 Sleek Top Glass Progress Bar & Smooth Page Fade
+    // 2. Trigger Option 4 Sleek Top Glass Progress Bar & Smooth Page Fade for 5 seconds
     setNavProgress(true)
     setTimeout(() => {
       setNavProgress(false)
-    }, 650)
+    }, 5000)
   }
 
   useEffect(() => {
@@ -619,12 +619,12 @@ export default function Navbar() {
             top: 0,
             left: 0,
             right: 0,
-            height: '3.5px',
+            height: '4px',
             zIndex: 999999,
             pointerEvents: 'none',
             background: 'linear-gradient(90deg, #4f46e5 0%, #8b5cf6 50%, #ec4899 100%)',
-            boxShadow: '0 0 12px rgba(139, 92, 246, 0.8), 0 0 4px rgba(236, 72, 153, 0.6)',
-            animation: 'topProgressBar 0.65s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+            boxShadow: '0 0 16px rgba(139, 92, 246, 0.9), 0 0 6px rgba(236, 72, 153, 0.7)',
+            animation: 'topProgressBar 5.0s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
             willChange: 'width, opacity'
           }} />
 
@@ -635,11 +635,11 @@ export default function Navbar() {
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(255, 255, 255, 0.2)',
+            background: 'rgba(255, 255, 255, 0.18)',
             backdropFilter: 'blur(3px)',
             pointerEvents: 'none',
             zIndex: 999998,
-            animation: 'smoothPageFade 0.5s ease-out forwards'
+            animation: 'smoothPageFade 5.0s ease-out forwards'
           }} />
         </>
       )}
@@ -650,9 +650,13 @@ export default function Navbar() {
             width: 0%;
             opacity: 1;
           }
-          65% {
-            width: 85%;
+          40% {
+            width: 75%;
             opacity: 0.95;
+          }
+          80% {
+            width: 95%;
+            opacity: 0.7;
           }
           100% {
             width: 100%;
@@ -662,6 +666,9 @@ export default function Navbar() {
         @keyframes smoothPageFade {
           0% {
             opacity: 1;
+          }
+          70% {
+            opacity: 0.6;
           }
           100% {
             opacity: 0;
