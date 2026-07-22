@@ -8,12 +8,6 @@ import AIChatbot from './pages/AIChatbot'
 import AnonymousChat from './pages/AnonymousChat'
 import AdminDashboard from './pages/AdminDashboard'
 import ApplyCounselor from './pages/ApplyCounselor'
-import ChatWidget from './components/AIChat/ChatWidget'
-
-import axios from 'axios'
-
-axios.defaults.headers.common['Bypass-Tunnel-Reminder'] = 'true'
-
 function App() {
   return (
     <BrowserRouter>
@@ -30,7 +24,6 @@ function App() {
         <Route path="/apply-counselor" element={<ApplyCounselor />} />
         <Route path="*" element={<Login />} />
       </Routes>
-      <ChatWidget />
     </BrowserRouter>
   )
 }
