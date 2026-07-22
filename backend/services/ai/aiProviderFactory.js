@@ -42,7 +42,7 @@ const generateAIResponse = async ({ prompt, conversationHistory = [], userContex
 
   // 3. Guaranteed Free Fallback Engine (Never fails!)
   console.log('[AI Factory] Using Free Fallback Engine for instant response.')
-  return generateFallbackResponse({ prompt, conversationHistory, userContext })
+  return await generateFallbackResponse({ prompt, conversationHistory, userContext })
 }
 
 module.exports = { generateAIResponse }
