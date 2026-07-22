@@ -134,9 +134,23 @@ export const useChat = () => {
     }
   }
 
+  // Regenerate last AI response
+  const regenerateLastResponse = async () => {
+    const lastUserMessage = [...messages].reverse().find(m => m.sender === 'user')
+    if (lastUserMessage && !isLoading) {
+      setMessages(prev => {
+        const last = prev[prev.length - 1]
+        if (last && last.sender === 'ai') {
+          return prev.slice(0, -1)
+        }
+        return prev
+      })
+      await sendMessage(lastUserMessage.text)
+    }
+  }
+
   // Clear Chat History
   const clearChat = async () => {
-    setMessages([])
     const token = localStorage.getItem('token')
     if (token) {
       try {
@@ -194,6 +208,7 @@ export const useChat = () => {
     clearChat,
     exportChat,
     toggleTheme,
-    speakText
+    speakText,
+    regenerateLastResponse
   }
 }
