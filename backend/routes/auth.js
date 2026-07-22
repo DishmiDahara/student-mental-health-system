@@ -15,17 +15,23 @@ router.post('/register', async (req, res) => {
     let user = await User.findOne({ email: normalizedEmail })
 
     if (user) {
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'mysecretkey123', { expiresIn: '7d' })
-      return res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role || 'student', profilePhoto: user.profilePhoto } })
+      return res.status(400).json({ message: 'An account with this email address already exists. Please log in.' })
     }
 
     const hashed = await bcrypt.hash(password, 10)
-    user = await User.create({ name: name || normalizedEmail.split('@')[0], email: normalizedEmail, password: hashed, role: 'student' })
+    const role = normalizedEmail.includes('admin') ? 'admin' : 'student'
+    user = await User.create({
+      name: name?.trim() || normalizedEmail.split('@')[0],
+      email: normalizedEmail,
+      password: hashed,
+      role: role
+    })
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'mysecretkey123', { expiresIn: '7d' })
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role || 'student', profilePhoto: user.profilePhoto } })
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role || 'student', status: user.status || 'active', profilePhoto: user.profilePhoto || '' } })
   } catch (err) {
-    res.status(500).json({ message: 'Server error' })
+    console.error('Register error:', err)
+    res.status(500).json({ message: 'Server error during registration' })
   }
 })
 
@@ -33,25 +39,33 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body
-    if (!email) {
-      return res.status(400).json({ message: 'Please enter email' })
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Please enter both email and password' })
     }
     const normalizedEmail = email.toLowerCase().trim()
     let user = await User.findOne({ email: normalizedEmail })
 
     if (!user) {
-      const hashed = await bcrypt.hash(password || '123456', 10)
-      const role = normalizedEmail.includes('admin') ? 'admin' : 'student'
-      user = await User.create({ name: normalizedEmail.split('@')[0], email: normalizedEmail, password: hashed, role })
+      return res.status(400).json({ message: 'No account found with this email address. Please register first.' })
+    }
+
+    if (user.status === 'deactivated') {
+      return res.status(403).json({ message: 'Your account has been deactivated. Please contact an administrator.' })
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password)
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid password. Please check your credentials.' })
     }
 
     user.loginCount = (user.loginCount || 0) + 1
     await user.save()
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET || 'mysecretkey123', { expiresIn: '7d' })
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role || 'student', status: user.status, customRecommendation: user.customRecommendation, profilePhoto: user.profilePhoto } })
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role || 'student', status: user.status || 'active', customRecommendation: user.customRecommendation, profilePhoto: user.profilePhoto || '' } })
   } catch (err) {
-    res.status(500).json({ message: 'Server error' })
+    console.error('Login error:', err)
+    res.status(500).json({ message: 'Server error during login' })
   }
 })
 

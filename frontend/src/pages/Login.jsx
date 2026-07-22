@@ -29,6 +29,14 @@ export default function Login() {
       setError('Please enter your email address')
       return
     }
+    if (!password) {
+      setError('Please enter your password')
+      return
+    }
+    if (!isLogin && !name.trim()) {
+      setError('Please enter your full name')
+      return
+    }
     if (!isLogin && password !== confirmPassword) {
       setError('Passwords do not match. Please check and try again.')
       return
@@ -36,15 +44,14 @@ export default function Login() {
     setLoading(true)
 
     const cleanEmail = email.toLowerCase().trim()
-    const cleanName = name.trim() || cleanEmail.split('@')[0] || 'MindSpace Student'
-    const userRole = cleanEmail.includes('admin') ? 'admin' : 'student'
+    const cleanName = name.trim() || cleanEmail.split('@')[0]
 
     try {
       const url = isLogin ? `${API_URL}/api/auth/login` : `${API_URL}/api/auth/register`
       const body = isLogin ? { email: cleanEmail, password } : { name: cleanName, email: cleanEmail, password }
       const res = await axios.post(url, body, {
         headers: { 'Bypass-Tunnel-Reminder': 'true' },
-        timeout: 4000
+        timeout: 10000
       })
       if (res.data?.token && res.data?.user) {
         localStorage.setItem('token', res.data.token)
@@ -54,19 +61,12 @@ export default function Login() {
         return
       }
     } catch (err) {
-      // Fallthrough to guaranteed entrance
+      console.error('Auth error:', err)
+      const errorMsg = err.response?.data?.message || (err.code === 'ECONNABORTED' ? 'Connection timed out. Please check backend server.' : 'Authentication failed. Please check your credentials or server connection.')
+      setError(errorMsg)
+      setLoading(false)
+      return
     }
-
-    const fallbackUser = {
-      id: 'usr_' + Date.now(),
-      name: cleanName,
-      email: cleanEmail,
-      role: userRole
-    }
-    localStorage.setItem('token', 'token_' + Date.now())
-    localStorage.setItem('user', JSON.stringify(fallbackUser))
-    navigate('/dashboard')
-    setLoading(false)
   }
 
   const handleRequestOtp = async () => {

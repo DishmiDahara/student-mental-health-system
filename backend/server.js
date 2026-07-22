@@ -25,6 +25,7 @@ app.use('/api/feedback', require('./routes/feedback'))
 app.use('/api/announcements', require('./routes/announcements'))
 app.use('/api/counselor-applications', require('./routes/counselorApplications'))
 app.use('/api/payments', require('./routes/payments'))
+app.use('/api/ai', require('./routes/chatRoutes'))
 
 app.get('/', (req, res) => res.send('Mental Health API is running!'))
 
