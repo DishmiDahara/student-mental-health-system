@@ -106,7 +106,7 @@ Create a `.env` file inside the `backend` folder:
 ```env
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/mentalhealth
-JWT_SECRET=mysecretkey123
+
 ```
 Seed initial data & start backend:
 ```bash
@@ -123,13 +123,6 @@ npm run dev
 Open [http://localhost:5173](http://localhost:5173) in your browser!
 
 ---
-
-## 🔑 Test Credentials
-
-| Role | Email | Password |
-| :--- | :--- | :--- |
-| **Admin / Counselor** | `admin@mindspace.com` | `admin123` |
-| **Student** | Create any new account on the Register tab | Any password |
 
 ---
 
