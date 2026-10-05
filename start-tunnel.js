@@ -1,16 +1,25 @@
-const localtunnel = require('localtunnel');
+const { spawn } = require('child_process');
 const fs = require('fs');
 
-(async () => {
-  try {
-    const tunnel = await localtunnel({ port: 5173 });
-    console.log('Tunnel URL:', tunnel.url);
-    fs.writeFileSync('tunnel-url.txt', tunnel.url);
-    
-    tunnel.on('close', () => {
-      console.log('tunnel closed');
-    });
-  } catch (err) {
-    console.error('Tunnel error:', err);
+console.log('Starting Cloudflare Tunnel for mobile access...');
+const tunnel = spawn('npx', ['cloudflared', 'tunnel', '--url', 'http://localhost:5173'], { shell: true });
+
+tunnel.stdout.on('data', (data) => {
+  const str = data.toString();
+  console.log(str);
+  const match = str.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/i);
+  if (match) {
+    console.log('Tunnel URL:', match[0]);
+    fs.writeFileSync('tunnel-url.txt', match[0]);
   }
-})();
+});
+
+tunnel.stderr.on('data', (data) => {
+  const str = data.toString();
+  console.log(str);
+  const match = str.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/i);
+  if (match) {
+    console.log('Tunnel URL:', match[0]);
+    fs.writeFileSync('tunnel-url.txt', match[0]);
+  }
+});

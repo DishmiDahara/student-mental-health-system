@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
+import API_URL from '../config'
 
 export default function Navbar() {
   const navigate = useNavigate()
@@ -52,7 +53,7 @@ export default function Navbar() {
 
   const fetchAnnouncements = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/announcements', {
+      const res = await axios.get(`${API_URL}/api/announcements`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setAnnouncements(res.data)
@@ -131,7 +132,7 @@ export default function Navbar() {
     setMessage({ text: '', type: '' })
 
     try {
-      const res = await axios.put('http://localhost:5000/api/auth/me/profile', 
+      const res = await axios.put(`${API_URL}/api/auth/me/profile`, 
         { profilePhoto },
         { headers: { Authorization: `Bearer ${token}` } }
       )

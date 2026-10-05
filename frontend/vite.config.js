@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     host: true,
     allowedHosts: true,
+    cors: true,
     proxy: {
       '/api': {
         target: 'http://localhost:5000',
