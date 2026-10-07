@@ -35,19 +35,30 @@ app.use(async (req, res, next) => {
   }
 });
 
-// Routes
-app.use('/api/auth', require('./routes/auth'))
-app.use('/api/mood', require('./routes/mood'))
-app.use('/api/bookings', require('./routes/bookings'))
-app.use('/api/resources', require('./routes/resources'))
-app.use('/api/messages', require('./routes/messages'))
-app.use('/api/feedback', require('./routes/feedback'))
-app.use('/api/announcements', require('./routes/announcements'))
-app.use('/api/counselor-applications', require('./routes/counselorApplications'))
-app.use('/api/payments', require('./routes/payments'))
-app.use('/api/ai', require('./routes/chatRoutes'))
+// Routes (compatible with both local /api prefix and Vercel serverless path rewrites)
+const authRoutes = require('./routes/auth')
+const moodRoutes = require('./routes/mood')
+const bookingRoutes = require('./routes/bookings')
+const resourceRoutes = require('./routes/resources')
+const messageRoutes = require('./routes/messages')
+const feedbackRoutes = require('./routes/feedback')
+const announcementRoutes = require('./routes/announcements')
+const counselorApplicationRoutes = require('./routes/counselorApplications')
+const paymentRoutes = require('./routes/payments')
+const chatRoutes = require('./routes/chatRoutes')
 
-app.get('/', (req, res) => res.send('Mental Health API is running!'))
+app.use(['/api/auth', '/auth'], authRoutes)
+app.use(['/api/mood', '/mood'], moodRoutes)
+app.use(['/api/bookings', '/bookings'], bookingRoutes)
+app.use(['/api/resources', '/resources'], resourceRoutes)
+app.use(['/api/messages', '/messages'], messageRoutes)
+app.use(['/api/feedback', '/feedback'], feedbackRoutes)
+app.use(['/api/announcements', '/announcements'], announcementRoutes)
+app.use(['/api/counselor-applications', '/counselor-applications'], counselorApplicationRoutes)
+app.use(['/api/payments', '/payments'], paymentRoutes)
+app.use(['/api/ai', '/ai'], chatRoutes)
+
+app.get(['/', '/api'], (req, res) => res.send('Mental Health API is running!'))
 
 // Create HTTP server and initialize Socket.IO
 const server = http.createServer(app)
