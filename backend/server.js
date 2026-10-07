@@ -13,26 +13,24 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }))
 // Connect to MongoDB helper for serverless/Vercel compatibility
 const connectDB = async () => {
   if (mongoose.connection.readyState >= 1) return;
-  if (!process.env.MONGO_URI) {
-    throw new Error('MONGO_URI environment variable is missing in server environment.');
+  const uri = process.env.MONGO_URI;
+  if (!uri) {
+    console.error('MONGO_URI environment variable is missing');
+    return;
   }
-  await mongoose.connect(process.env.MONGO_URI);
-  console.log('MongoDB connected successfully!');
+  try {
+    await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
+    console.log('MongoDB connected successfully!');
+  } catch (err) {
+    console.error('Database connection error:', err.message);
+  }
 };
 
-// Middleware to ensure DB connection on every request
+// Middleware to ensure DB connection attempt on every request
 app.use(async (req, res, next) => {
-  // Skip DB check for root health check
-  if (req.path === '/') return next();
-  try {
-    await connectDB();
-    next();
-  } catch (err) {
-    console.error('Database Connection Error:', err.message);
-    return res.status(500).json({ 
-      message: 'Database connection failed. Please set up MONGO_URI in Vercel Environment Variables.' 
-    });
-  }
+  if (req.path === '/' || req.path === '/api') return next();
+  await connectDB();
+  next();
 });
 
 // Routes (compatible with both local /api prefix and Vercel serverless path rewrites)
