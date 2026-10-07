@@ -7,6 +7,12 @@ require('dotenv').config()
 
 const app = express()
 app.use(cors({ origin: '*', credentials: true }))
+app.use((req, res, next) => {
+  if (typeof req.body === 'string' && req.body.trim().startsWith('{')) {
+    try { req.body = JSON.parse(req.body); } catch (e) {}
+  }
+  next();
+})
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ limit: '10mb', extended: true }))
 
