@@ -251,11 +251,14 @@ export default function Login() {
           100% { transform: scale(1); }
         }
         .ms-white-card {
-          background: linear-gradient(160deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%) !important;
-          border: 3px solid #6366f1 !important;
-          animation: borderGlow 5s ease-in-out infinite, cardBreath 4s ease-in-out infinite !important;
+          background: rgba(255, 255, 255, 0.16) !important;
+          backdrop-filter: blur(24px) !important;
+          -webkit-backdrop-filter: blur(24px) !important;
+          border: 1px solid rgba(255, 255, 255, 0.3) !important;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4) !important;
           position: relative !important;
           overflow: hidden !important;
+          border-radius: 28px !important;
         }
         .ms-card-inner-glow {
           position: absolute;
