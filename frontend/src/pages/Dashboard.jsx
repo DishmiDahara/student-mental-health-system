@@ -137,7 +137,7 @@ export default function Dashboard() {
       {/* Navbar */}
       <Navbar />
 
-      <div style={{ padding: '40px 24px', maxWidth: '1100px', margin: '0 auto' }}>
+      <div style={{ padding: '40px 32px', maxWidth: '1400px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
         
         {/* Urgent Support Message Banner */}
         {supportMessage && (
