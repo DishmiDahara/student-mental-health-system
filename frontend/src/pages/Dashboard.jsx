@@ -125,51 +125,54 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: '#f0f4f8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <h3>Loading MindSpace Dashboard...</h3>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e2e8f0' }}>
+        <h3 style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 600 }}>Loading MindSpace Glass Dashboard...</h3>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f0f4f8', paddingBottom: '60px' }}>
+    <div style={{ minHeight: '100vh', paddingBottom: '60px', position: 'relative' }}>
       
       {/* Navbar */}
       <Navbar />
 
-      <div style={{ padding: '40px 32px', maxWidth: '1000px', margin: '0 auto' }}>
+      <div style={{ padding: '40px 24px', maxWidth: '1100px', margin: '0 auto' }}>
         
         {/* Urgent Support Message Banner */}
         {supportMessage && (
           <div 
             onClick={() => navigate('/anonymous-chat', { state: { defaultTab: 'admin' } })}
             style={{ 
-              background: 'linear-gradient(135deg, #fee2e2, #fecaca)', 
+              background: 'rgba(239, 68, 68, 0.15)', 
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: '1px solid rgba(239, 68, 68, 0.4)', 
               borderLeft: '6px solid #ef4444', 
-              borderRadius: '16px', 
-              padding: '20px', 
-              marginBottom: '24px', 
+              borderRadius: '20px', 
+              padding: '22px', 
+              marginBottom: '28px', 
               display: 'flex', 
               justifyContent: 'space-between', 
               alignItems: 'center', 
               cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(239, 68, 68, 0.1)',
-              transition: 'transform 0.2s',
+              boxShadow: '0 8px 32px rgba(239, 68, 68, 0.2)',
+              transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
               flexWrap: 'wrap',
               gap: '16px'
             }}
-            onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.01)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
           >
             <div style={{ flex: '1 1 300px' }}>
-              <span style={{ fontSize: '11px', background: '#ef4444', color: 'white', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}>Urgent Advisor Message</span>
-              <h4 style={{ margin: '8px 0 4px', color: '#7f1d1d', fontSize: '16.5px', fontWeight: 'bold' }}>Your counselor initiated a private live support session:</h4>
-              <p style={{ margin: 0, fontSize: '14.5px', color: '#991b1b', fontStyle: 'italic', fontWeight: '500' }}>
+              <span style={{ fontSize: '11px', background: '#ef4444', color: 'white', padding: '3px 10px', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Urgent Advisor Message</span>
+              <h4 style={{ margin: '10px 0 6px', color: '#fca5a5', fontSize: '17px', fontWeight: 'bold' }}>Your counselor initiated a private live support session:</h4>
+              <p style={{ margin: 0, fontSize: '15px', color: '#fecaca', fontStyle: 'italic', fontWeight: '500' }}>
                 "{supportMessage.text}"
               </p>
             </div>
             <button 
-              style={{ padding: '10px 20px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', boxShadow: '0 2px 6px rgba(239, 68, 68, 0.2)' }}
+              style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 14px rgba(239, 68, 68, 0.35)' }}
             >
               Reply Immediately 💬
             </button>
@@ -178,15 +181,30 @@ export default function Dashboard() {
 
         {/* Custom Admin Recommendation Banner */}
         {customRec && (customRec.game || customRec.activity) && (
-          <div style={{ background: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)', borderLeft: '6px solid #4f46e5', borderRadius: '16px', padding: '20px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ 
+            background: 'rgba(99, 102, 241, 0.15)', 
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid rgba(129, 140, 248, 0.35)', 
+            borderLeft: '6px solid #6366f1', 
+            borderRadius: '20px', 
+            padding: '22px', 
+            marginBottom: '28px', 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            flexWrap: 'wrap', 
+            gap: '16px',
+            boxShadow: '0 8px 32px rgba(99, 102, 241, 0.2)' 
+          }}>
             <div style={{ flex: '1 1 300px' }}>
-              <span style={{ fontSize: '11px', background: '#4f46e5', color: 'white', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}>Advisor Custom Suggestion</span>
-              <h4 style={{ margin: '8px 0 4px', color: '#1e1b4b', fontSize: '16px' }}>Your counselor recommended a relaxation exercise:</h4>
-              <p style={{ margin: 0, fontSize: '14px', color: '#312e81', fontStyle: 'italic' }}>
+              <span style={{ fontSize: '11px', background: '#6366f1', color: 'white', padding: '3px 10px', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase' }}>Advisor Custom Suggestion</span>
+              <h4 style={{ margin: '10px 0 6px', color: '#e0e7ff', fontSize: '16.5px' }}>Your counselor recommended a relaxation exercise:</h4>
+              <p style={{ margin: 0, fontSize: '14.5px', color: '#c7d2fe', fontStyle: 'italic' }}>
                 "{customRec.activity || 'Take some time out to pop bubbles and calm your thoughts.'}"
               </p>
               {customRec.game && (
-                <div style={{ marginTop: '8px', fontSize: '13px', color: '#1e1b4b' }}>
+                <div style={{ marginTop: '10px', fontSize: '13.5px', color: '#a5b4fc' }}>
                   Recommended Game: <strong>{getGameLabel(customRec.game)}</strong>
                 </div>
               )}
@@ -194,51 +212,189 @@ export default function Dashboard() {
             {customRec.game && (
               <button 
                 onClick={() => navigate('/mood')}
-                style={{ padding: '10px 20px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
+                style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 14px rgba(99, 102, 241, 0.3)' }}
               >
-                Play Game
+                Play Game 🌸
               </button>
             )}
           </div>
         )}
 
+        {/* Hero Welcome Header */}
+        <div style={{ marginBottom: '36px' }}>
+          <h2 style={{ 
+            fontSize: '34px', 
+            fontWeight: '800', 
+            margin: '0 0 8px 0',
+            background: 'linear-gradient(135deg, #ffffff 0%, #c084fc 50%, #60a5fa 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            filter: 'drop-shadow(0 2px 10px rgba(192, 132, 252, 0.25))'
+          }}>
+            Welcome back, {name} 👋
+          </h2>
+          <p style={{ color: '#94a3b8', fontSize: '16.5px', margin: 0 }}>
+            How are you feeling today? Check out the tools below for support.
+          </p>
+        </div>
 
-        <h2 style={{ color: '#1f2937', marginBottom: '8px', fontSize: '28px' }}>Welcome back, {name} 👋</h2>
-        <p style={{ color: '#6b7280', marginBottom: '32px' }}>How are you feeling today? Check out the tools below for support.</p>
-
-        {/* Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+        {/* Glassmorphism Action Cards Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '22px', marginBottom: '36px' }}>
           
-          <div onClick={() => navigate('/mood')} style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', padding: '28px', borderRadius: '16px', color: 'white', cursor: 'pointer', boxShadow: '0 4px 12px rgba(102, 126, 234, 0.2)', transition: 'transform 0.2s' }}>
-            <div style={{ fontSize: '36px', marginBottom: '12px' }}>😊</div>
-            <h3 style={{ marginBottom: '6px' }}>Mood Tracker</h3>
-            <p style={{ opacity: 0.85, fontSize: '14px' }}>Track your daily emotions and play relaxation games</p>
+          {/* Card 1: Mood Tracker */}
+          <div 
+            onClick={() => navigate('/mood')} 
+            className="glass-card"
+            style={{ 
+              background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.25), rgba(126, 34, 206, 0.35))', 
+              padding: '30px 24px', 
+              cursor: 'pointer',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{ 
+              width: '56px', 
+              height: '56px', 
+              borderRadius: '16px', 
+              background: 'rgba(168, 85, 247, 0.3)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              fontSize: '32px', 
+              marginBottom: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 4px 16px rgba(168, 85, 247, 0.3)'
+            }}>
+              😊
+            </div>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: '#ffffff', fontWeight: '700' }}>Mood Tracker</h3>
+            <p style={{ margin: 0, color: '#e9d5ff', fontSize: '14px', lineHeight: '1.5', opacity: 0.9 }}>
+              Track your daily emotions and play relaxation games
+            </p>
           </div>
 
-          <div onClick={() => navigate('/booking')} style={{ background: 'linear-gradient(135deg, #f093fb, #f5576c)', padding: '28px', borderRadius: '16px', color: 'white', cursor: 'pointer', boxShadow: '0 4px 12px rgba(240, 147, 251, 0.2)', transition: 'transform 0.2s' }}>
-            <div style={{ fontSize: '36px', marginBottom: '12px' }}>📅</div>
-            <h3 style={{ marginBottom: '6px' }}>Book Session</h3>
-            <p style={{ opacity: 0.85, fontSize: '14px' }}>Schedule a private counselling session</p>
+          {/* Card 2: Book Session */}
+          <div 
+            onClick={() => navigate('/booking')} 
+            className="glass-card"
+            style={{ 
+              background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.25), rgba(219, 39, 119, 0.35))', 
+              padding: '30px 24px', 
+              cursor: 'pointer',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{ 
+              width: '56px', 
+              height: '56px', 
+              borderRadius: '16px', 
+              background: 'rgba(244, 114, 182, 0.3)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              fontSize: '32px', 
+              marginBottom: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 4px 16px rgba(244, 114, 182, 0.3)'
+            }}>
+              📅
+            </div>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: '#ffffff', fontWeight: '700' }}>Book Session</h3>
+            <p style={{ margin: 0, color: '#fbcfe8', fontSize: '14px', lineHeight: '1.5', opacity: 0.9 }}>
+              Schedule a private counselling session
+            </p>
           </div>
 
-          <div onClick={() => navigate('/chat')} style={{ background: 'linear-gradient(135deg, #4facfe, #00f2fe)', padding: '28px', borderRadius: '16px', color: 'white', cursor: 'pointer', boxShadow: '0 4px 12px rgba(79, 172, 254, 0.2)', transition: 'transform 0.2s' }}>
-            <div style={{ fontSize: '36px', marginBottom: '12px' }}>💬</div>
-            <h3 style={{ marginBottom: '6px' }}>AI Chatbot Aura</h3>
-            <p style={{ opacity: 0.85, fontSize: '14px' }}>Talk to our empathetic AI assistant 24/7</p>
+          {/* Card 3: AI Chatbot Aura */}
+          <div 
+            onClick={() => navigate('/chat')} 
+            className="glass-card"
+            style={{ 
+              background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(2, 132, 199, 0.35))', 
+              padding: '30px 24px', 
+              cursor: 'pointer',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{ 
+              width: '56px', 
+              height: '56px', 
+              borderRadius: '16px', 
+              background: 'rgba(56, 189, 248, 0.3)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              fontSize: '32px', 
+              marginBottom: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 4px 16px rgba(56, 189, 248, 0.3)'
+            }}>
+              💬
+            </div>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: '#ffffff', fontWeight: '700' }}>AI Chatbot Aura</h3>
+            <p style={{ margin: 0, color: '#bae6fd', fontSize: '14px', lineHeight: '1.5', opacity: 0.9 }}>
+              Talk to our empathetic AI assistant 24/7
+            </p>
           </div>
 
-          <div onClick={() => navigate('/resources')} style={{ background: 'linear-gradient(135deg, #43e97b, #38f9d7)', padding: '28px', borderRadius: '16px', color: 'white', cursor: 'pointer', boxShadow: '0 4px 12px rgba(67, 233, 123, 0.2)', transition: 'transform 0.2s' }}>
-            <div style={{ fontSize: '36px', marginBottom: '12px' }}>📚</div>
-            <h3 style={{ marginBottom: '6px' }}>Resources & Breath</h3>
-            <p style={{ opacity: 0.85, fontSize: '14px' }}>Mental health articles & breathing guide</p>
+          {/* Card 4: Resources & Breath */}
+          <div 
+            onClick={() => navigate('/resources')} 
+            className="glass-card"
+            style={{ 
+              background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(22, 163, 74, 0.35))', 
+              padding: '30px 24px', 
+              cursor: 'pointer',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{ 
+              width: '56px', 
+              height: '56px', 
+              borderRadius: '16px', 
+              background: 'rgba(74, 222, 128, 0.3)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              fontSize: '32px', 
+              marginBottom: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 4px 16px rgba(74, 222, 128, 0.3)'
+            }}>
+              📚
+            </div>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: '#ffffff', fontWeight: '700' }}>Resources & Breath</h3>
+            <p style={{ margin: 0, color: '#bbf7d0', fontSize: '14px', lineHeight: '1.5', opacity: 0.9 }}>
+              Mental health articles & breathing guide
+            </p>
           </div>
 
         </div>
 
-        {/* Quote */}
-        <div style={{ background: 'white', padding: '24px', borderRadius: '16px', borderLeft: '4px solid #4f46e5', boxShadow: '0 2px 10px rgba(0,0,0,0.06)' }}>
-          <p style={{ color: '#4f46e5', fontStyle: 'italic', fontSize: '16.5px', lineHeight: '1.5', margin: '0 0 10px 0' }}>"{getDailyReminder()}"</p>
-          <p style={{ color: '#9ca3af', margin: 0, fontSize: '13.5px', fontWeight: '500' }}>— Daily Reminder —      {getFormattedDate()}</p>
+        {/* Glass Daily Reminder Quote Box */}
+        <div className="glass-container" style={{ 
+          padding: '28px 32px', 
+          borderLeft: '6px solid #c084fc', 
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <p style={{ 
+            color: '#e9d5ff', 
+            fontStyle: 'italic', 
+            fontSize: '17.5px', 
+            lineHeight: '1.6', 
+            margin: '0 0 12px 0',
+            fontWeight: '500' 
+          }}>
+            "{getDailyReminder()}"
+          </p>
+          <p style={{ color: '#94a3b8', margin: 0, fontSize: '14px', fontWeight: '600', letterSpacing: '0.3px' }}>
+            — Daily Reminder — {getFormattedDate()}
+          </p>
         </div>
 
       </div>

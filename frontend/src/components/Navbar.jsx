@@ -160,11 +160,40 @@ export default function Navbar() {
   const isAdmin = user.role === 'admin' || user.role === 'counsellor'
 
   return (
-    <div className="navbar-header" style={{ background: 'white', padding: '12px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', position: 'sticky', top: 0, zIndex: 1000, flexWrap: 'wrap', gap: '10px' }}>
+    <div className="navbar-header" style={{ 
+      background: 'rgba(15, 23, 42, 0.65)', 
+      backdropFilter: 'blur(20px)',
+      WebkitBackdropFilter: 'blur(20px)',
+      borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
+      padding: '14px 28px', 
+      display: 'flex', 
+      justifyContent: 'space-between', 
+      alignItems: 'center', 
+      boxShadow: '0 8px 32px rgba(0,0,0,0.25)', 
+      position: 'sticky', 
+      top: 0, 
+      zIndex: 1000, 
+      flexWrap: 'wrap', 
+      gap: '12px' 
+    }}>
       
       {/* Brand logo */}
-      <h1 onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/dashboard', ['🧠', '✨', '💖', '🌿', '🌈', '🌟', '🕊️', '🧘‍♀️']); }} style={{ color: '#4f46e5', fontSize: '22px', margin: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '800', fontFamily: '"Outfit", "Inter", sans-serif', whiteSpace: 'nowrap' }}>
-        <span>🧠</span> MindSpace
+      <h1 onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/dashboard', ['🧠', '✨', '💖', '🌿', '🌈', '🌟', '🕊️', '🧘‍♀️']); }} style={{ 
+        background: 'linear-gradient(135deg, #c084fc, #818cf8, #38bdf8)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        fontSize: '24px', 
+        margin: 0, 
+        cursor: 'pointer', 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '8px', 
+        fontWeight: '800', 
+        fontFamily: '"Outfit", "Inter", sans-serif', 
+        whiteSpace: 'nowrap',
+        filter: 'drop-shadow(0 2px 8px rgba(192, 132, 252, 0.3))'
+      }}>
+        <span style={{ WebkitTextFillColor: 'initial' }}>🧠</span> MindSpace
       </h1>
       
       {/* Desktop Nav Actions */}
