@@ -205,14 +205,14 @@ export default function AIChatbot() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f0f4f8', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       
       {/* Top Navigation */}
       <Navbar />
 
       {/* Main Container */}
       <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '24px 16px', boxSizing: 'border-box' }}>
-        <div style={{ background: 'white', borderRadius: '24px', maxWidth: '850px', width: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', overflow: 'hidden', height: 'calc(100vh - 120px)', minHeight: '550px' }}>
+        <div style={{ background: 'white', borderRadius: '24px', maxWidth: '1100px', width: '100%', boxShadow: '0 8px 32px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', overflow: 'hidden', height: 'calc(100vh - 120px)', minHeight: '550px' }}>
           
           {/* Header Banner */}
           <div style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', padding: '18px 24px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>

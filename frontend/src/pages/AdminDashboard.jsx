@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import io from 'socket.io-client'
 import API_URL from '../config'
+import ThemeToggle from '../components/ThemeToggle'
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, BarChart, Bar, Legend 
@@ -783,11 +784,14 @@ export default function AdminDashboard() {
       {/* Sidebar Navigation Panel (Desktop Only) */}
       {!isMobile && (
         <div className="no-print admin-sidebar" style={{ width: '280px', background: '#1e293b', borderRight: '1px solid #334155', display: 'flex', flexDirection: 'column', padding: '24px 0', flexShrink: 0 }}>
-          <div style={{ padding: '0 24px', marginBottom: '24px' }}>
-            <h1 style={{ color: '#6366f1', fontSize: '24px', margin: 0, fontWeight: 'bold' }}>🧠 MindSpace</h1>
-            <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px' }}>
-              {currentUser?.role === 'admin' ? 'Admin Console' : 'Counselor Console'}
-            </span>
+          <div style={{ padding: '0 24px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h1 style={{ color: '#6366f1', fontSize: '24px', margin: 0, fontWeight: 'bold' }}>🧠 MindSpace</h1>
+              <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                {currentUser?.role === 'admin' ? 'Admin Console' : 'Counselor Console'}
+              </span>
+            </div>
+            <ThemeToggle />
           </div>
 
           <div className="admin-sidebar-menu" style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, overflowY: 'auto' }}>
@@ -867,7 +871,8 @@ export default function AdminDashboard() {
             })()}
           </div>
 
-          <div style={{ padding: '24px', borderTop: '1px solid #334155' }}>
+          <div style={{ padding: '24px', borderTop: '1px solid #334155', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <ThemeToggle showLabel={true} style={{ width: '100%', justifyContent: 'center' }} />
             <button onClick={() => navigate('/dashboard')} style={{ width: '100%', padding: '10px', background: '#334155', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>User Dashboard</button>
           </div>
         </div>

@@ -530,10 +530,12 @@ export default function Booking() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f0f4f8', paddingBottom: '60px' }}>
+    <div style={{ minHeight: '100vh', paddingBottom: '60px' }}>
       
       {/* Navbar */}
-      <Navbar />      <div style={{ maxWidth: '900px', margin: '40px auto', padding: '0 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '32px' }}>
+      <Navbar />
+
+      <div style={{ maxWidth: '1320px', width: '100%', margin: '36px auto', padding: '0 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '32px', boxSizing: 'border-box' }}>
         
         {/* Booking Form or Counselor Portal */}
         {currentUser?.role === 'counsellor' ? (

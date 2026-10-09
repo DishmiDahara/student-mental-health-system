@@ -3991,10 +3991,10 @@ export default function MoodTracker() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', paddingBottom: '80px', fontFamily: '"Outfit", "Inter", sans-serif' }}>
+    <div style={{ minHeight: '100vh', paddingBottom: '80px', fontFamily: '"Outfit", "Inter", sans-serif' }}>
       <Navbar />
 
-      <div style={{ padding: '40px 24px', maxWidth: '1100px', margin: '0 auto' }}>
+      <div style={{ padding: '36px 24px', maxWidth: '1320px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
         
         {/* Top Header & Streak Banner */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', marginBottom: '32px' }}>

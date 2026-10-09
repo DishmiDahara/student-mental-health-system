@@ -209,12 +209,12 @@ export default function ApplyCounselor() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f0f4f8', paddingBottom: '60px' }}>
+    <div style={{ minHeight: '100vh', paddingBottom: '60px' }}>
       
       {/* Navbar */}
       <Navbar />
 
-      <div style={{ maxWidth: '650px', margin: '40px auto', padding: '0 20px' }}>
+      <div style={{ maxWidth: '720px', width: '100%', margin: '36px auto', padding: '0 24px', boxSizing: 'border-box' }}>
         
         {/* Case 1: Already has application */}
         {activeApp ? (

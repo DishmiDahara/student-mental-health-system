@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import API_URL from '../config'
+import ThemeToggle from '../components/ThemeToggle'
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true)
@@ -204,6 +205,11 @@ export default function Login() {
 
   return (
     <div className="ms-animated-bg" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', overflow: 'hidden', position: 'relative', boxSizing: 'border-box' }}>
+      
+      {/* Theme Toggle Button Top-Right */}
+      <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 100 }}>
+        <ThemeToggle showLabel={true} />
+      </div>
       <style>{`
         @keyframes waveGradient {
           0% { background-position: 0% 50%; }

@@ -272,12 +272,12 @@ export default function Resources() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f0f4f8', paddingBottom: '60px' }}>
+    <div style={{ minHeight: '100vh', paddingBottom: '60px' }}>
       
       {/* Navbar */}
       <Navbar />
 
-      <div style={{ maxWidth: '1000px', margin: '40px auto', padding: '0 20px' }}>
+      <div style={{ maxWidth: '1320px', width: '100%', margin: '36px auto', padding: '0 24px', boxSizing: 'border-box' }}>
         
         {/* Breathing Exercise Coach Card */}
         <div style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', borderRadius: '24px', padding: '32px', color: 'white', marginBottom: '40px', boxShadow: '0 10px 25px rgba(79, 70, 229, 0.3)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '30px' }}>

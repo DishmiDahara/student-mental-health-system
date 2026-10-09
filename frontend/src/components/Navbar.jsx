@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import API_URL from '../config'
+import ThemeToggle from './ThemeToggle'
 
 export default function Navbar() {
   const navigate = useNavigate()
@@ -161,21 +162,25 @@ export default function Navbar() {
 
   return (
     <div className="navbar-header" style={{ 
-      background: 'rgba(15, 23, 42, 0.65)', 
+      background: 'var(--nav-bg, rgba(15, 23, 42, 0.65))', 
       backdropFilter: 'blur(20px)',
       WebkitBackdropFilter: 'blur(20px)',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.15)',
-      padding: '14px 28px', 
-      display: 'flex', 
-      justifyContent: 'space-between', 
-      alignItems: 'center', 
-      boxShadow: '0 8px 32px rgba(0,0,0,0.25)', 
+      borderBottom: '1px solid var(--nav-border, rgba(255, 255, 255, 0.15))',
+      padding: '12px 24px', 
       position: 'sticky', 
       top: 0, 
       zIndex: 1000, 
-      flexWrap: 'wrap', 
-      gap: '12px' 
+      boxShadow: '0 8px 32px rgba(0,0,0,0.15)' 
     }}>
+      <div style={{
+        maxWidth: '1320px',
+        width: '100%',
+        margin: '0 auto',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        gap: '16px'
+      }}>
       
       {/* Brand logo */}
       <h1 onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/dashboard', ['🧠', '✨', '💖', '🌿', '🌈', '🌟', '🕊️', '🧘‍♀️']); }} style={{ 
@@ -270,6 +275,9 @@ export default function Navbar() {
 
       {/* Right Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {/* Theme Toggle Button */}
+        <ThemeToggle />
+
         {/* Notifications Bell Dropdown */}
         <div ref={dropdownRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
           <button 
@@ -465,6 +473,7 @@ export default function Navbar() {
           </button>
         )}
       </div>
+      </div>
 
       {/* Mobile Drawer Menu (Slide Down on ☰ click) */}
       {mobileMenuOpen && (
@@ -535,10 +544,14 @@ export default function Navbar() {
 
           <button 
             onClick={() => { setMobileMenuOpen(false); setIsModalOpen(true); }} 
-            style={{ padding: '12px 16px', background: '#f1f5f9', color: '#334155', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+            style={{ padding: '12px 16px', background: 'var(--glass-bg, #f1f5f9)', color: 'var(--app-text, #334155)', border: '1px solid var(--glass-border, transparent)', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
           >
             <span>👤</span> My Profile Settings
           </button>
+
+          <div style={{ padding: '2px 0' }}>
+            <ThemeToggle showLabel={true} style={{ width: '100%', justifyContent: 'flex-start', borderRadius: '10px', padding: '12px 16px' }} />
+          </div>
 
           <button 
             onClick={() => { setMobileMenuOpen(false); handleLogout(); }} 

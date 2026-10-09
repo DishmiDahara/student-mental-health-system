@@ -205,14 +205,14 @@ export default function AnonymousChat() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f0f4f8', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       
       {/* Navbar */}
       <Navbar />
 
       {/* Main Chat Layout */}
       <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '30px 20px', boxSizing: 'border-box' }}>
-        <div style={{ background: 'white', borderRadius: '24px', maxWidth: '850px', width: '100%', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ background: 'white', borderRadius: '24px', maxWidth: '1100px', width: '100%', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           
           {/* Tabs header */}
           <div style={{ display: 'flex', borderBottom: '1px solid #f3f4f6', background: '#f9fafb' }}>
