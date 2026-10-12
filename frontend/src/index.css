@@ -5,7 +5,7 @@
     radial-gradient(circle at 85% 20%, rgba(59, 130, 246, 0.35) 0%, transparent 45%),
     radial-gradient(circle at 50% 85%, rgba(236, 72, 153, 0.25) 0%, transparent 50%),
     linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #2e1065 100%);
-  --text: #e2e8f0;
+  --text: #f1f5f9;
   --text-h: #ffffff;
   --text-sub: #cbd5e1;
   --text-muted: #94a3b8;
@@ -21,11 +21,23 @@
   --glass-card-border: rgba(255, 255, 255, 0.22);
   --glass-card-hover: rgba(255, 255, 255, 0.18);
   --glass-card-hover-border: rgba(255, 255, 255, 0.4);
-  --nav-bg: rgba(15, 23, 42, 0.65);
+  --nav-bg: rgba(15, 23, 42, 0.75);
   --nav-border: rgba(255, 255, 255, 0.15);
-  --nav-btn-bg: #f3f4f6;
-  --nav-btn-color: #4b5563;
+  --nav-btn-bg: rgba(255, 255, 255, 0.09);
+  --nav-btn-color: #f1f5f9;
   --card-inner: rgba(255, 255, 255, 0.05);
+
+  --urgent-bg: rgba(239, 68, 68, 0.18);
+  --urgent-title: #fca5a5;
+  --urgent-text: #fecaca;
+  --rec-bg: rgba(99, 102, 241, 0.18);
+  --rec-title: #e0e7ff;
+  --rec-text: #c7d2fe;
+
+  --card-desc-1: #e9d5ff;
+  --card-desc-2: #fbcfe8;
+  --card-desc-3: #bae6fd;
+  --card-desc-4: #bbf7d0;
 
   --sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --heading: 'Outfit', system-ui, -apple-system, sans-serif;
@@ -56,18 +68,30 @@
   --accent: #6366f1;
   --accent-bg: rgba(99, 102, 241, 0.12);
   --accent-border: rgba(99, 102, 241, 0.35);
-  --glass-bg: rgba(255, 255, 255, 0.78);
+  --glass-bg: rgba(255, 255, 255, 0.88);
   --glass-border: rgba(99, 102, 241, 0.25);
   --glass-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.08);
-  --glass-card-bg: rgba(255, 255, 255, 0.85);
+  --glass-card-bg: rgba(255, 255, 255, 0.9);
   --glass-card-border: rgba(99, 102, 241, 0.22);
-  --glass-card-hover: rgba(255, 255, 255, 0.95);
+  --glass-card-hover: rgba(255, 255, 255, 0.98);
   --glass-card-hover-border: rgba(99, 102, 241, 0.45);
-  --nav-bg: rgba(255, 255, 255, 0.85);
+  --nav-bg: rgba(255, 255, 255, 0.9);
   --nav-border: rgba(203, 213, 225, 0.8);
-  --nav-btn-bg: #f1f5f9;
-  --nav-btn-color: #334155;
+  --nav-btn-bg: rgba(15, 23, 42, 0.06);
+  --nav-btn-color: #1e293b;
   --card-inner: rgba(241, 245, 249, 0.8);
+
+  --urgent-bg: rgba(254, 242, 242, 0.95);
+  --urgent-title: #991b1b;
+  --urgent-text: #b91c1c;
+  --rec-bg: rgba(238, 242, 255, 0.95);
+  --rec-title: #312e81;
+  --rec-text: #4338ca;
+
+  --card-desc-1: #4c1d95;
+  --card-desc-2: #831843;
+  --card-desc-3: #0c4a6e;
+  --card-desc-4: #14532d;
 
   color-scheme: light;
   color: var(--text);

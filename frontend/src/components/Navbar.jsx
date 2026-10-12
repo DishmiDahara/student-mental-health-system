@@ -208,7 +208,7 @@ export default function Navbar() {
           <button 
             onClick={() => triggerNavTransition('/mood', ['😊', '😌', '🥰', '💖', '🎭', '🧘‍♀️', '🌸', '✨', '🌻', '🤩', '😃', '🌿', '☁️', '🌈', '☀️', '💧', '🛌', '⚡'])} 
             className="ms-nav-btn"
-            style={{ padding: '9px 16px', background: location.pathname === '/mood' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : '#f3f4f6', color: location.pathname === '/mood' ? 'white' : '#4b5563', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
+            style={{ padding: '9px 16px', background: location.pathname === '/mood' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'var(--nav-btn-bg, #f3f4f6)', color: location.pathname === '/mood' ? 'white' : 'var(--nav-btn-color, #4b5563)', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
           >
             Mood
           </button>
@@ -217,7 +217,7 @@ export default function Navbar() {
           <button 
             onClick={() => triggerNavTransition('/anonymous-chat', ['💬', '👥', '💌', '💭', '🤝', '🗨️', '✨', '💜', '🗣️', '🔒', '🛡️', '🫂', '🕊️', '💌', '🌟'])} 
             className="ms-nav-btn"
-            style={{ padding: '9px 16px', background: location.pathname === '/anonymous-chat' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : '#f3f4f6', color: location.pathname === '/anonymous-chat' ? 'white' : '#4b5563', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
+            style={{ padding: '9px 16px', background: location.pathname === '/anonymous-chat' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'var(--nav-btn-bg, #f3f4f6)', color: location.pathname === '/anonymous-chat' ? 'white' : 'var(--nav-btn-color, #4b5563)', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
           >
             Peer Chat
           </button>
@@ -226,7 +226,7 @@ export default function Navbar() {
           <button 
             onClick={() => triggerNavTransition('/chat', ['🤖', '✨', '⚡', '🔮', '🧠', '🌌', '💫', '💎', '💡', '🚀', '🔮', '🌌', '🪐', '💫', '🤖'])} 
             className="ms-nav-btn"
-            style={{ padding: '9px 16px', background: location.pathname === '/chat' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : '#f3f4f6', color: location.pathname === '/chat' ? 'white' : '#4b5563', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
+            style={{ padding: '9px 16px', background: location.pathname === '/chat' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'var(--nav-btn-bg, #f3f4f6)', color: location.pathname === '/chat' ? 'white' : 'var(--nav-btn-color, #4b5563)', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
           >
             AI Aura
           </button>
@@ -235,7 +235,7 @@ export default function Navbar() {
           <button 
             onClick={() => triggerNavTransition('/resources', ['📚', '📖', '🎧', '🧘‍♀️', '💡', '🌱', '🌿', '✨', '🎵', '📜', '🧩', '🎨', '🌊', '🍃', '🌸'])} 
             className="ms-nav-btn"
-            style={{ padding: '9px 16px', background: location.pathname === '/resources' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : '#f3f4f6', color: location.pathname === '/resources' ? 'white' : '#4b5563', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
+            style={{ padding: '9px 16px', background: location.pathname === '/resources' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'var(--nav-btn-bg, #f3f4f6)', color: location.pathname === '/resources' ? 'white' : 'var(--nav-btn-color, #4b5563)', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
           >
             Resources
           </button>
@@ -244,7 +244,7 @@ export default function Navbar() {
           <button 
             onClick={() => triggerNavTransition('/booking', ['📅', '⏰', '🗓️', '🩺', '🤝', '🌟', '🤍', '🧑‍⚕️', '📋', '💼', '📍', '💬', '🕒', '✅'])} 
             className="ms-nav-btn"
-            style={{ padding: '9px 16px', background: location.pathname === '/booking' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : '#f3f4f6', color: location.pathname === '/booking' ? 'white' : '#4b5563', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
+            style={{ padding: '9px 16px', background: location.pathname === '/booking' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'var(--nav-btn-bg, #f3f4f6)', color: location.pathname === '/booking' ? 'white' : 'var(--nav-btn-color, #4b5563)', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
           >
             Bookings
           </button>
@@ -254,7 +254,7 @@ export default function Navbar() {
             <button 
               onClick={() => triggerNavTransition('/apply-counselor', ['🤝', '🌟', '🎖️', '💼', '🏆', '💙', '✨', '📜', '🎓', '✍️', '🖊️', '📄', '🚀', '👑'])} 
               className="ms-nav-btn"
-              style={{ padding: '9px 16px', background: location.pathname === '/apply-counselor' ? 'linear-gradient(135deg, #0284c7, #0ea5e9)' : '#e0f2fe', color: location.pathname === '/apply-counselor' ? 'white' : '#0369a1', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px' }}
+              style={{ padding: '9px 16px', background: location.pathname === '/apply-counselor' ? 'linear-gradient(135deg, #0284c7, #0ea5e9)' : 'var(--nav-btn-bg, #e0f2fe)', color: location.pathname === '/apply-counselor' ? 'white' : 'var(--nav-btn-color, #0369a1)', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px' }}
             >
               Apply as Counselor
             </button>
@@ -265,7 +265,7 @@ export default function Navbar() {
             <button 
               onClick={() => triggerNavTransition('/admin', ['🛠️', '📊', '🛡️', '⚙️', '📋', '📈', '🔑', '⚡', '👨‍⚕️', '📊'])} 
               className="ms-nav-btn"
-              style={{ padding: '9px 16px', background: location.pathname === '/admin' ? 'linear-gradient(135deg, #4f46e5, #7c3aed)' : '#e0e7ff', color: location.pathname === '/admin' ? 'white' : '#4f46e5', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px' }}
+              style={{ padding: '9px 16px', background: location.pathname === '/admin' ? 'linear-gradient(135deg, #4f46e5, #7c3aed)' : 'var(--nav-btn-bg, #e0e7ff)', color: location.pathname === '/admin' ? 'white' : 'var(--nav-btn-color, #4f46e5)', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px' }}
             >
               {user?.role === 'counsellor' ? 'Counsellor Console' : 'Admin Console'}
             </button>
@@ -283,7 +283,7 @@ export default function Navbar() {
           <button 
             onClick={toggleNotifications}
             style={{
-              background: showNotifications ? '#f3f4f6' : 'transparent',
+              background: showNotifications ? 'var(--accent-bg, rgba(99, 102, 241, 0.15))' : 'transparent',
               border: 'none',
               borderRadius: '50%',
               width: '38px',
@@ -292,7 +292,7 @@ export default function Navbar() {
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
-              color: showNotifications ? '#4f46e5' : '#4b5563',
+              color: showNotifications ? 'var(--accent, #4f46e5)' : 'var(--nav-btn-color, #f1f5f9)',
               transition: 'all 0.2s',
               position: 'relative',
               outline: 'none'
@@ -323,11 +323,12 @@ export default function Navbar() {
               top: '48px',
               right: 0,
               width: '320px',
-              background: 'rgba(255, 255, 255, 0.98)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid #e2e8f0',
+              background: 'var(--glass-card-bg, rgba(255, 255, 255, 0.98))',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              border: '1px solid var(--glass-card-border, #e2e8f0)',
               borderRadius: '16px',
-              boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 8px 20px -6px rgba(0, 0, 0, 0.05)',
+              boxShadow: 'var(--glass-shadow, 0 10px 30px rgba(0, 0, 0, 0.15))',
               zIndex: 2000,
               overflow: 'hidden',
               animation: 'navFadeIn 0.2s ease-out'
@@ -335,18 +336,18 @@ export default function Navbar() {
               {/* Header */}
               <div style={{
                 padding: '14px 18px',
-                borderBottom: '1px solid #f1f5f9',
+                borderBottom: '1px solid var(--glass-card-border, #f1f5f9)',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: '#fcfdff'
+                background: 'var(--card-inner, #fcfdff)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontWeight: '800', fontSize: '14px', color: '#1e293b' }}>Announcements</span>
+                  <span style={{ fontWeight: '800', fontSize: '14px', color: 'var(--text-h, #1e293b)' }}>Announcements</span>
                   {announcements.length > 0 && (
                     <span style={{
-                      background: '#e0e7ff',
-                      color: '#4f46e5',
+                      background: 'var(--accent-bg, #e0e7ff)',
+                      color: 'var(--accent, #4f46e5)',
                       fontSize: '11px',
                       padding: '2px 8px',
                       borderRadius: '10px',
@@ -362,7 +363,7 @@ export default function Navbar() {
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#4f46e5',
+                      color: 'var(--accent, #4f46e5)',
                       fontSize: '12px',
                       fontWeight: '600',
                       cursor: 'pointer',
@@ -379,9 +380,9 @@ export default function Navbar() {
               {/* Body */}
               <div style={{ maxHeight: '300px', overflowY: 'auto' }} className="custom-scrollbar">
                 {announcements.length === 0 ? (
-                  <div style={{ padding: '32px 20px', textAlign: 'center', color: '#64748b' }}>
+                  <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted, #64748b)' }}>
                     <p style={{ margin: 0, fontSize: '13.5px', fontWeight: '500' }}>You're all caught up!</p>
-                    <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: '#94a3b8' }}>No active system announcements.</p>
+                    <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: 'var(--text-muted, #94a3b8)' }}>No active system announcements.</p>
                   </div>
                 ) : (
                   announcements.map((ann, idx) => (
@@ -389,23 +390,23 @@ export default function Navbar() {
                       key={ann._id} 
                       style={{
                         padding: '14px 18px',
-                        borderBottom: idx === announcements.length - 1 ? 'none' : '1px solid #f1f5f9',
+                        borderBottom: idx === announcements.length - 1 ? 'none' : '1px solid var(--glass-card-border, #f1f5f9)',
                         transition: 'background 0.2s',
                         cursor: 'default',
                         textAlign: 'left'
                       }}
                       className="announcement-item"
                     >
-                      <h4 style={{ margin: '0 0 4px', color: '#1f2937', fontSize: '13.5px', fontWeight: 'bold', lineHeight: '1.3', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                      <h4 style={{ margin: '0 0 4px', color: 'var(--text-h, #1f2937)', fontSize: '13.5px', fontWeight: 'bold', lineHeight: '1.3', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                         {ann.title}
                       </h4>
-                      <p style={{ margin: 0, fontSize: '12.5px', color: '#4b5563', lineHeight: '1.45', wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}>
+                      <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--text-sub, #4b5563)', lineHeight: '1.45', wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}>
                         {ann.content}
                       </p>
                       <div style={{
                         marginTop: '8px',
                         fontSize: '10.5px',
-                        color: '#94a3b8',
+                        color: 'var(--text-muted, #94a3b8)',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '4px'
@@ -455,13 +456,13 @@ export default function Navbar() {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="mobile-hamburger-btn"
             style={{
-              background: '#f1f5f9',
-              border: 'none',
+              background: 'var(--nav-btn-bg, #f1f5f9)',
+              border: '1px solid var(--nav-border, rgba(255, 255, 255, 0.15))',
               borderRadius: '10px',
               padding: '8px 12px',
               fontSize: '20px',
               cursor: 'pointer',
-              color: '#1e293b',
+              color: 'var(--text-h, #1e293b)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -480,8 +481,10 @@ export default function Navbar() {
         <div 
           style={{
             width: '100%',
-            background: 'white',
-            borderTop: '1px solid #f1f5f9',
+            background: 'var(--glass-card-bg, #ffffff)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderTop: '1px solid var(--glass-card-border, #f1f5f9)',
             padding: '16px 0 8px',
             display: 'flex',
             flexDirection: 'column',
@@ -491,35 +494,35 @@ export default function Navbar() {
         >
           <button 
             onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/mood', ['😊', '😌', '🥰', '💖', '🎭', '🧘‍♀️', '🌸', '✨', '🌻', '🤩', '😃', '🌿', '☁️', '🌈', '☀️', '💧', '🛌', '⚡']); }} 
-            style={{ padding: '12px 16px', background: location.pathname === '/mood' ? '#e0e7ff' : '#f8fafc', color: location.pathname === '/mood' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+            style={{ padding: '12px 16px', background: location.pathname === '/mood' ? 'var(--accent-bg, #e0e7ff)' : 'var(--card-inner, #f8fafc)', color: location.pathname === '/mood' ? 'var(--accent, #4f46e5)' : 'var(--text, #4b5563)', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
           >
             <span>😊</span> Mood Journal
           </button>
 
           <button 
             onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/anonymous-chat', ['💬', '👥', '💌', '💭', '🤝', '🗨️', '✨', '💜', '🗣️', '🔒', '🛡️', '🫂', '🕊️', '💌', '🌟']); }} 
-            style={{ padding: '12px 16px', background: location.pathname === '/anonymous-chat' ? '#e0e7ff' : '#f8fafc', color: location.pathname === '/anonymous-chat' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+            style={{ padding: '12px 16px', background: location.pathname === '/anonymous-chat' ? 'var(--accent-bg, #e0e7ff)' : 'var(--card-inner, #f8fafc)', color: location.pathname === '/anonymous-chat' ? 'var(--accent, #4f46e5)' : 'var(--text, #4b5563)', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
           >
             <span>👥</span> Peer Support Chat
           </button>
 
           <button 
             onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/chat', ['🤖', '✨', '⚡', '🔮', '🧠', '🌌', '💫', '💎', '💡', '🚀', '🔮', '🌌', '🪐', '💫', '🤖']); }} 
-            style={{ padding: '12px 16px', background: location.pathname === '/chat' ? '#e0e7ff' : '#f8fafc', color: location.pathname === '/chat' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+            style={{ padding: '12px 16px', background: location.pathname === '/chat' ? 'var(--accent-bg, #e0e7ff)' : 'var(--card-inner, #f8fafc)', color: location.pathname === '/chat' ? 'var(--accent, #4f46e5)' : 'var(--text, #4b5563)', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
           >
             <span>💬</span> AI Aura Assistant
           </button>
 
           <button 
             onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/resources', ['📚', '📖', '🎧', '🧘‍♀️', '💡', '🌱', '🌿', '✨', '🎵', '📜', '🧩', '🎨', '🌊', '🍃', '🌸']); }} 
-            style={{ padding: '12px 16px', background: location.pathname === '/resources' ? '#e0e7ff' : '#f8fafc', color: location.pathname === '/resources' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+            style={{ padding: '12px 16px', background: location.pathname === '/resources' ? 'var(--accent-bg, #e0e7ff)' : 'var(--card-inner, #f8fafc)', color: location.pathname === '/resources' ? 'var(--accent, #4f46e5)' : 'var(--text, #4b5563)', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
           >
             <span>📚</span> Resources & Breathing
           </button>
 
           <button 
             onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/booking', ['📅', '⏰', '🗓️', '🩺', '🤝', '🌟', '🤍', '🧑‍⚕️', '📋', '💼', '📍', '💬', '🕒', '✅']); }} 
-            style={{ padding: '12px 16px', background: location.pathname === '/booking' ? '#e0e7ff' : '#f8fafc', color: location.pathname === '/booking' ? '#4f46e5' : '#4b5563', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+            style={{ padding: '12px 16px', background: location.pathname === '/booking' ? 'var(--accent-bg, #e0e7ff)' : 'var(--card-inner, #f8fafc)', color: location.pathname === '/booking' ? 'var(--accent, #4f46e5)' : 'var(--text, #4b5563)', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
           >
             <span>📅</span> Bookings & Counseling
           </button>
@@ -527,7 +530,7 @@ export default function Navbar() {
           {user.role === 'student' && (
             <button 
               onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/apply-counselor', ['🤝', '🌟', '🎖️', '💼', '🏆', '💙', '✨', '📜', '🎓', '✍️', '🖊️', '📄', '🚀', '👑']); }} 
-              style={{ padding: '12px 16px', background: location.pathname === '/apply-counselor' ? '#0284c7' : '#e0f2fe', color: location.pathname === '/apply-counselor' ? 'white' : '#0369a1', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+              style={{ padding: '12px 16px', background: location.pathname === '/apply-counselor' ? '#0284c7' : 'var(--card-inner, #e0f2fe)', color: location.pathname === '/apply-counselor' ? 'white' : 'var(--text-h, #0369a1)', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
             >
               <span>🤝</span> Apply as Counselor
             </button>
@@ -536,7 +539,7 @@ export default function Navbar() {
           {isAdmin && (
             <button 
               onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/admin', ['🛠️', '📊', '🛡️', '⚙️', '📋', '📈', '🔑', '⚡', '👨‍⚕️', '📊']); }} 
-              style={{ padding: '12px 16px', background: location.pathname === '/admin' ? '#4f46e5' : '#e0e7ff', color: location.pathname === '/admin' ? 'white' : '#4f46e5', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+              style={{ padding: '12px 16px', background: location.pathname === '/admin' ? '#4f46e5' : 'var(--card-inner, #e0e7ff)', color: location.pathname === '/admin' ? 'white' : 'var(--text-h, #4f46e5)', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
             >
               <span>🛠️</span> {user?.role === 'counsellor' ? 'Counsellor Console' : 'Admin Console'}
             </button>
@@ -544,7 +547,7 @@ export default function Navbar() {
 
           <button 
             onClick={() => { setMobileMenuOpen(false); setIsModalOpen(true); }} 
-            style={{ padding: '12px 16px', background: 'var(--glass-bg, #f1f5f9)', color: 'var(--app-text, #334155)', border: '1px solid var(--glass-border, transparent)', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
+            style={{ padding: '12px 16px', background: 'var(--card-inner, #f1f5f9)', color: 'var(--text, #334155)', border: '1px solid var(--glass-card-border, transparent)', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
           >
             <span>👤</span> My Profile Settings
           </button>
@@ -564,19 +567,19 @@ export default function Navbar() {
 
       {/* --- PROFILE MODAL --- */}
       {isModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '24px', width: '380px', border: '1px solid #e2e8f0', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', position: 'relative' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ background: 'var(--glass-card-bg, #ffffff)', padding: '32px', borderRadius: '24px', width: '380px', border: '1px solid var(--glass-card-border, #e2e8f0)', boxShadow: 'var(--glass-shadow, 0 25px 50px -12px rgba(0, 0, 0, 0.25))', position: 'relative' }}>
             
             <button 
               onClick={() => { setIsModalOpen(false); setMessage({ text: '', type: '' }); }} 
-              style={{ position: 'absolute', top: '16px', right: '16px', border: 'none', background: '#f1f5f9', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ position: 'absolute', top: '16px', right: '16px', border: 'none', background: 'var(--card-inner, #f1f5f9)', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px', color: 'var(--text-sub, #64748b)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               ✕
             </button>
 
             <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-              <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', color: '#1e293b', fontWeight: 'bold' }}>My Profile</h3>
-              <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>Update your profile photo</p>
+              <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', color: 'var(--text-h, #1e293b)', fontWeight: 'bold' }}>My Profile</h3>
+              <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted, #64748b)' }}>Update your profile photo</p>
             </div>
 
             {message.text && (
@@ -608,28 +611,28 @@ export default function Navbar() {
 
               {/* File input (Device Upload, No URL) */}
               <div style={{ width: '100%' }}>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: '600', color: '#475569', marginBottom: '6px', textAlign: 'center' }}>Upload new photo:</label>
+                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: '600', color: 'var(--text-sub, #475569)', marginBottom: '6px', textAlign: 'center' }}>Upload new photo:</label>
                 <input 
                   type="file" 
                   accept="image/png, image/jpeg, image/jpg" 
                   onChange={handleFileChange}
-                  style={{ width: '100%', padding: '8px', border: '1px dashed #cbd5e1', borderRadius: '8px', fontSize: '12px', outline: 'none', background: '#f8fafc', cursor: 'pointer' }}
+                  style={{ width: '100%', padding: '8px', border: '1px dashed var(--glass-card-border, #cbd5e1)', borderRadius: '8px', fontSize: '12px', outline: 'none', background: 'var(--card-inner, #f8fafc)', color: 'var(--text, #1e293b)', cursor: 'pointer' }}
                 />
               </div>
             </div>
 
             {/* Readonly info */}
-            <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '16px', marginBottom: '24px', border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
+            <div style={{ background: 'var(--card-inner, #f8fafc)', padding: '16px', borderRadius: '16px', marginBottom: '24px', border: '1px solid var(--glass-card-border, #f1f5f9)', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#64748b' }}>Name:</span>
-                <strong style={{ color: '#1e293b' }}>{user.name}</strong>
+                <span style={{ color: 'var(--text-muted, #64748b)' }}>Name:</span>
+                <strong style={{ color: 'var(--text-h, #1e293b)' }}>{user.name}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#64748b' }}>Email:</span>
-                <strong style={{ color: '#1e293b' }}>{user.email}</strong>
+                <span style={{ color: 'var(--text-muted, #64748b)' }}>Email:</span>
+                <strong style={{ color: 'var(--text-h, #1e293b)' }}>{user.email}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: '#64748b' }}>System Role:</span>
+                <span style={{ color: 'var(--text-muted, #64748b)' }}>System Role:</span>
                 <strong style={{ color: '#6366f1', textTransform: 'capitalize' }}>{user.role}</strong>
               </div>
             </div>

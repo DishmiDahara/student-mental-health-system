@@ -256,7 +256,209 @@ h1, h2, h3, h4, h5, h6 {
   100% { transform: scale(1); box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
 }
 
-/* --- LIGHT THEME OVERRIDES --- */
+/* ==========================================================================
+   THEME-AWARE COLOR MATCHING & HIGH-CONTRAST LEGIBILITY SYSTEM
+   ========================================================================== */
+
+/* --- DARK THEME LEGIBILITY & CONTRAST --- */
+[data-theme="dark"],
+.dark-theme {
+  color: #f1f5f9;
+}
+
+/* Ensure headings in Dark Mode are bright and luminous */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6,
+.dark-theme h1,
+.dark-theme h2,
+.dark-theme h3,
+.dark-theme h4,
+.dark-theme h5,
+.dark-theme h6 {
+  color: #ffffff;
+}
+
+/* Override hardcoded dark text colors in Dark Mode (both Hex and Browser-computed RGB) */
+[data-theme="dark"] [style*="color: #1e293b"],
+[data-theme="dark"] [style*="color:#1e293b"],
+[data-theme="dark"] [style*="color: rgb(30, 41, 59)"],
+[data-theme="dark"] [style*="color:rgb(30,41,59)"],
+[data-theme="dark"] [style*="color: #1f2937"],
+[data-theme="dark"] [style*="color:#1f2937"],
+[data-theme="dark"] [style*="color: rgb(31, 41, 55)"],
+[data-theme="dark"] [style*="color:rgb(31,41,55)"],
+[data-theme="dark"] [style*="color: #0f172a"],
+[data-theme="dark"] [style*="color:#0f172a"],
+[data-theme="dark"] [style*="color: rgb(15, 23, 42)"],
+[data-theme="dark"] [style*="color:rgb(15,23,42)"],
+[data-theme="dark"] [style*="color: #334155"],
+[data-theme="dark"] [style*="color:#334155"],
+[data-theme="dark"] [style*="color: rgb(51, 65, 85)"],
+[data-theme="dark"] [style*="color:rgb(51,65,85)"],
+[data-theme="dark"] [style*="color: #475569"],
+[data-theme="dark"] [style*="color:#475569"],
+[data-theme="dark"] [style*="color: rgb(71, 85, 105)"],
+[data-theme="dark"] [style*="color:rgb(71,85,105)"],
+[data-theme="dark"] [style*="color: #374151"],
+[data-theme="dark"] [style*="color:#374151"],
+[data-theme="dark"] [style*="color: rgb(55, 65, 81)"],
+[data-theme="dark"] [style*="color:rgb(55,65,81)"],
+[data-theme="dark"] [style*="color: #111827"],
+[data-theme="dark"] [style*="color:#111827"],
+[data-theme="dark"] [style*="color: rgb(17, 24, 39)"],
+[data-theme="dark"] [style*="color:rgb(17,24,39)"],
+.dark-theme [style*="color: #1e293b"],
+.dark-theme [style*="color:#1e293b"],
+.dark-theme [style*="color: rgb(30, 41, 59)"],
+.dark-theme [style*="color:rgb(30,41,59)"],
+.dark-theme [style*="color: #1f2937"],
+.dark-theme [style*="color:#1f2937"],
+.dark-theme [style*="color: rgb(31, 41, 55)"],
+.dark-theme [style*="color:rgb(31,41,55)"],
+.dark-theme [style*="color: #0f172a"],
+.dark-theme [style*="color:#0f172a"],
+.dark-theme [style*="color: rgb(15, 23, 42)"],
+.dark-theme [style*="color:rgb(15,23,42)"],
+.dark-theme [style*="color: #334155"],
+.dark-theme [style*="color:#334155"],
+.dark-theme [style*="color: rgb(51, 65, 85)"],
+.dark-theme [style*="color:rgb(51,65,85)"],
+.dark-theme [style*="color: #475569"],
+.dark-theme [style*="color:#475569"],
+.dark-theme [style*="color: rgb(71, 85, 105)"],
+.dark-theme [style*="color:rgb(71,85,105)"] {
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] [style*="color: #64748b"],
+[data-theme="dark"] [style*="color:#64748b"],
+[data-theme="dark"] [style*="color: rgb(100, 116, 139)"],
+[data-theme="dark"] [style*="color:rgb(100,116,139)"],
+[data-theme="dark"] [style*="color: #6b7280"],
+[data-theme="dark"] [style*="color:#6b7280"],
+[data-theme="dark"] [style*="color: rgb(107, 114, 128)"],
+[data-theme="dark"] [style*="color:rgb(107,114,128)"],
+[data-theme="dark"] [style*="color: #4b5563"],
+[data-theme="dark"] [style*="color:#4b5563"],
+[data-theme="dark"] [style*="color: rgb(75, 85, 99)"],
+[data-theme="dark"] [style*="color:rgb(75,85,99)"],
+[data-theme="dark"] [style*="color: #9ca3af"],
+[data-theme="dark"] [style*="color:#9ca3af"],
+[data-theme="dark"] [style*="color: rgb(156, 163, 175)"],
+[data-theme="dark"] [style*="color:rgb(156,163,175)"],
+.dark-theme [style*="color: #64748b"],
+.dark-theme [style*="color:#64748b"],
+.dark-theme [style*="color: rgb(100, 116, 139)"],
+.dark-theme [style*="color:rgb(100,116,139)"],
+.dark-theme [style*="color: #6b7280"],
+.dark-theme [style*="color:#6b7280"],
+.dark-theme [style*="color: rgb(107, 114, 128)"],
+.dark-theme [style*="color:rgb(107,114,128)"],
+.dark-theme [style*="color: #4b5563"],
+.dark-theme [style*="color:#4b5563"],
+.dark-theme [style*="color: rgb(75, 85, 99)"],
+.dark-theme [style*="color:rgb(75,85,99)"],
+.dark-theme [style*="color: #9ca3af"],
+.dark-theme [style*="color:#9ca3af"],
+.dark-theme [style*="color: rgb(156, 163, 175)"],
+.dark-theme [style*="color:rgb(156,163,175)"] {
+  color: #cbd5e1 !important;
+}
+
+/* In Dark Mode, replace solid white card backgrounds with modern glassmorphism */
+[data-theme="dark"] div[style*="background: white"],
+[data-theme="dark"] div[style*="background:white"],
+[data-theme="dark"] div[style*="background: #ffffff"],
+[data-theme="dark"] div[style*="background:#ffffff"],
+[data-theme="dark"] div[style*="background: rgb(255, 255, 255)"],
+[data-theme="dark"] div[style*="background:rgb(255,255,255)"],
+[data-theme="dark"] div[style*="background: #f8fafc"],
+[data-theme="dark"] div[style*="background:#f8fafc"],
+[data-theme="dark"] div[style*="background: rgb(248, 250, 252)"],
+[data-theme="dark"] div[style*="background:rgb(248,250,252)"],
+.dark-theme div[style*="background: white"],
+.dark-theme div[style*="background:white"],
+.dark-theme div[style*="background: #ffffff"],
+.dark-theme div[style*="background:#ffffff"],
+.dark-theme div[style*="background: rgb(255, 255, 255)"],
+.dark-theme div[style*="background:rgb(255,255,255)"],
+.dark-theme div[style*="background: #f8fafc"],
+.dark-theme div[style*="background:#f8fafc"],
+.dark-theme div[style*="background: rgb(248, 250, 252)"],
+.dark-theme div[style*="background:rgb(248,250,252)"] {
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35) !important;
+  color: #f1f5f9 !important;
+}
+
+/* In Dark Mode, announcements dropdown & profile modal styling */
+[data-theme="dark"] .announcement-item,
+.dark-theme .announcement-item {
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+[data-theme="dark"] .announcement-item:hover,
+.dark-theme .announcement-item:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+[data-theme="dark"] .announcement-item h4,
+.dark-theme .announcement-item h4 {
+  color: #ffffff !important;
+}
+[data-theme="dark"] .announcement-item p,
+.dark-theme .announcement-item p {
+  color: #cbd5e1 !important;
+}
+
+/* In Dark Mode, Navbar buttons */
+[data-theme="dark"] .ms-nav-btn:not([style*="linear-gradient"]),
+.dark-theme .ms-nav-btn:not([style*="linear-gradient"]) {
+  background: rgba(255, 255, 255, 0.09) !important;
+  color: #f1f5f9 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(8px);
+}
+[data-theme="dark"] .ms-nav-btn:not([style*="linear-gradient"]):hover,
+.dark-theme .ms-nav-btn:not([style*="linear-gradient"]):hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-theme="dark"] .navbar-bell-btn,
+.dark-theme .navbar-bell-btn {
+  color: #e2e8f0 !important;
+}
+[data-theme="dark"] .navbar-bell-btn:hover,
+.dark-theme .navbar-bell-btn:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .desktop-logout-btn,
+.dark-theme .desktop-logout-btn {
+  background: rgba(239, 68, 68, 0.22) !important;
+  color: #fca5a5 !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+}
+[data-theme="dark"] .desktop-logout-btn:hover,
+.dark-theme .desktop-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.4) !important;
+  color: #ffffff !important;
+}
+
+/* --- LIGHT THEME LEGIBILITY & CONTRAST --- */
+[data-theme="light"],
+.light-theme {
+  color: #1e293b;
+}
+
 [data-theme="light"] .ms-animated-bg,
 .light-theme .ms-animated-bg {
   background: linear-gradient(-45deg, #a5b4fc, #c084fc, #93c5fd, #f472b6) !important;
@@ -264,26 +466,150 @@ h1, h2, h3, h4, h5, h6 {
 
 [data-theme="light"] .ms-white-card,
 .light-theme .ms-white-card {
-  background: rgba(255, 255, 255, 0.92) !important;
+  background: rgba(255, 255, 255, 0.94) !important;
   border: 1px solid rgba(99, 102, 241, 0.3) !important;
   box-shadow: 0 20px 60px rgba(99, 102, 241, 0.15) !important;
   color: #0f172a !important;
 }
 
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4,
+[data-theme="light"] h5,
+[data-theme="light"] h6,
+.light-theme h1,
+.light-theme h2,
+.light-theme h3,
+.light-theme h4,
+.light-theme h5,
+.light-theme h6 {
+  color: #0f172a;
+}
+
+/* In Light Mode, text inside glass cards and containers */
 [data-theme="light"] .glass-card,
 .light-theme .glass-card {
-  background: rgba(255, 255, 255, 0.85) !important;
-  border-color: rgba(99, 102, 241, 0.22) !important;
-  box-shadow: 0 10px 30px rgba(31, 38, 135, 0.07) !important;
-  color: #1e293b !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(99, 102, 241, 0.2) !important;
+  box-shadow: 0 10px 30px rgba(31, 38, 135, 0.08) !important;
+  color: #0f172a !important;
+}
+[data-theme="light"] .glass-card h1,
+[data-theme="light"] .glass-card h2,
+[data-theme="light"] .glass-card h3,
+[data-theme="light"] .glass-card h4,
+.light-theme .glass-card h1,
+.light-theme .glass-card h2,
+.light-theme .glass-card h3,
+.light-theme .glass-card h4 {
+  color: #0f172a !important;
+}
+[data-theme="light"] .glass-card p,
+.light-theme .glass-card p {
+  color: #334155 !important;
+  font-weight: 500 !important;
 }
 
 [data-theme="light"] .glass-container,
 .light-theme .glass-container {
-  background: rgba(255, 255, 255, 0.88) !important;
-  border-color: rgba(99, 102, 241, 0.25) !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(99, 102, 241, 0.2) !important;
   box-shadow: 0 12px 36px rgba(31, 38, 135, 0.08) !important;
+  color: #0f172a !important;
+}
+[data-theme="light"] .glass-container p,
+.light-theme .glass-container p {
   color: #1e293b !important;
+}
+
+/* In Light Mode, fix any pastel inline text so it has deep rich high contrast */
+[data-theme="light"] [style*="color: #e9d5ff"],
+[data-theme="light"] [style*="color:#e9d5ff"],
+[data-theme="light"] [style*="color: rgb(233, 213, 255)"],
+[data-theme="light"] [style*="color:rgb(233,213,255)"],
+.light-theme [style*="color: #e9d5ff"],
+.light-theme [style*="color:#e9d5ff"],
+.light-theme [style*="color: rgb(233, 213, 255)"],
+.light-theme [style*="color:rgb(233,213,255)"] {
+  color: #4c1d95 !important;
+}
+
+[data-theme="light"] [style*="color: #fbcfe8"],
+[data-theme="light"] [style*="color:#fbcfe8"],
+[data-theme="light"] [style*="color: rgb(251, 207, 232)"],
+[data-theme="light"] [style*="color:rgb(251,207,232)"],
+.light-theme [style*="color: #fbcfe8"],
+.light-theme [style*="color:#fbcfe8"],
+.light-theme [style*="color: rgb(251, 207, 232)"],
+.light-theme [style*="color:rgb(251,207,232)"] {
+  color: #831843 !important;
+}
+
+[data-theme="light"] [style*="color: #bae6fd"],
+[data-theme="light"] [style*="color:#bae6fd"],
+[data-theme="light"] [style*="color: rgb(186, 230, 253)"],
+[data-theme="light"] [style*="color:rgb(186,230,253)"],
+.light-theme [style*="color: #bae6fd"],
+.light-theme [style*="color:#bae6fd"],
+.light-theme [style*="color: rgb(186, 230, 253)"],
+.light-theme [style*="color:rgb(186,230,253)"] {
+  color: #0c4a6e !important;
+}
+
+[data-theme="light"] [style*="color: #bbf7d0"],
+[data-theme="light"] [style*="color:#bbf7d0"],
+[data-theme="light"] [style*="color: rgb(187, 247, 208)"],
+[data-theme="light"] [style*="color:rgb(187,247,208)"],
+.light-theme [style*="color: #bbf7d0"],
+.light-theme [style*="color:#bbf7d0"],
+.light-theme [style*="color: rgb(187, 247, 208)"],
+.light-theme [style*="color:rgb(187,247,208)"] {
+  color: #14532d !important;
+}
+
+[data-theme="light"] [style*="color: #fecaca"],
+[data-theme="light"] [style*="color:#fecaca"],
+[data-theme="light"] [style*="color: rgb(254, 202, 202)"],
+[data-theme="light"] [style*="color:rgb(254,202,202)"],
+.light-theme [style*="color: #fecaca"],
+.light-theme [style*="color:#fecaca"],
+.light-theme [style*="color: rgb(254, 202, 202)"],
+.light-theme [style*="color:rgb(254,202,202)"] {
+  color: #991b1b !important;
+}
+
+[data-theme="light"] [style*="color: #c7d2fe"],
+[data-theme="light"] [style*="color:#c7d2fe"],
+[data-theme="light"] [style*="color: rgb(199, 210, 254)"],
+[data-theme="light"] [style*="color:rgb(199,210,254)"],
+.light-theme [style*="color: #c7d2fe"],
+.light-theme [style*="color:#c7d2fe"],
+.light-theme [style*="color: rgb(199, 210, 254)"],
+.light-theme [style*="color:rgb(199,210,254)"] {
+  color: #312e81 !important;
+}
+
+[data-theme="light"] [style*="color: #a5b4fc"],
+[data-theme="light"] [style*="color:#a5b4fc"],
+[data-theme="light"] [style*="color: rgb(165, 180, 252)"],
+[data-theme="light"] [style*="color:rgb(165,180,252)"],
+.light-theme [style*="color: #a5b4fc"],
+.light-theme [style*="color:#a5b4fc"],
+.light-theme [style*="color: rgb(165, 180, 252)"],
+.light-theme [style*="color:rgb(165,180,252)"] {
+  color: #3730a3 !important;
+}
+
+[data-theme="light"] [style*="color: #fca5a5"],
+[data-theme="light"] [style*="color:#fca5a5"],
+[data-theme="light"] [style*="color: rgb(252, 165, 165)"],
+[data-theme="light"] [style*="color:rgb(252,165,165)"],
+.light-theme [style*="color: #fca5a5"],
+.light-theme [style*="color:#fca5a5"],
+.light-theme [style*="color: rgb(252, 165, 165)"],
+.light-theme [style*="color:rgb(252,165,165)"] {
+  color: #991b1b !important;
 }
 
 [data-theme="light"] .admin-dashboard-container,
@@ -316,13 +642,38 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 0.45 !important;
 }
 
-[data-theme="light"] input,
-[data-theme="light"] select,
-[data-theme="light"] textarea,
-.light-theme input,
-.light-theme select,
-.light-theme textarea {
+/* In Light Mode, Navbar buttons */
+[data-theme="light"] .ms-nav-btn:not([style*="linear-gradient"]),
+.light-theme .ms-nav-btn:not([style*="linear-gradient"]) {
+  background: rgba(15, 23, 42, 0.06) !important;
+  color: #1e293b !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+}
+[data-theme="light"] .ms-nav-btn:not([style*="linear-gradient"]):hover,
+.light-theme .ms-nav-btn:not([style*="linear-gradient"]):hover {
+  background: rgba(15, 23, 42, 0.12) !important;
+  color: #0f172a !important;
+  border-color: rgba(15, 23, 42, 0.2) !important;
+}
+
+/* Form controls styling */
+input,
+select,
+textarea {
   background-color: #ffffff !important;
   color: #0f172a !important;
   border-color: #cbd5e1 !important;
+}
+input::placeholder,
+textarea::placeholder {
+  color: #64748b !important;
+  opacity: 0.8 !important;
+}
+
+/* Ensure buttons with colored gradient backgrounds maintain crisp white text in both themes */
+button[style*="linear-gradient"],
+button[style*="linear-gradient"] *,
+.btn-primary,
+.btn-danger {
+  color: #ffffff !important;
 }

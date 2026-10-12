@@ -168,8 +168,8 @@ export default function Dashboard() {
           >
             <div style={{ flex: '1 1 300px' }}>
               <span style={{ fontSize: '11px', background: '#ef4444', color: 'white', padding: '3px 10px', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Urgent Advisor Message</span>
-              <h4 style={{ margin: '10px 0 6px', color: '#fca5a5', fontSize: '17px', fontWeight: 'bold' }}>Your counselor initiated a private live support session:</h4>
-              <p style={{ margin: 0, fontSize: '15px', color: '#fecaca', fontStyle: 'italic', fontWeight: '500' }}>
+              <h4 style={{ margin: '10px 0 6px', color: 'var(--urgent-title, #fca5a5)', fontSize: '17px', fontWeight: 'bold' }}>Your counselor initiated a private live support session:</h4>
+              <p style={{ margin: 0, fontSize: '15px', color: 'var(--urgent-text, #fecaca)', fontStyle: 'italic', fontWeight: '500' }}>
                 "{supportMessage.text}"
               </p>
             </div>
@@ -184,7 +184,7 @@ export default function Dashboard() {
         {/* Custom Admin Recommendation Banner */}
         {customRec && (customRec.game || customRec.activity) && (
           <div style={{ 
-            background: 'rgba(99, 102, 241, 0.15)', 
+            background: 'var(--rec-bg, rgba(99, 102, 241, 0.15))', 
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
             border: '1px solid rgba(129, 140, 248, 0.35)', 
@@ -203,12 +203,12 @@ export default function Dashboard() {
           }}>
             <div style={{ flex: '1 1 300px' }}>
               <span style={{ fontSize: '11px', background: '#6366f1', color: 'white', padding: '3px 10px', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase' }}>Advisor Custom Suggestion</span>
-              <h4 style={{ margin: '10px 0 6px', color: '#e0e7ff', fontSize: '16.5px' }}>Your counselor recommended a relaxation exercise:</h4>
-              <p style={{ margin: 0, fontSize: '14.5px', color: '#c7d2fe', fontStyle: 'italic' }}>
+              <h4 style={{ margin: '10px 0 6px', color: 'var(--rec-title, #e0e7ff)', fontSize: '16.5px', fontWeight: 'bold' }}>Your counselor recommended a relaxation exercise:</h4>
+              <p style={{ margin: 0, fontSize: '14.5px', color: 'var(--rec-text, #c7d2fe)', fontStyle: 'italic', fontWeight: '500' }}>
                 "{customRec.activity || 'Take some time out to pop bubbles and calm your thoughts.'}"
               </p>
               {customRec.game && (
-                <div style={{ marginTop: '10px', fontSize: '13.5px', color: '#a5b4fc' }}>
+                <div style={{ marginTop: '10px', fontSize: '13.5px', color: 'var(--rec-text, #a5b4fc)' }}>
                   Recommended Game: <strong>{getGameLabel(customRec.game)}</strong>
                 </div>
               )}
@@ -291,7 +291,7 @@ export default function Dashboard() {
             <h3 style={{ margin: '0 0 10px 0', fontSize: '21px', color: 'var(--text-h, #ffffff)', fontWeight: '700' }}>
               Mood Tracker
             </h3>
-            <p style={{ margin: 0, color: 'var(--text-sub, #e9d5ff)', fontSize: '14.5px', lineHeight: '1.55', opacity: 0.92, maxWidth: '240px' }}>
+            <p style={{ margin: 0, color: 'var(--card-desc-1, #e9d5ff)', fontSize: '14.5px', lineHeight: '1.55', fontWeight: '500', maxWidth: '240px' }}>
               Track your daily emotions and play relaxation games
             </p>
           </div>
@@ -335,7 +335,7 @@ export default function Dashboard() {
             <h3 style={{ margin: '0 0 10px 0', fontSize: '21px', color: 'var(--text-h, #ffffff)', fontWeight: '700' }}>
               Book Session
             </h3>
-            <p style={{ margin: 0, color: 'var(--text-sub, #fbcfe8)', fontSize: '14.5px', lineHeight: '1.55', opacity: 0.92, maxWidth: '240px' }}>
+            <p style={{ margin: 0, color: 'var(--card-desc-2, #fbcfe8)', fontSize: '14.5px', lineHeight: '1.55', fontWeight: '500', maxWidth: '240px' }}>
               Schedule a private counselling session
             </p>
           </div>
@@ -379,7 +379,7 @@ export default function Dashboard() {
             <h3 style={{ margin: '0 0 10px 0', fontSize: '21px', color: 'var(--text-h, #ffffff)', fontWeight: '700' }}>
               AI Chatbot Aura
             </h3>
-            <p style={{ margin: 0, color: 'var(--text-sub, #bae6fd)', fontSize: '14.5px', lineHeight: '1.55', opacity: 0.92, maxWidth: '240px' }}>
+            <p style={{ margin: 0, color: 'var(--card-desc-3, #bae6fd)', fontSize: '14.5px', lineHeight: '1.55', fontWeight: '500', maxWidth: '240px' }}>
               Talk to our empathetic AI assistant 24/7
             </p>
           </div>
@@ -423,7 +423,7 @@ export default function Dashboard() {
             <h3 style={{ margin: '0 0 10px 0', fontSize: '21px', color: 'var(--text-h, #ffffff)', fontWeight: '700' }}>
               Resources & Breath
             </h3>
-            <p style={{ margin: 0, color: 'var(--text-sub, #bbf7d0)', fontSize: '14.5px', lineHeight: '1.55', opacity: 0.92, maxWidth: '240px' }}>
+            <p style={{ margin: 0, color: 'var(--card-desc-4, #bbf7d0)', fontSize: '14.5px', lineHeight: '1.55', fontWeight: '500', maxWidth: '240px' }}>
               Mental health articles & breathing guide
             </p>
           </div>
@@ -448,12 +448,12 @@ export default function Dashboard() {
         }}>
           <div style={{ fontSize: '24px', marginBottom: '8px', opacity: 0.85 }}>✨</div>
           <p style={{ 
-            color: 'var(--text-sub, #e9d5ff)', 
+            color: 'var(--text, #f1f5f9)', 
             fontStyle: 'italic', 
             fontSize: 'clamp(15.5px, 2vw, 18.5px)', 
             lineHeight: '1.65', 
             margin: '0 0 12px 0',
-            fontWeight: '500',
+            fontWeight: '600',
             maxWidth: '850px' 
           }}>
             "{getDailyReminder()}"
