@@ -137,7 +137,7 @@ export default function Dashboard() {
       {/* Navbar */}
       <Navbar />
 
-      <div style={{ padding: '36px 24px', maxWidth: '1320px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
+      <div style={{ padding: '36px 24px', maxWidth: '1320px', width: '100%', margin: '0 auto', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         
         {/* Urgent Support Message Banner */}
         {supportMessage && (
@@ -159,7 +159,9 @@ export default function Dashboard() {
               boxShadow: '0 8px 32px rgba(239, 68, 68, 0.2)',
               transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
               flexWrap: 'wrap',
-              gap: '16px'
+              gap: '16px',
+              width: '100%',
+              boxSizing: 'border-box'
             }}
             onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
             onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
@@ -195,7 +197,9 @@ export default function Dashboard() {
             alignItems: 'center', 
             flexWrap: 'wrap', 
             gap: '16px',
-            boxShadow: '0 8px 32px rgba(99, 102, 241, 0.2)' 
+            boxShadow: '0 8px 32px rgba(99, 102, 241, 0.2)',
+            width: '100%',
+            boxSizing: 'border-box' 
           }}>
             <div style={{ flex: '1 1 300px' }}>
               <span style={{ fontSize: '11px', background: '#6366f1', color: 'white', padding: '3px 10px', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase' }}>Advisor Custom Suggestion</span>
@@ -220,12 +224,12 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Hero Welcome Header */}
-        <div style={{ marginBottom: '32px' }}>
+        {/* Hero Welcome Header - Centered */}
+        <div style={{ marginBottom: '36px', textAlign: 'center', width: '100%' }}>
           <h2 style={{ 
-            fontSize: 'clamp(26px, 4vw, 38px)', 
+            fontSize: 'clamp(28px, 4vw, 42px)', 
             fontWeight: '800', 
-            margin: '0 0 8px 0',
+            margin: '0 0 10px 0',
             background: 'linear-gradient(135deg, var(--text-h, #ffffff) 0%, #c084fc 50%, #60a5fa 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
@@ -233,17 +237,18 @@ export default function Dashboard() {
           }}>
             Welcome back, {name} 👋
           </h2>
-          <p style={{ color: 'var(--text-muted, #94a3b8)', fontSize: 'clamp(14.5px, 2vw, 17px)', margin: 0 }}>
+          <p style={{ color: 'var(--text-muted, #94a3b8)', fontSize: 'clamp(15px, 2vw, 18px)', margin: '0 auto', maxWidth: '650px', lineHeight: '1.6' }}>
             How are you feeling today? Check out the tools below for support.
           </p>
         </div>
 
-        {/* Glassmorphism Action Cards Grid */}
+        {/* Glassmorphism Action Cards Grid - Centered Elements */}
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', 
           gap: '24px', 
           marginBottom: '36px',
+          width: '100%',
           alignItems: 'stretch' 
         }}>
           
@@ -253,38 +258,40 @@ export default function Dashboard() {
             className="glass-card"
             style={{ 
               background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.25), rgba(126, 34, 206, 0.35))', 
-              padding: '28px 24px', 
+              padding: '32px 24px', 
               cursor: 'pointer',
               position: 'relative',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'space-between',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
               height: '100%',
-              minHeight: '210px',
+              minHeight: '230px',
               borderRadius: '24px',
               boxSizing: 'border-box'
             }}
           >
-            <div>
-              <div style={{ 
-                width: '56px', 
-                height: '56px', 
-                borderRadius: '16px', 
-                background: 'rgba(168, 85, 247, 0.3)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                fontSize: '32px', 
-                marginBottom: '16px',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                boxShadow: '0 4px 16px rgba(168, 85, 247, 0.3)'
-              }}>
-                😊
-              </div>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: 'var(--text-h, #ffffff)', fontWeight: '700' }}>Mood Tracker</h3>
+            <div style={{ 
+              width: '64px', 
+              height: '64px', 
+              borderRadius: '20px', 
+              background: 'rgba(168, 85, 247, 0.3)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              fontSize: '34px', 
+              marginBottom: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 4px 16px rgba(168, 85, 247, 0.3)'
+            }}>
+              😊
             </div>
-            <p style={{ margin: 0, color: 'var(--text-sub, #e9d5ff)', fontSize: '14px', lineHeight: '1.5', opacity: 0.9 }}>
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '21px', color: 'var(--text-h, #ffffff)', fontWeight: '700' }}>
+              Mood Tracker
+            </h3>
+            <p style={{ margin: 0, color: 'var(--text-sub, #e9d5ff)', fontSize: '14.5px', lineHeight: '1.55', opacity: 0.92, maxWidth: '240px' }}>
               Track your daily emotions and play relaxation games
             </p>
           </div>
@@ -295,38 +302,40 @@ export default function Dashboard() {
             className="glass-card"
             style={{ 
               background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.25), rgba(219, 39, 119, 0.35))', 
-              padding: '28px 24px', 
+              padding: '32px 24px', 
               cursor: 'pointer',
               position: 'relative',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'space-between',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
               height: '100%',
-              minHeight: '210px',
+              minHeight: '230px',
               borderRadius: '24px',
               boxSizing: 'border-box'
             }}
           >
-            <div>
-              <div style={{ 
-                width: '56px', 
-                height: '56px', 
-                borderRadius: '16px', 
-                background: 'rgba(244, 114, 182, 0.3)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                fontSize: '32px', 
-                marginBottom: '16px',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                boxShadow: '0 4px 16px rgba(244, 114, 182, 0.3)'
-              }}>
-                📅
-              </div>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: 'var(--text-h, #ffffff)', fontWeight: '700' }}>Book Session</h3>
+            <div style={{ 
+              width: '64px', 
+              height: '64px', 
+              borderRadius: '20px', 
+              background: 'rgba(244, 114, 182, 0.3)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              fontSize: '34px', 
+              marginBottom: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 4px 16px rgba(244, 114, 182, 0.3)'
+            }}>
+              📅
             </div>
-            <p style={{ margin: 0, color: 'var(--text-sub, #fbcfe8)', fontSize: '14px', lineHeight: '1.5', opacity: 0.9 }}>
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '21px', color: 'var(--text-h, #ffffff)', fontWeight: '700' }}>
+              Book Session
+            </h3>
+            <p style={{ margin: 0, color: 'var(--text-sub, #fbcfe8)', fontSize: '14.5px', lineHeight: '1.55', opacity: 0.92, maxWidth: '240px' }}>
               Schedule a private counselling session
             </p>
           </div>
@@ -337,38 +346,40 @@ export default function Dashboard() {
             className="glass-card"
             style={{ 
               background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(2, 132, 199, 0.35))', 
-              padding: '28px 24px', 
+              padding: '32px 24px', 
               cursor: 'pointer',
               position: 'relative',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'space-between',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
               height: '100%',
-              minHeight: '210px',
+              minHeight: '230px',
               borderRadius: '24px',
               boxSizing: 'border-box'
             }}
           >
-            <div>
-              <div style={{ 
-                width: '56px', 
-                height: '56px', 
-                borderRadius: '16px', 
-                background: 'rgba(56, 189, 248, 0.3)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                fontSize: '32px', 
-                marginBottom: '16px',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                boxShadow: '0 4px 16px rgba(56, 189, 248, 0.3)'
-              }}>
-                💬
-              </div>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: 'var(--text-h, #ffffff)', fontWeight: '700' }}>AI Chatbot Aura</h3>
+            <div style={{ 
+              width: '64px', 
+              height: '64px', 
+              borderRadius: '20px', 
+              background: 'rgba(56, 189, 248, 0.3)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              fontSize: '34px', 
+              marginBottom: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 4px 16px rgba(56, 189, 248, 0.3)'
+            }}>
+              💬
             </div>
-            <p style={{ margin: 0, color: 'var(--text-sub, #bae6fd)', fontSize: '14px', lineHeight: '1.5', opacity: 0.9 }}>
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '21px', color: 'var(--text-h, #ffffff)', fontWeight: '700' }}>
+              AI Chatbot Aura
+            </h3>
+            <p style={{ margin: 0, color: 'var(--text-sub, #bae6fd)', fontSize: '14.5px', lineHeight: '1.55', opacity: 0.92, maxWidth: '240px' }}>
               Talk to our empathetic AI assistant 24/7
             </p>
           </div>
@@ -379,63 +390,75 @@ export default function Dashboard() {
             className="glass-card"
             style={{ 
               background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(22, 163, 74, 0.35))', 
-              padding: '28px 24px', 
+              padding: '32px 24px', 
               cursor: 'pointer',
               position: 'relative',
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'space-between',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
               height: '100%',
-              minHeight: '210px',
+              minHeight: '230px',
               borderRadius: '24px',
               boxSizing: 'border-box'
             }}
           >
-            <div>
-              <div style={{ 
-                width: '56px', 
-                height: '56px', 
-                borderRadius: '16px', 
-                background: 'rgba(74, 222, 128, 0.3)', 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
-                fontSize: '32px', 
-                marginBottom: '16px',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                boxShadow: '0 4px 16px rgba(74, 222, 128, 0.3)'
-              }}>
-                📚
-              </div>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: 'var(--text-h, #ffffff)', fontWeight: '700' }}>Resources & Breath</h3>
+            <div style={{ 
+              width: '64px', 
+              height: '64px', 
+              borderRadius: '20px', 
+              background: 'rgba(74, 222, 128, 0.3)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              fontSize: '34px', 
+              marginBottom: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 4px 16px rgba(74, 222, 128, 0.3)'
+            }}>
+              📚
             </div>
-            <p style={{ margin: 0, color: 'var(--text-sub, #bbf7d0)', fontSize: '14px', lineHeight: '1.5', opacity: 0.9 }}>
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '21px', color: 'var(--text-h, #ffffff)', fontWeight: '700' }}>
+              Resources & Breath
+            </h3>
+            <p style={{ margin: 0, color: 'var(--text-sub, #bbf7d0)', fontSize: '14.5px', lineHeight: '1.55', opacity: 0.92, maxWidth: '240px' }}>
               Mental health articles & breathing guide
             </p>
           </div>
 
         </div>
 
-        {/* Glass Daily Reminder Quote Box */}
+        {/* Glass Daily Reminder Quote Box - Centered */}
         <div className="glass-container" style={{ 
-          padding: '28px 32px', 
-          borderLeft: '6px solid #c084fc', 
+          padding: '32px 36px', 
+          borderTop: '4px solid #c084fc', 
+          borderLeft: '1px solid var(--glass-border, rgba(255, 255, 255, 0.18))',
           position: 'relative',
           overflow: 'hidden',
-          borderRadius: '24px'
+          borderRadius: '24px',
+          textAlign: 'center',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxSizing: 'border-box'
         }}>
+          <div style={{ fontSize: '24px', marginBottom: '8px', opacity: 0.85 }}>✨</div>
           <p style={{ 
             color: 'var(--text-sub, #e9d5ff)', 
             fontStyle: 'italic', 
-            fontSize: 'clamp(15px, 2vw, 17.5px)', 
-            lineHeight: '1.6', 
+            fontSize: 'clamp(15.5px, 2vw, 18.5px)', 
+            lineHeight: '1.65', 
             margin: '0 0 12px 0',
-            fontWeight: '500' 
+            fontWeight: '500',
+            maxWidth: '850px' 
           }}>
             "{getDailyReminder()}"
           </p>
-          <p style={{ color: 'var(--text-muted, #94a3b8)', margin: 0, fontSize: '14px', fontWeight: '600', letterSpacing: '0.3px' }}>
+          <p style={{ color: 'var(--text-muted, #94a3b8)', margin: 0, fontSize: '14px', fontWeight: '600', letterSpacing: '0.4px' }}>
             — Daily Reminder — {getFormattedDate()}
           </p>
         </div>
