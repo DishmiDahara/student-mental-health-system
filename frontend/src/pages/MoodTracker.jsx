@@ -4,6 +4,10 @@ import axios from 'axios'
 import * as THREE from 'three'
 import API_URL from '../config'
 import Navbar from '../components/Navbar'
+import MoodGamesSection from '../components/MoodGames/MoodGamesSection'
+import LocalGameModal from '../components/MoodGames/LocalGameModal'
+import { BackButton, FullscreenButton } from '../components/MoodGames/GameControls'
+import { buildGameData, getRecommendedGames, toSavedRecommendation } from '../data/moodGames'
 import { 
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
   Tooltip, Legend, ResponsiveContainer 
@@ -986,57 +990,6 @@ export default function MoodTracker() {
     }
   }, [active3DGame, is3DAudioMuted])
 
-  // --- CRAZYGAMES UNLIMITED ARCADE PORTAL STATES ---
-  const [crazySearchInput, setCrazySearchInput] = useState('')
-  const [selectedCrazyCategory, setSelectedCrazyCategory] = useState('All')
-  const [activeCrazyGameModal, setActiveCrazyGameModal] = useState(null)
-
-  const defaultCrazyGamesList = [
-    { title: 'Pop It Master 3D 🧸', category: 'Antistress', type: 'native-popit', icon: '🧸', desc: 'Native 3D Fidget popping antistress toy' },
-    { title: 'Fluid & Water Sort 🧪', category: 'Fluids', type: 'native-watersort', icon: '🧪', desc: 'Native liquid color sorting puzzle' },
-    { title: 'Zen Coloring Book 🎨', category: 'Coloring', embedUrl: 'https://html5.gamedistribution.com/b28fa5d2024b4fba8c9c0c80d46efad2/', icon: '🎨', desc: 'Mindful 3D color shading' },
-    { title: 'Antistress Toy Box 3D 🎯', category: 'Antistress', embedUrl: 'https://html5.gamedistribution.com/4f728c70757d42cf956b69b8bd591d37/', icon: '🎯', desc: 'Collection of 30+ 3D fidget toys' },
-    { title: 'Slime Simulator 3D 🧪', category: 'Antistress', embedUrl: 'https://html5.gamedistribution.com/5c9d57a912bb4cb8b5321f855fb603f0/', icon: '🧪', desc: 'Tactile slime squeezing soundscape' },
-    { title: 'Bubble Shooter Zen 🫧', category: 'Puzzle', embedUrl: 'https://html5.gamedistribution.com/c98918237937400d9841f39185a9bcbc/', icon: '🫧', desc: 'Classic relaxing bubble popping' },
-    { title: 'Mahjong Solitaire 🀄', category: 'Logic', embedUrl: 'https://html5.gamedistribution.com/978ed5df64be4c1fb3a12ebf9ffb6255/', icon: '🀄', desc: 'Traditional zen tile matching' },
-    { title: 'Jigsaw Nature Puzzles 🧩', category: 'Puzzle', embedUrl: 'https://html5.gamedistribution.com/a42dfc685bfd4c5bb9c1a5b8a531cf6c/', icon: '🧩', desc: 'Beautiful nature landscape puzzles' },
-    { title: 'Magic Piano Tiles 🎹', category: 'Music', embedUrl: 'https://html5.gamedistribution.com/396656715f5d4705a61e793910c0e5a6/', icon: '🎹', desc: 'Play soothing melodies on key taps' }
-  ]
-
-  const getCrazyEmbedUrl = (rawInput) => {
-    if (!rawInput) return 'https://html5.gamedistribution.com/rvvASAiD-1.0/'
-    const str = rawInput.trim()
-    if (str.startsWith('http://') || str.startsWith('https://')) {
-      return str
-    }
-    return `https://html5.gamedistribution.com/rvvASAiD-1.0/`
-  }
-
-  const launchCrazyGame = (gameObj) => {
-    if (gameObj.type === 'native-popit') {
-      setShowPopItModal(true)
-      return
-    }
-    if (gameObj.type === 'native-watersort') {
-      setShowWaterSortModal(true)
-      return
-    }
-    const embedUrl = gameObj.embedUrl || getCrazyEmbedUrl(gameObj.slug || gameObj.url)
-    setActiveCrazyGameModal({
-      title: gameObj.title || 'Relaxing Web Game',
-      embedUrl
-    })
-  }
-
-  const handleCustomCrazySubmit = (e) => {
-    e.preventDefault()
-    if (!crazySearchInput.trim()) return
-    const embedUrl = getCrazyEmbedUrl(crazySearchInput)
-    setActiveCrazyGameModal({
-      title: `Relaxing Game: ${crazySearchInput.trim()}`,
-      embedUrl
-    })
-  }
 
   // --- NATIVE POP-IT FIDGET TOY STATES ---
   const [popItState, setPopItState] = useState(Array(36).fill(false))
@@ -2577,7 +2530,8 @@ export default function MoodTracker() {
         isExamPeriod,
         color: selectedColor,
         whatHelped,
-        recommendations: dynamicRecs
+        // Save the 5 games that were actually recommended on screen for this mood
+        recommendations: getRecommendedGames(selected.value).map(toSavedRecommendation)
       }
 
       await axios.post(`${API_URL}/api/mood`, payload, {
@@ -2669,7 +2623,7 @@ export default function MoodTracker() {
     if (sub === 'bubbles' || sub === 'balloon') {
       setBubbles(Array(12).fill(false))
       setPopCount(0)
-    } else if (sub === 'memorycard' || sub === 'emotions' || sub === 'emotionmatch') {
+    } else if (sub === 'memory' || sub === 'memorycard' || sub === 'emotions' || sub === 'emotionmatch') {
       initMemoryGame(finalConfig)
     } else if (sub === 'garden' || sub === 'gratitudequest' || sub === 'gratitude' || sub === 'pet') {
       setGardenPlants([])
@@ -2797,6 +2751,60 @@ export default function MoodTracker() {
     } else if (sub === 'calmgenerator') {
       setCalmGeneratorDone(false)
     }
+  }
+
+  // --- MOOD-BASED GAMES: unified launcher used by the Recommended / Explore sections ---
+  const [localGame, setLocalGame] = useState(null) // open-source HTML5 games hosted in /public/games
+
+  const handleCatalogLaunch = (game) => {
+    const l = game.launch
+    if (l.type === 'game') {
+      let data = null
+      if (l.needsData) {
+        // Prefer fresh data from the backend recommendation response, else local puzzle data
+        const live = dynamicRecs.find(r => r.subtype === l.subtype && r.data)
+        data = live ? live.data : buildGameData(l.subtype)
+      }
+      launchGame(l.subtype, {
+        key: 'game',
+        title: `${game.title} ${game.icon}`,
+        icon: game.icon,
+        desc: game.desc,
+        subtype: l.subtype,
+        data
+      })
+    } else if (l.type === '3d') {
+      setActive3DGame(l.key)
+    } else if (l.type === 'modal') {
+      if (l.modal === 'merge') setShowMergeModal(true)
+      else if (l.modal === 'diff') setShowDiffModal(true)
+      else if (l.modal === 'mower') setShowMowerModal(true)
+      else if (l.modal === 'popit') setShowPopItModal(true)
+      else if (l.modal === 'watersort') setShowWaterSortModal(true)
+    } else if (l.type === 'local') {
+      setLocalGame(game)
+    }
+  }
+
+  // Closes the standard game modal and stops any ambient audio it started
+  const closeActiveGame = () => {
+    playTickSound()
+    if (playingRain || playingWaves || playingTone || playingWind || playingCampfire) {
+      try { soundNodes.rain?.stop() } catch(e) {}
+      try { soundNodes.wavesSource?.stop() } catch(e) {}
+      try { soundNodes.toneOsc?.stop() } catch(e) {}
+      try { soundNodes.windSource?.stop() } catch(e) {}
+      try { soundNodes.campfireOsc?.stop() } catch(e) {}
+      clearInterval(soundNodes.wavesInterval)
+      clearInterval(soundNodes.windInterval)
+      clearInterval(soundNodes.campfireInterval)
+      setPlayingRain(false)
+      setPlayingWaves(false)
+      setPlayingTone(false)
+      setPlayingWind(false)
+      setPlayingCampfire(false)
+    }
+    setActiveGame(null)
   }
 
   const triggerBeep = (freq, duration, type = 'sine') => {
@@ -4750,191 +4758,9 @@ export default function MoodTracker() {
               </button>
             </div>
 
-            {/* Recommended games column */}
+            {/* Mood-based games: 5 recommended for the selected mood + Explore More Games */}
             <div>
-              <div style={{ background: 'white', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', marginBottom: '24px' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '18px', fontWeight: 'bold' }}>🎯 Recommended for Your Mood</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>{selected ? `Based on your mood score of ${selected.value}/5, we curated these 5 exercises:` : 'Select a mood rating to trigger personalized suggestions.'}</p>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {selected ? (
-                    recsLoading ? (
-                      Array(5).fill(0).map((_, idx) => (
-                        <div 
-                          key={idx}
-                          style={{ 
-                            display: 'flex', 
-                            gap: '14px', 
-                            alignItems: 'center', 
-                            padding: '14px', 
-                            background: '#f8fafc', 
-                            borderRadius: '16px', 
-                            border: '1px solid #e2e8f0',
-                            opacity: 0.6,
-                            animation: 'pulse 1.5s infinite alternate' 
-                          }}
-                        >
-                          <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: '#cbd5e1' }} />
-                          <div style={{ flex: 1 }}>
-                            <div style={{ width: '100px', height: '12px', background: '#cbd5e1', borderRadius: '4px', marginBottom: '6px' }} />
-                            <div style={{ width: '160px', height: '8px', background: '#cbd5e1', borderRadius: '4px' }} />
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      dynamicRecs.map((gameConfig, idx) => {
-                        return (
-                          <div 
-                            key={idx}
-                            onClick={() => launchGame(gameConfig.subtype || gameConfig.key, gameConfig)}
-                            style={{ display: 'flex', gap: '14px', alignItems: 'center', padding: '14px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0', cursor: 'pointer', transition: 'all 0.2s' }}
-                            className="game-card"
-                          >
-                            <div style={{ fontSize: '24px', background: 'white', width: '44px', height: '44px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>{gameConfig.icon}</div>
-                            <div style={{ flex: 1 }}>
-                              <h4 style={{ margin: '0 0 3px 0', color: '#1e293b', fontSize: '13px', fontWeight: 'bold' }}>{gameConfig.title}</h4>
-                              <p style={{ margin: 0, color: '#64748b', fontSize: '11px', lineHeight: '1.3' }}>{gameConfig.desc}</p>
-                            </div>
-                            <span style={{ fontSize: '16px', color: '#4f46e5' }}>▶️</span>
-                          </div>
-                        )
-                      })
-                    )
-                  ) : (
-                    <div style={{ border: '2px dashed #e2e8f0', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontStyle: 'italic', fontSize: '13px', padding: '30px' }}>
-                      Choose your mood rating first
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* 🌌 ADVANCED 3D WEBGL RELAXATION ZONE */}
-              <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)', padding: '24px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.15)', color: 'white', marginBottom: '24px' }}>
-                <h3 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  🌌 Advanced 3D Relaxation Zone 🎮
-                </h3>
-                <p style={{ margin: '0 0 16px 0', fontSize: '12.5px', color: '#94a3b8' }}>
-                  Hardware-accelerated 3D WebGL environments for instant sensory grounding:
-                </p>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                  {[
-                    { key: 'starfield', title: '🌌 Cosmic Starfield', desc: 'Interactive 3D particle universe', icon: '🌌' },
-                    { key: 'water', title: '🌊 Water Ripples', desc: '3D kinetic liquid wave pool', icon: '🌊' },
-                    { key: 'sakura', title: '🌸 Sakura Sanctuary', desc: '3D cherry tree in falling petals', icon: '🌸' },
-                    { key: 'crystal', title: '🔮 Breathing Crystal', desc: '4-7-8 pulsing 3D glass orb', icon: '🔮' },
-                    { key: 'saturn', title: '🪐 Saturn & Moons', desc: '3D planet & orbiting moon rings', icon: '🪐' },
-                    { key: 'autumn', title: '🍃 Autumn Forest', desc: '3D golden leaves drifting in breeze', icon: '🍃' },
-                    { key: 'prism', title: '💎 Prism Kaleidoscope', desc: '3D rainbow light beams', icon: '💎' },
-                    { key: 'warp', title: '🌌 Quantum Warp Tunnel', desc: '3D infinite spiral particle tunnel', icon: '🌌' }
-                  ].map(g => (
-                    <div
-                      key={g.key}
-                      onClick={() => setActive3DGame(g.key)}
-                      style={{
-                        background: 'rgba(255,255,255,0.08)',
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        borderRadius: '14px',
-                        padding: '12px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '4px',
-                        touchAction: 'manipulation'
-                      }}
-                    >
-                      <div style={{ fontSize: '22px' }}>{g.icon}</div>
-                      <div style={{ fontSize: '12.5px', fontWeight: '700', color: 'white' }}>{g.title}</div>
-                      <div style={{ fontSize: '10.5px', color: '#94a3b8' }}>{g.desc}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* ⚡ 100% NATIVE PURE-REACT RELAXING ARCADE */}
-              <div style={{
-                background: 'linear-gradient(135deg, #020617 0%, #1e1b4b 50%, #312e81 100%)',
-                padding: '24px',
-                borderRadius: '24px',
-                border: '1px solid rgba(255,255,255,0.15)',
-                color: 'white',
-                marginBottom: '24px',
-                boxShadow: '0 12px 32px rgba(2, 6, 23, 0.4)'
-              }}>
-                <div style={{ marginBottom: '16px' }}>
-                  <h3 style={{ margin: '0 0 4px 0', fontSize: '17px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    ⚡ Native Built-in Mind Relaxation Games 🎮
-                  </h3>
-                  <p style={{ margin: 0, fontSize: '12.5px', color: '#94a3b8' }}>
-                    100% Native WebGL & Canvas Games built directly inside MindSpace (Zero lag, zero iframe errors):
-                  </p>
-                </div>
-
-                {/* Pre-loaded 100% Native Games Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(135px, 1fr))', gap: '10px' }}>
-                  {[
-                    { id: 'merge', title: 'DesignVille Merge 🏡', desc: 'Merge & decorate dream room', icon: '🏡', action: () => setShowMergeModal(true) },
-                    { id: 'diff', title: 'Spot Differences 🔍', desc: 'Find 5 hidden differences', icon: '🔍', action: () => setShowDiffModal(true) },
-                    { id: 'mower', title: 'Stone Grass Mower 🚜', desc: 'Satisfying lawn grass cutting', icon: '🚜', action: () => setShowMowerModal(true) },
-                    { id: 'popit', title: 'Pop-It 3D Fidget 🧸', desc: 'Interactive popping bubbles', icon: '🧸', action: () => setShowPopItModal(true) },
-                    { id: 'watersort', title: 'Water Sort Liquid 🧪', desc: 'Color liquid sorting puzzle', icon: '🧪', action: () => setShowWaterSortModal(true) },
-                    { id: 'colortap', title: 'Color Tap Paint 🎨', desc: 'Mindful number color painting', icon: '🎨', action: () => setActiveGame('drawing') },
-                    { id: 'solitaire', title: 'Solitaire Story 🃏', desc: 'Classic relaxing solitaire cards', icon: '🃏', action: () => setActiveGame('memory') },
-                    { id: 'starfield', title: '3D Cosmic Space 🌌', desc: 'Interactive 3D particle universe', icon: '🌌', action: () => setActive3DGame('starfield') },
-                    { id: 'water', title: '3D Water Waves 🌊', desc: '3D kinetic liquid wave pool', icon: '🌊', action: () => setActive3DGame('water') },
-                    { id: 'sakura', title: '3D Sakura Sanctuary 🌸', desc: '3D cherry tree in falling petals', icon: '🌸', action: () => setActive3DGame('sakura') },
-                    { id: 'crystal', title: '3D Breathing Orb 🔮', desc: '4-7-8 pulsing 3D glass crystal', icon: '🔮', action: () => setActive3DGame('crystal') },
-                    { id: 'pet', title: 'Virtual Zen Pet 🐱', desc: 'Feed & pet your virtual cat', icon: '🐱', action: () => setActiveGame('pet') }
-                  ].map(gameObj => (
-                    <div
-                      key={gameObj.id}
-                      onClick={gameObj.action}
-                      style={{
-                        background: 'rgba(255,255,255,0.08)',
-                        border: '1px solid rgba(255,255,255,0.15)',
-                        borderRadius: '16px',
-                        padding: '12px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        textAlign: 'center',
-                        touchAction: 'manipulation'
-                      }}
-                    >
-                      <div style={{ fontSize: '28px', marginBottom: '6px' }}>{gameObj.icon}</div>
-                      <div style={{ fontSize: '12px', fontWeight: '700', color: 'white', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {gameObj.title}
-                      </div>
-                      <div style={{ fontSize: '10.5px', color: '#94a3b8', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
-                        {gameObj.desc}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* COMMON GAMES LIST */}
-              <div style={{ background: 'white', padding: '24px', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '16px', fontWeight: 'bold' }}>🌐 Common Relaxation Zone</h3>
-                <p style={{ color: '#64748b', fontSize: '12.5px', marginBottom: '20px' }}>Take a break and play any of our 10 cognitive and breathing games:</p>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  {commonGamesList.slice(0, 6).map((g, idx) => (
-                    <div 
-                      key={idx}
-                      onClick={() => launchGame(g.key, g)}
-                      style={{ background: '#f8fafc', padding: '14px', borderRadius: '14px', border: '1px solid #e2e8f0', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'all 0.2s' }}
-                      className="game-card"
-                    >
-                      <div style={{ fontSize: '24px' }}>{g.icon}</div>
-                      <h4 style={{ margin: 0, color: '#1e293b', fontSize: '12.5px', fontWeight: 'bold' }}>{g.title.split(' ')[0]}</h4>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <MoodGamesSection selectedMood={selected} onPlay={handleCatalogLaunch} />
             </div>
           </div>
         )}
@@ -5371,32 +5197,23 @@ export default function MoodTracker() {
         )}
       </div>
 
+      {/* Open-source HTML5 games hosted locally (Back + Fullscreen built in) */}
+      {localGame && <LocalGameModal game={localGame} onClose={() => setLocalGame(null)} />}
+
       {/* --- STANDARDIZED GAME DISPLAY MODAL --- */}
       {activeGame && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(5px)', zIndex: 5000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{ background: 'white', borderRadius: '24px', maxWidth: '580px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '32px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', position: 'relative', border: '1px solid #e2e8f0' }}>
             
+            {/* Game window controls: Back + Fullscreen (every game) */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '14px', paddingRight: '44px' }}>
+              <BackButton onClick={closeActiveGame} />
+              <FullscreenButton />
+            </div>
+
             <button 
-              onClick={() => {
-                playTickSound()
-                // Cleanup Web Audio oscillators if active
-                if (playingRain || playingWaves || playingTone || playingWind || playingCampfire) {
-                  try { soundNodes.rain?.stop() } catch(e) {}
-                  try { soundNodes.wavesSource?.stop() } catch(e) {}
-                  try { soundNodes.toneOsc?.stop() } catch(e) {}
-                  try { soundNodes.windSource?.stop() } catch(e) {}
-                  try { soundNodes.campfireOsc?.stop() } catch(e) {}
-                  clearInterval(soundNodes.wavesInterval)
-                  clearInterval(soundNodes.windInterval)
-                  clearInterval(soundNodes.campfireInterval)
-                  setPlayingRain(false)
-                  setPlayingWaves(false)
-                  setPlayingTone(false)
-                  setPlayingWind(false)
-                  setPlayingCampfire(false)
-                }
-                setActiveGame(null)
-              }} 
+              onClick={closeActiveGame} 
+              aria-label="Close game"
               style={{ position: 'absolute', top: '20px', right: '20px', border: 'none', background: '#f1f5f9', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               ✕
@@ -9041,8 +8858,9 @@ export default function MoodTracker() {
             position: 'relative'
           }}>
             {/* Header Bar */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)', flexWrap: 'wrap', gap: '8px' }}>
               <h3 style={{ margin: 0, color: 'white', fontSize: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <BackButton onClick={() => setActive3DGame(null)} variant="dark" />
                 {active3DGame === 'starfield' && '🌌 3D Cosmic Starfield & Nebula Weaver'}
                 {active3DGame === 'water' && '🌊 3D Kinetic Water Ripples & Lotus'}
                 {active3DGame === 'sakura' && '🌸 3D Sakura Blossom Sanctuary'}
@@ -9070,6 +8888,7 @@ export default function MoodTracker() {
                 >
                   {is3DAudioMuted ? '🔇 Audio Off' : '🔊 3D Audio On'}
                 </button>
+                <FullscreenButton variant="dark" />
                 <button
                   type="button"
                   onClick={() => setActive3DGame(null)}
@@ -9168,60 +8987,6 @@ export default function MoodTracker() {
         </div>
       )}
 
-      {/* CRAZYGAMES FULLSCREEN EMBED MODAL */}
-      {activeCrazyGameModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(2, 6, 23, 0.92)',
-          backdropFilter: 'blur(10px)',
-          zIndex: 999999,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '16px'
-        }}>
-          <div style={{
-            width: '100%',
-            maxWidth: '850px',
-            height: '85vh',
-            background: '#0f172a',
-            borderRadius: '24px',
-            border: '1px solid rgba(255,255,255,0.15)',
-            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7)',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            {/* Header Bar */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-              <h3 style={{ margin: 0, color: 'white', fontSize: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                🎮 {activeCrazyGameModal.title}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setActiveCrazyGameModal(null)}
-                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }}
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Embedded Iframe Player */}
-            <iframe
-              src={activeCrazyGameModal.embedUrl}
-              title={activeCrazyGameModal.title}
-              style={{ flex: 1, width: '100%', border: 'none', background: '#000' }}
-              allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope"
-            />
-          </div>
-        </div>
-      )}
-
       {/* NATIVE POP-IT 3D FIDGET MODAL */}
       {showPopItModal && (
         <div style={{
@@ -9236,9 +9001,9 @@ export default function MoodTracker() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                🧸 Native Pop-It 3D Fidget Toy
+                <BackButton onClick={() => setShowPopItModal(false)} variant="dark" /> 🧸 Native Pop-It 3D Fidget Toy
               </h3>
-              <button onClick={() => setShowPopItModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><FullscreenButton variant="dark" /><button onClick={() => setShowPopItModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button></span>
             </div>
 
             {/* 6x6 Rainbow Pop-It Board */}
@@ -9294,9 +9059,9 @@ export default function MoodTracker() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                🧪 Water Sort Liquid Puzzle
+                <BackButton onClick={() => setShowWaterSortModal(false)} variant="dark" /> 🧪 Water Sort Liquid Puzzle
               </h3>
-              <button onClick={() => setShowWaterSortModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><FullscreenButton variant="dark" /><button onClick={() => setShowWaterSortModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button></span>
             </div>
 
             <p style={{ fontSize: '12.5px', color: '#94a3b8', margin: '0 0 20px 0' }}>
@@ -9366,8 +9131,8 @@ export default function MoodTracker() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{ background: 'linear-gradient(135deg, #1e1b4b, #312e81)', borderRadius: '24px', maxWidth: '520px', width: '100%', padding: '28px', border: '1px solid rgba(255,255,255,0.2)', color: 'white', textAlign: 'center' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>🏡 DesignVille: Merge & Decorate</h3>
-              <button onClick={() => setShowMergeModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', textAlign: 'left' }}><BackButton onClick={() => setShowMergeModal(false)} variant="dark" /> 🏡 DesignVille: Merge & Decorate</h3>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><FullscreenButton variant="dark" /><button onClick={() => setShowMergeModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button></span>
             </div>
             <p style={{ fontSize: '12.5px', color: '#94a3b8', marginBottom: '20px' }}>Tap matching items of the same level to merge and upgrade furniture:</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', background: 'rgba(255,255,255,0.08)', padding: '16px', borderRadius: '20px', marginBottom: '20px' }}>
@@ -9398,8 +9163,8 @@ export default function MoodTracker() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{ background: 'linear-gradient(135deg, #020617, #1e1b4b)', borderRadius: '24px', maxWidth: '540px', width: '100%', padding: '28px', border: '1px solid rgba(255,255,255,0.2)', color: 'white', textAlign: 'center' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>🔍 Spot the Differences (Found {foundDiffs.length}/4)</h3>
-              <button onClick={() => setShowDiffModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', textAlign: 'left' }}><BackButton onClick={() => setShowDiffModal(false)} variant="dark" /> 🔍 Spot the Differences (Found {foundDiffs.length}/4)</h3>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><FullscreenButton variant="dark" /><button onClick={() => setShowDiffModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button></span>
             </div>
             <p style={{ fontSize: '12.5px', color: '#94a3b8', marginBottom: '20px' }}>Tap hidden items on the picture to find all differences:</p>
             <div style={{ position: 'relative', width: '100%', height: '220px', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', borderRadius: '20px', overflow: 'hidden', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -9439,8 +9204,8 @@ export default function MoodTracker() {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
           <div style={{ background: 'linear-gradient(135deg, #064e3b, #022c22)', borderRadius: '24px', maxWidth: '520px', width: '100%', padding: '28px', border: '1px solid rgba(255,255,255,0.2)', color: 'white', textAlign: 'center' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>🚜 Stone Grass Lawn Mower</h3>
-              <button onClick={() => setShowMowerModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', textAlign: 'left' }}><BackButton onClick={() => setShowMowerModal(false)} variant="dark" /> 🚜 Stone Grass Lawn Mower</h3>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><FullscreenButton variant="dark" /><button onClick={() => setShowMowerModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button></span>
             </div>
             <p style={{ fontSize: '12.5px', color: '#6ee7b7', marginBottom: '20px' }}>Tap or drag over grass tiles to cut lawn grass:</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '16px', borderRadius: '20px', marginBottom: '20px' }}>
