@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Lines to Fill</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 16px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #38bdf8; }
+  .grid-box {
+    width: 340px; height: 340px; background: #1e293b; border-radius: 20px;
+    border: 2px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: repeat(4, 1fr);
+    padding: 12px; gap: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  }
+  .cell {
+    background: #334155; border-radius: 12px; display: flex; align-items: center;
+    justify-content: center; font-size: 18px; font-weight: 800; cursor: pointer;
+    transition: background .2s, transform .1s;
+  }
+  .cell:hover { filter: brightness(1.2); }
+  .cell.source { background: #38bdf8; color: #0f172a; }
+  .cell.filled { background: #0284c7; }
+  .btn-bar { display: flex; gap: 10px; margin-top: 14px; }
+  .btn {
+    background: #334155; border: none; color: white; padding: 8px 16px; border-radius: 12px;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+  .btn:hover { background: #475569; }
+  .tip { margin-top: 14px; font-size: 13.5px; color: #94a3b8; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>〰️</span> Lines to Fill</div>
+  <div style="font-size:13px; color:#38bdf8; font-weight:700;">Clean Grid</div>
+</div>
+<div class="grid-box" id="grid"></div>
+<div class="btn-bar">
+  <button class="btn" onclick="resetBoard()">🔄 Reset Grid</button>
+</div>
+<div class="tip" id="tip">Tap adjacent squares to draw lines and fill every cell of the board</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function snapTone(f = 420) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.18, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+  }
+
+  let filledCells = new Set();
+  const sources = [{ r: 0, c: 0 }, { r: 3, c: 3 }];
+  let lastPos = { r: 0, c: 0 };
+
+  function render() {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        const el = document.createElement('div');
+        el.className = 'cell';
+        const key = `${r},${c}`;
+        if (sources.some(s => s.r === r && s.c === c)) {
+          el.classList.add('source');
+          el.textContent = '●';
+        } else if (filledCells.has(key)) {
+          el.classList.add('filled');
+        }
+        el.onclick = () => fillCell(r, c);
+        grid.appendChild(el);
+      }
+    }
+  }
+
+  function fillCell(r, c) {
+    const key = `${r},${c}`;
+    if (!filledCells.has(key)) {
+      filledCells.add(key);
+      snapTone(380 + (filledCells.size * 25));
+      render();
+      if (filledCells.size >= 14) {
+        document.getElementById('tip').innerHTML = '<span style="color:#38bdf8; font-weight:800; font-size:15px;">🎉 Pure flow! The entire grid is filled!</span>';
+      }
+    }
+  }
+
+  function resetBoard() {
+    filledCells.clear();
+    document.getElementById('tip').textContent = 'Tap adjacent squares to draw lines and fill every cell of the board';
+    render();
+  }
+
+  render();
+</script>
+</body>
+</html>

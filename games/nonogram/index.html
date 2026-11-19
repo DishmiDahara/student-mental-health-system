@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Nonogram Pixel Art</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 400px; margin-bottom: 16px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #a78bfa; }
+  .grid-box {
+    display: grid; grid-template-columns: repeat(5, 1fr); width: 280px; height: 280px;
+    background: #1e293b; border-radius: 20px; border: 2px solid #334155; padding: 12px; gap: 6px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  }
+  .cell {
+    background: #334155; border-radius: 8px; cursor: pointer; transition: background .15s;
+    display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800;
+  }
+  .cell.filled { background: #ec4899; }
+  .tip { margin-top: 16px; font-size: 13.5px; color: #cbd5e1; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🔲</span> Nonogram Heart</div>
+  <div style="font-size:13px; color:#a78bfa; font-weight:700;">Pixel Reveal</div>
+</div>
+<div class="grid-box" id="grid"></div>
+<div class="tip" id="tip">Tap grid cells to fill them in and reveal the hidden pixel picture!</div>
+
+<script>
+  // Target: Pixel Heart on 5x5
+  const TARGET = [
+    [0, 1, 0, 1, 0],
+    [1, 1, 1, 1, 1],
+    [1, 1, 1, 1, 1],
+    [0, 1, 1, 1, 0],
+    [0, 0, 1, 0, 0]
+  ];
+
+  let board = Array(5).fill(0).map(() => Array(5).fill(0));
+
+  function render() {
+    const box = document.getElementById('grid');
+    box.innerHTML = '';
+    for (let r = 0; r < 5; r++) {
+      for (let c = 0; c < 5; c++) {
+        const el = document.createElement('div');
+        el.className = 'cell' + (board[r][c] === 1 ? ' filled' : '');
+        el.onclick = () => toggleCell(r, c);
+        box.appendChild(el);
+      }
+    }
+  }
+
+  function toggleCell(r, c) {
+    board[r][c] = board[r][c] === 1 ? 0 : 1;
+    render();
+    checkWin();
+  }
+
+  function checkWin() {
+    let win = true;
+    for (let r = 0; r < 5; r++) {
+      for (let c = 0; c < 5; c++) {
+        if (board[r][c] !== TARGET[r][c]) win = false;
+      }
+    }
+    if (win) {
+      document.getElementById('tip').innerHTML = '<span style="color:#ec4899; font-weight:800; font-size:15px;">💖 Picture revealed! A lovely glowing pixel heart!</span>';
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>

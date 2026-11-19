@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Mini Train</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 12px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #38bdf8; }
+  .canvas-box {
+    position: relative; width: 380px; height: 360px; background: #1e293b;
+    border-radius: 24px; border: 2px solid #334155; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  }
+  canvas { width: 100%; height: 100%; border-radius: 22px; cursor: pointer; touch-action: none; }
+  .btn-bar { display: flex; gap: 10px; margin-top: 14px; }
+  .btn {
+    background: #0284c7; border: none; color: white; padding: 10px 20px;
+    border-radius: 14px; font-size: 14px; font-weight: 800; cursor: pointer;
+  }
+  .btn:hover { background: #38bdf8; }
+  .tip { margin-top: 10px; font-size: 13px; color: #94a3b8; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🚂</span> Mini Train Builder</div>
+  <div style="font-size:13px; color:#38bdf8; font-weight:700;">Valley Crossing</div>
+</div>
+<div class="canvas-box">
+  <canvas id="cvs" width="380" height="360"></canvas>
+</div>
+<div class="btn-bar">
+  <button class="btn" onclick="startTrain()">🟢 Start Train</button>
+  <button class="btn" style="background:#475569;" onclick="resetPuzzle()">🔄 Reset</button>
+</div>
+<div class="tip" id="tip">Drag the wooden bridge block into the valley gap to pave safe tracks!</div>
+
+<script>
+  const cvs = document.getElementById('cvs');
+  const ctx = cvs.getContext('2d');
+
+  let train = { x: 30, y: 190, running: false };
+  let block = { x: 190, y: 280, w: 100, h: 20, dragging: false };
+
+  function render() {
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+    // Cliffs / Left & Right tracks
+    ctx.fillStyle = '#64748b';
+    ctx.fillRect(0, 220, 140, 140);
+    ctx.fillRect(240, 220, 140, 140);
+
+    // Track rails
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(0, 218); ctx.lineTo(140, 218);
+    ctx.moveTo(240, 218); ctx.lineTo(380, 218);
+    ctx.stroke();
+
+    // Draggable bridge block
+    ctx.fillStyle = '#d97706';
+    ctx.fillRect(block.x - block.w/2, block.y - block.h/2, block.w, block.h);
+
+    // Train
+    ctx.font = '36px sans-serif';
+    ctx.fillText('🚂', train.x, train.y + 20);
+
+    if (train.running) {
+      train.x += 2;
+      // Check if bridging gap
+      if (train.x > 120 && train.x < 240) {
+        if (Math.abs(block.y - 220) > 15 || Math.abs(block.x - 190) > 20) {
+          train.y += 4; // fall in canyon
+          train.running = false;
+          document.getElementById('tip').textContent = 'Oops! Place the block smoothly in the canyon gap.';
+        }
+      }
+      if (train.x > 320) {
+        train.running = false;
+        document.getElementById('tip').innerHTML = '<span style="color:#38bdf8; font-weight:800; font-size:15px;">🎉 Toot toot! Train crossed safely!</span>';
+      }
+    }
+
+    requestAnimationFrame(render);
+  }
+
+  cvs.onpointerdown = e => {
+    const r = cvs.getBoundingClientRect();
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    if (Math.hypot(x - block.x, y - block.y) < 50) block.dragging = true;
+  };
+
+  cvs.onpointermove = e => {
+    if (block.dragging) {
+      const r = cvs.getBoundingClientRect();
+      block.x = e.clientX - r.left;
+      block.y = e.clientY - r.top;
+    }
+  };
+
+  window.onpointerup = () => block.dragging = false;
+
+  function startTrain() { train.running = true; }
+  function resetPuzzle() { train.x = 30; train.y = 190; train.running = false; block.x = 190; block.y = 280; }
+
+  render();
+</script>
+</body>
+</html>

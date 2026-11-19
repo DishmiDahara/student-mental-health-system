@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>2048 Zen Edition</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 380px; margin-bottom: 14px; }
+  .title { font-size: 24px; font-weight: 800; color: #f59e0b; }
+  .score-badge {
+    background: #1e293b; border: 1px solid rgba(255,255,255,0.1); padding: 6px 14px;
+    border-radius: 12px; font-size: 13px; font-weight: 800; color: #f8fafc;
+  }
+  .grid-box {
+    width: 340px; height: 340px; background: #1e293b; border-radius: 20px;
+    border: 2px solid #334155; display: grid; grid-template-columns: repeat(4, 1fr);
+    padding: 12px; gap: 8px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  }
+  .tile {
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 900; background: #334155; color: #f8fafc;
+    transition: transform 0.15s ease, background 0.15s ease;
+  }
+  .t-2 { background: #e0f2fe; color: #0369a1; }
+  .t-4 { background: #bae6fd; color: #0284c7; }
+  .t-8 { background: #fed7aa; color: #c2410c; }
+  .t-16 { background: #fdba74; color: #9a3412; }
+  .t-32 { background: #fb923c; color: #ffffff; }
+  .t-64 { background: #f97316; color: #ffffff; }
+  .t-128 { background: #fde047; color: #854d0e; }
+  .t-256 { background: #facc15; color: #713f12; }
+  .t-512 { background: #4ade80; color: #14532d; }
+  .t-1024 { background: #22c55e; color: #ffffff; }
+  .t-2048 { background: #38bdf8; color: #0f172a; box-shadow: 0 0 20px #38bdf8; }
+  .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 180px; margin-top: 14px; }
+  .d-btn {
+    background: #334155; border: 1px solid rgba(255,255,255,0.1); color: white;
+    padding: 10px; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer;
+  }
+  .d-btn:active { background: #475569; }
+  .tip { margin-top: 12px; font-size: 13px; color: #94a3b8; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title">2048 Zen</div>
+  <div class="score-badge" id="score">Score: 0</div>
+</div>
+<div class="grid-box" id="grid"></div>
+<div class="controls">
+  <div></div>
+  <button class="d-btn" onclick="move('up')">▲</button>
+  <div></div>
+  <button class="d-btn" onclick="move('left')">◀</button>
+  <button class="d-btn" onclick="move('down')">▼</button>
+  <button class="d-btn" onclick="move('right')">▶</button>
+</div>
+<div class="tip" id="tip">Use arrow keys, buttons or swipe to slide & merge matching numbers</div>
+
+<script>
+  let grid = Array(4).fill(0).map(() => Array(4).fill(0));
+  let score = 0;
+
+  function spawn() {
+    let empty = [];
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        if (grid[r][c] === 0) empty.push({ r, c });
+      }
+    }
+    if (empty.length > 0) {
+      const { r, c } = empty[Math.floor(Math.random() * empty.length)];
+      grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+    }
+  }
+
+  function render() {
+    const box = document.getElementById('grid');
+    box.innerHTML = '';
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        const v = grid[r][c];
+        const el = document.createElement('div');
+        el.className = 'tile' + (v > 0 ? ` t-${v}` : '');
+        el.textContent = v > 0 ? v : '';
+        box.appendChild(el);
+      }
+    }
+    document.getElementById('score').textContent = `Score: ${score}`;
+  }
+
+  function slide(row) {
+    let arr = row.filter(x => x);
+    for (let i = 0; i < arr.length - 1; i++) {
+      if (arr[i] === arr[i + 1]) {
+        arr[i] *= 2;
+        score += arr[i];
+        arr.splice(i + 1, 1);
+      }
+    }
+    while (arr.length < 4) arr.push(0);
+    return arr;
+  }
+
+  function move(dir) {
+    let prev = JSON.stringify(grid);
+    if (dir === 'left') {
+      for (let r = 0; r < 4; r++) grid[r] = slide(grid[r]);
+    } else if (dir === 'right') {
+      for (let r = 0; r < 4; r++) grid[r] = slide(grid[r].reverse()).reverse();
+    } else if (dir === 'up') {
+      for (let c = 0; c < 4; c++) {
+        let col = [grid[0][c], grid[1][c], grid[2][c], grid[3][c]];
+        col = slide(col);
+        for (let r = 0; r < 4; r++) grid[r][c] = col[r];
+      }
+    } else if (dir === 'down') {
+      for (let c = 0; c < 4; c++) {
+        let col = [grid[3][c], grid[2][c], grid[1][c], grid[0][c]];
+        col = slide(col);
+        for (let r = 0; r < 4; r++) grid[3 - r][c] = col[r];
+      }
+    }
+    if (prev !== JSON.stringify(grid)) {
+      spawn();
+      render();
+    }
+  }
+
+  window.onkeydown = e => {
+    if (e.key === 'ArrowUp' || e.key === 'w') move('up');
+    if (e.key === 'ArrowDown' || e.key === 's') move('down');
+    if (e.key === 'ArrowLeft' || e.key === 'a') move('left');
+    if (e.key === 'ArrowRight' || e.key === 'd') move('right');
+  };
+
+  spawn(); spawn(); render();
+</script>
+</body>
+</html>

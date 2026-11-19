@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Unpuzzle</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #1e1b4b; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 16px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #a5b4fc; }
+  .grid-box {
+    width: 340px; height: 340px; background: rgba(0,0,0,0.3); border-radius: 20px;
+    border: 2px solid rgba(255,255,255,0.1); display: grid; grid-template-columns: repeat(4, 1fr);
+    padding: 14px; gap: 10px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  }
+  .piece {
+    background: #6366f1; border-radius: 12px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; font-size: 20px; cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+  }
+  .piece:hover { filter: brightness(1.15); transform: scale(1.04); }
+  .tip { margin-top: 16px; font-size: 13.5px; color: #cbd5e1; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🧩</span> Unpuzzle</div>
+  <div style="font-size:13px; color:#a5b4fc; font-weight:800;" id="countText">16 Pieces</div>
+</div>
+<div class="grid-box" id="grid"></div>
+<div class="tip" id="tip">Tap a puzzle piece pointing towards an open boundary to slide it away!</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function slideChime(f = 480) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.18, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+  }
+
+  // Directions: 'U' (Up), 'D' (Down), 'L' (Left), 'R' (Right)
+  const DIR_MAP = {
+    'U': { text: '▲', dx: 0, dy: -1 },
+    'D': { text: '▼', dx: 0, dy: 1 },
+    'L': { text: '◀', dx: -1, dy: 0 },
+    'R': { text: '▶', dx: 1, dy: 0 }
+  };
+
+  let board = [
+    ['U', 'U', 'U', 'U'],
+    ['L', 'R', 'D', 'R'],
+    ['L', 'U', 'L', 'R'],
+    ['D', 'D', 'D', 'D']
+  ];
+
+  let remaining = 16;
+  const grid = document.getElementById('grid');
+
+  function render() {
+    grid.innerHTML = '';
+    for (let r = 0; r < 4; r++) {
+      for (let c = 0; c < 4; c++) {
+        const val = board[r][c];
+        const el = document.createElement('div');
+        if (val) {
+          el.className = 'piece';
+          el.innerHTML = DIR_MAP[val].text;
+          el.onclick = () => tryRemove(r, c);
+        } else {
+          el.style.visibility = 'hidden';
+        }
+        grid.appendChild(el);
+      }
+    }
+  }
+
+  function tryRemove(r, c) {
+    const dir = board[r][c];
+    const { dx, dy } = DIR_MAP[dir];
+    let curR = r + dy;
+    let curC = c + dx;
+    let pathClear = true;
+
+    while (curR >= 0 && curR < 4 && curC >= 0 && curC < 4) {
+      if (board[curR][curC] !== null) {
+        pathClear = false;
+        break;
+      }
+      curR += dy;
+      curC += dx;
+    }
+
+    if (pathClear) {
+      board[r][c] = null;
+      remaining--;
+      slideChime(350 + (16 - remaining) * 20);
+      document.getElementById('countText').textContent = `${remaining} Pieces`;
+      render();
+      if (remaining === 0) {
+        document.getElementById('tip').innerHTML = '<span style="color:#a5b4fc; font-weight:800; font-size:15px;">✨ Disassembly complete! Untangled and free.</span>';
+      }
+    } else {
+      slideChime(220); // blocked thump
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>

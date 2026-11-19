@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Blue - Bart Bonte Style</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #082f49; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden; transition: background 0.6s ease;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 16px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #38bdf8; }
+  .game-box {
+    width: 360px; height: 380px; background: #0c4a6e; border-radius: 24px;
+    border: 2px solid #0284c7; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .cloud-btn { font-size: 64px; cursor: pointer; transition: transform .15s; }
+  .cloud-btn:active { transform: scale(1.15); }
+  .water-fill {
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 0%;
+    background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
+    transition: height 0.3s ease;
+  }
+  .tip { margin-top: 16px; font-size: 14px; color: #bae6fd; font-weight: 700; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🔵</span> Blue</div>
+  <div style="font-size:13px; color:#38bdf8; font-weight:800;" id="lvlText">Level 1 of 2</div>
+</div>
+<div class="game-box" id="box">
+  <div class="water-fill" id="water"></div>
+  <div class="cloud-btn" id="cloud" onclick="clickCloud()">🌧️</div>
+</div>
+<div class="tip" id="tip">Objective: Make the screen BLUE!</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function bubbleChime(f = 440) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+  }
+
+  let fillLevel = 0;
+  function clickCloud() {
+    fillLevel += 20;
+    bubbleChime(320 + fillLevel * 4);
+    document.getElementById('water').style.height = fillLevel + '%';
+    if (fillLevel >= 100) {
+      document.body.style.background = '#0284c7';
+      document.getElementById('cloud').textContent = '🌊';
+      document.getElementById('tip').innerHTML = '<span style="color:#ffffff; font-weight:800; font-size:16px;">🎉 Pure tranquil BLUE! Complete calm achieved.</span>';
+    }
+  }
+</script>
+</body>
+</html>

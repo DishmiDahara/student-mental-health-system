@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Factory Balls Forever</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 12px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #f59e0b; }
+  .work-area {
+    position: relative; width: 360px; height: 380px; background: #1e293b;
+    border-radius: 24px; border: 2px solid #334155; display: flex; flex-direction: column;
+    align-items: center; justify-content: space-between; padding: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  }
+  .target-box {
+    display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.3);
+    padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: #cbd5e1;
+  }
+  .target-ball {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(180deg, #3b82f6 50%, #eab308 50%);
+    border: 2px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+  .pedestal {
+    width: 130px; height: 130px; border-radius: 50%; position: relative;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.4); border: 4px solid rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .mask-overlay {
+    position: absolute; width: 100%; height: 50%; bottom: 0; background: #334155;
+    border-radius: 0 0 100px 100px; display: none;
+  }
+  .hat-overlay { position: absolute; top: -24px; font-size: 40px; display: none; }
+  .toolbox { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; }
+  .tool-btn {
+    background: #334155; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+    padding: 10px 4px; color: white; font-size: 11.5px; font-weight: 800; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 4px; transition: transform .1s;
+  }
+  .tool-btn:active { transform: scale(0.95); }
+  .tip { margin-top: 12px; font-size: 13.5px; color: #94a3b8; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🎨</span> Factory Balls</div>
+  <div class="target-box">
+    <span>Target:</span>
+    <div class="target-ball"></div>
+  </div>
+</div>
+<div class="work-area">
+  <div style="font-size:12.5px; color:#94a3b8; font-weight:600;">Match the designer ball design:</div>
+  <div class="pedestal" id="ball" style="background: #ffffff;">
+    <div class="mask-overlay" id="mask"></div>
+    <div class="hat-overlay" id="hat">🎩</div>
+  </div>
+  <div class="toolbox">
+    <button class="tool-btn" onclick="applyPaint('#eab308')">
+      <span style="font-size:22px;">🟡</span>
+      <span>Yellow</span>
+    </button>
+    <button class="tool-btn" onclick="applyPaint('#3b82f6')">
+      <span style="font-size:22px;">🔵</span>
+      <span>Blue</span>
+    </button>
+    <button class="tool-btn" onclick="toggleMask()">
+      <span style="font-size:22px;">🛡️</span>
+      <span id="maskBtnText">Belt On</span>
+    </button>
+    <button class="tool-btn" onclick="resetBall()">
+      <span style="font-size:22px;">🔄</span>
+      <span>Reset</span>
+    </button>
+  </div>
+</div>
+<div class="tip" id="tip">Use paint and shields in the right sequence to craft the target ball!</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function squirtSound() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(350, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(550, audioCtx.currentTime + 0.15);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+  }
+
+  let topColor = '#ffffff';
+  let bottomColor = '#ffffff';
+  let hasMask = false;
+
+  function updateBallVisual() {
+    const ball = document.getElementById('ball');
+    if (topColor === bottomColor) {
+      ball.style.background = topColor;
+    } else {
+      ball.style.background = `linear-gradient(180deg, ${topColor} 50%, ${bottomColor} 50%)`;
+    }
+    checkWin();
+  }
+
+  function applyPaint(color) {
+    squirtSound();
+    if (hasMask) {
+      topColor = color; // only top half gets painted
+    } else {
+      topColor = color;
+      bottomColor = color;
+    }
+    updateBallVisual();
+  }
+
+  function toggleMask() {
+    hasMask = !hasMask;
+    squirtSound();
+    document.getElementById('mask').style.display = hasMask ? 'block' : 'none';
+    document.getElementById('maskBtnText').textContent = hasMask ? 'Belt Off' : 'Belt On';
+  }
+
+  function resetBall() {
+    topColor = '#ffffff';
+    bottomColor = '#ffffff';
+    hasMask = false;
+    document.getElementById('mask').style.display = 'none';
+    document.getElementById('maskBtnText').textContent = 'Belt On';
+    document.getElementById('tip').textContent = 'Use paint and shields in the right sequence to craft the target ball!';
+    updateBallVisual();
+  }
+
+  function checkWin() {
+    if (!hasMask && topColor === '#3b82f6' && bottomColor === '#eab308') {
+      document.getElementById('tip').innerHTML = '<span style="color:#f59e0b; font-weight:800; font-size:15px;">🎉 Brilliant craftsmanship! Ball matches target perfectly!</span>';
+    }
+  }
+</script>
+</body>
+</html>

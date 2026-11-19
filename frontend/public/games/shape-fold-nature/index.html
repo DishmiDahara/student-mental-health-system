@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Shape Fold Nature</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #064e3b; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 12px; }
+  .title { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #a7f3d0; }
+  .canvas-box {
+    position: relative; width: 380px; height: 380px; background: #022c22;
+    border-radius: 24px; border: 2px solid #059669; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+  }
+  canvas { width: 100%; height: 100%; border-radius: 22px; cursor: pointer; touch-action: none; }
+  .controls { display: flex; gap: 10px; margin-top: 14px; }
+  .btn {
+    background: #059669; border: none; color: white; padding: 8px 16px; border-radius: 12px;
+    font-size: 13px; font-weight: 700; cursor: pointer; transition: background .2s;
+  }
+  .btn:hover { background: #10b981; }
+  .tip { margin-top: 10px; font-size: 13px; color: #6ee7b7; text-align: center; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🌿</span> Shape Fold Nature</div>
+  <div style="font-size:13px; color:#6ee7b7; font-weight:700;" id="lvlText">Level 1: Monstera Leaf</div>
+</div>
+<div class="canvas-box">
+  <canvas id="cvs" width="380" height="380"></canvas>
+</div>
+<div class="controls">
+  <button class="btn" onclick="prevLevel()">◀ Previous</button>
+  <button class="btn" onclick="resetLevel()">🔄 Reset</button>
+  <button class="btn" onclick="nextLevel()">Next ▶</button>
+</div>
+<div class="tip" id="status">Drag connected leaf segments to fold them into the silhouette</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function chime(f = 520) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+  }
+
+  const cvs = document.getElementById('cvs');
+  const ctx = cvs.getContext('2d');
+
+  let curLvl = 0;
+  const levels = [
+    {
+      name: "Monstera Leaf",
+      parts: [
+        { angle: -45, target: 0, length: 110, color: '#34d399', pivot: { x: 190, y: 260 } },
+        { angle: 60, target: 0, length: 90, color: '#10b981', pivot: { x: 190, y: 190 } },
+        { angle: -80, target: 0, length: 80, color: '#059669', pivot: { x: 190, y: 120 } }
+      ]
+    },
+    {
+      name: "Lotus Flower",
+      parts: [
+        { angle: -50, target: 0, length: 100, color: '#f472b6', pivot: { x: 190, y: 240 } },
+        { angle: 50, target: 0, length: 100, color: '#ec4899', pivot: { x: 190, y: 240 } },
+        { angle: -90, target: 0, length: 70, color: '#fb7185', pivot: { x: 190, y: 180 } }
+      ]
+    }
+  ];
+
+  let parts = JSON.parse(JSON.stringify(levels[0].parts));
+  let draggingIdx = -1;
+
+  function render() {
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+    // Draw target silhouette outline
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 4;
+    ctx.setLineDash([8, 6]);
+    parts.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.pivot.x, p.pivot.y - p.length / 2, p.length / 3, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    // Draw folded parts
+    let allSolved = true;
+    parts.forEach((p, i) => {
+      ctx.save();
+      ctx.translate(p.pivot.x, p.pivot.y);
+      ctx.rotate((p.angle * Math.PI) / 180);
+
+      // Segment body
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.ellipse(0, -p.length / 2, p.length / 3.2, p.length / 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Pivot brass pin
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath();
+      ctx.arc(0, 0, 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+
+      if (Math.abs(p.angle) > 6) allSolved = false;
+    });
+
+    if (allSolved) {
+      document.getElementById('status').textContent = '✨ Beautiful fold! Silhouette completed.';
+    }
+  }
+
+  function getMouseAngle(x, y, p) {
+    const dx = x - p.pivot.x;
+    const dy = y - p.pivot.y;
+    return Math.atan2(dx, -dy) * (180 / Math.PI);
+  }
+
+  cvs.onpointerdown = e => {
+    const r = cvs.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    parts.forEach((p, i) => {
+      const d = Math.hypot(x - p.pivot.x, y - p.pivot.y);
+      if (d < 70) draggingIdx = i;
+    });
+  };
+
+  cvs.onpointermove = e => {
+    if (draggingIdx >= 0) {
+      const r = cvs.getBoundingClientRect();
+      const x = e.clientX - r.left;
+      const y = e.clientY - r.top;
+      const ang = getMouseAngle(x, y, parts[draggingIdx]);
+      parts[draggingIdx].angle = ang;
+      if (Math.abs(parts[draggingIdx].angle) < 6) {
+        parts[draggingIdx].angle = 0;
+        chime(650);
+      }
+      render();
+    }
+  };
+
+  window.onpointerup = () => draggingIdx = -1;
+
+  function resetLevel() {
+    parts = JSON.parse(JSON.stringify(levels[curLvl].parts));
+    document.getElementById('status').textContent = 'Drag connected leaf segments to fold them into the silhouette';
+    render();
+  }
+
+  function nextLevel() {
+    curLvl = (curLvl + 1) % levels.length;
+    document.getElementById('lvlText').textContent = `Level ${curLvl + 1}: ${levels[curLvl].name}`;
+    resetLevel();
+  }
+
+  function prevLevel() {
+    curLvl = (curLvl - 1 + levels.length) % levels.length;
+    document.getElementById('lvlText').textContent = `Level ${curLvl + 1}: ${levels[curLvl].name}`;
+    resetLevel();
+  }
+
+  render();
+</script>
+</body>
+</html>

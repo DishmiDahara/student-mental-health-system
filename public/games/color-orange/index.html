@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Orange - Bart Bonte Style</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #7c2d12; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden; transition: background 0.6s ease;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 16px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #fb923c; }
+  .game-box {
+    width: 360px; height: 380px; background: #9a3412; border-radius: 24px;
+    border: 2px solid #ea580c; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .orange-btn { font-size: 72px; cursor: pointer; transition: transform .2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .orange-btn:active { transform: scale(1.2); }
+  .tip { margin-top: 16px; font-size: 14px; color: #fed7aa; font-weight: 700; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🍊</span> Orange</div>
+  <div style="font-size:13px; color:#fb923c; font-weight:800;">Level 1</div>
+</div>
+<div class="game-box" id="box">
+  <div class="orange-btn" id="orange" onclick="sliceOrange()">🍊</div>
+</div>
+<div class="tip" id="tip">Tap the sweet juicy orange to slice it open and make the screen ORANGE!</div>
+
+<script>
+  let slices = 0;
+  function sliceOrange() {
+    slices++;
+    if (slices === 1) {
+      document.getElementById('orange').textContent = '🍹';
+      document.getElementById('tip').textContent = 'Juice the orange to flood the canvas!';
+    } else {
+      document.body.style.background = '#ea580c';
+      document.getElementById('box').style.background = '#f97316';
+      document.getElementById('orange').textContent = '✨';
+      document.getElementById('tip').innerHTML = '<span style="color:#ffffff; font-weight:800; font-size:16px;">🎉 Everything is sunny ORANGE! Joyful energy unlocked!</span>';
+    }
+  }
+</script>
+</body>
+</html>

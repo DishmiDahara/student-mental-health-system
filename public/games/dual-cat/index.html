@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Dual Cat Adventure</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 12px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #fbbf24; }
+  .canvas-box {
+    position: relative; width: 380px; height: 360px; background: #1e293b;
+    border-radius: 24px; border: 2px solid #334155; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  }
+  canvas { width: 100%; height: 100%; border-radius: 22px; cursor: pointer; }
+  .controls { display: flex; gap: 10px; margin-top: 14px; width: 100%; max-width: 380px; }
+  .btn {
+    flex: 1; background: #334155; border: 1px solid rgba(255,255,255,0.1); color: white;
+    padding: 10px; border-radius: 12px; font-size: 14px; font-weight: 800; cursor: pointer;
+  }
+  .btn:active { background: #475569; }
+  .tip { margin-top: 10px; font-size: 13px; color: #94a3b8; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🐾</span> Dual Cat</div>
+  <div style="font-size:13px; color:#fbbf24; font-weight:700;">Co-op Adventure</div>
+</div>
+<div class="canvas-box">
+  <canvas id="cvs" width="380" height="360"></canvas>
+</div>
+<div class="controls">
+  <button class="btn" onclick="moveCat(-20)">◀ Left</button>
+  <button class="btn" onclick="switchCat()">🐱 Switch Cat</button>
+  <button class="btn" onclick="moveCat(20)">Right ▶</button>
+</div>
+<div class="tip" id="tip">Cat 1 stands on the button to open the gate so Cat 2 grabs the fish!</div>
+
+<script>
+  const cvs = document.getElementById('cvs');
+  const ctx = cvs.getContext('2d');
+
+  let activeCat = 0;
+  let cats = [
+    { x: 50, y: 280, icon: '🐱', name: 'Ginger' },
+    { x: 90, y: 280, icon: '🐈‍⬛', name: 'Tuxedo' }
+  ];
+
+  let button = { x: 160, y: 300, w: 40, h: 10, pressed: false };
+  let gate = { x: 240, y: 220, w: 12, h: 90, open: false };
+  let fish = { x: 320, y: 280 };
+
+  function moveCat(dx) {
+    cats[activeCat].x += dx;
+    cats[activeCat].x = Math.max(30, Math.min(350, cats[activeCat].x));
+    // Check gate collision if closed
+    if (!gate.open && cats[activeCat].x > gate.x - 20 && cats[activeCat].x < gate.x + 20) {
+      cats[activeCat].x = gate.x - 20;
+    }
+  }
+
+  function switchCat() {
+    activeCat = activeCat === 0 ? 1 : 0;
+  }
+
+  function update() {
+    button.pressed = cats.some(c => Math.abs(c.x - (button.x + button.w/2)) < 25);
+    gate.open = button.pressed;
+
+    // Check fish collection
+    if (cats.some(c => Math.hypot(c.x - fish.x, c.y - fish.y) < 30)) {
+      document.getElementById('tip').innerHTML = '<span style="color:#fbbf24; font-weight:800; font-size:15px;">🎉 Meow! Delicious fish obtained together! 🐟</span>';
+    }
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+    // Floor
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(0, 310, cvs.width, 50);
+
+    // Button
+    ctx.fillStyle = button.pressed ? '#22c55e' : '#ef4444';
+    ctx.fillRect(button.x, button.pressed ? button.y + 4 : button.y, button.w, button.h);
+
+    // Gate
+    if (!gate.open) {
+      ctx.fillStyle = '#ef4444';
+      ctx.fillRect(gate.x, gate.y, gate.w, gate.h);
+    } else {
+      ctx.strokeStyle = '#22c55e';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      ctx.strokeRect(gate.x, gate.y, gate.w, gate.h);
+      ctx.setLineDash([]);
+    }
+
+    // Fish
+    ctx.font = '32px sans-serif';
+    ctx.fillText('🐟', fish.x - 16, fish.y + 12);
+
+    // Cats
+    cats.forEach((c, i) => {
+      ctx.font = '36px sans-serif';
+      ctx.fillText(c.icon, c.x - 18, c.y + 16);
+      if (activeCat === i) {
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y - 2, 24, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    });
+
+    update();
+    requestAnimationFrame(render);
+  }
+
+  render();
+</script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Free The Key</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 14px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #fbbf24; }
+  .board-box {
+    position: relative; width: 340px; height: 340px; background: #78350f;
+    border-radius: 20px; border: 6px solid #451a03; box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  }
+  .exit-hole {
+    position: absolute; right: -8px; top: 110px; width: 8px; height: 50px;
+    background: #fbbf24; box-shadow: 0 0 10px #fbbf24; border-radius: 4px;
+  }
+  .block {
+    position: absolute; border-radius: 10px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; font-size: 18px; font-weight: 800;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4); transition: transform .1s;
+  }
+  .key-block { background: linear-gradient(135deg, #fbbf24, #d97706); color: #451a03; border: 2px solid #fef3c7; }
+  .wood-block { background: #b45309; border: 2px solid #92400e; color: rgba(255,255,255,0.4); }
+  .tip { margin-top: 14px; font-size: 13.5px; color: #94a3b8; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🔑</span> Free The Key</div>
+  <div style="font-size:13px; color:#fbbf24; font-weight:700;">Sliding Wooden Puzzle</div>
+</div>
+<div class="board-box" id="board">
+  <div class="exit-hole"></div>
+</div>
+<div class="tip" id="tip">Slide blocks out of the way to guide the golden key through the exit!</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function slideSound() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+  }
+
+  // 6x6 grid units: unit = 50px
+  let blocks = [
+    { id: 'key', x: 1, y: 2, w: 2, h: 1, isKey: true },
+    { id: 'b1', x: 3, y: 1, w: 1, h: 3, isKey: false },
+    { id: 'b2', x: 0, y: 0, w: 2, h: 1, isKey: false },
+    { id: 'b3', x: 4, y: 3, w: 2, h: 1, isKey: false }
+  ];
+
+  function render() {
+    const board = document.getElementById('board');
+    // keep exit hole
+    const hole = board.querySelector('.exit-hole');
+    board.innerHTML = '';
+    board.appendChild(hole);
+
+    blocks.forEach((b, i) => {
+      const el = document.createElement('div');
+      el.className = 'block ' + (b.isKey ? 'key-block' : 'wood-block');
+      el.style.left = (b.x * 52 + 10) + 'px';
+      el.style.top = (b.y * 52 + 10) + 'px';
+      el.style.width = (b.w * 52 - 4) + 'px';
+      el.style.height = (b.h * 52 - 4) + 'px';
+      if (b.isKey) el.textContent = '🗝️';
+      el.onclick = () => trySlide(i);
+      board.appendChild(el);
+    });
+  }
+
+  function trySlide(idx) {
+    const b = blocks[idx];
+    slideSound();
+    if (b.w > b.h) {
+      // Horizontal slide
+      if (b.x < 4) b.x += 1;
+      else b.x = 0;
+    } else {
+      // Vertical slide
+      if (b.y < 3) b.y += 1;
+      else b.y = 0;
+    }
+    render();
+    if (blocks[0].x >= 4) {
+      document.getElementById('tip').innerHTML = '<span style="color:#fbbf24; font-weight:800; font-size:15px;">🎉 Key freed! Vault unlocked with pure mastery!</span>';
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>

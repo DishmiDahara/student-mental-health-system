@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Infinity Loop</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #090d16; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 16px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #38bdf8; }
+  .grid-box {
+    width: 360px; height: 360px; background: rgba(255,255,255,0.02);
+    border-radius: 28px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+    display: grid; grid-template-columns: repeat(4, 1fr); padding: 16px; gap: 8px;
+  }
+  .tile {
+    position: relative; border-radius: 16px; cursor: pointer; background: rgba(255,255,255,0.03);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s;
+  }
+  .tile:hover { background: rgba(56,189,248,0.1); }
+  svg { width: 100%; height: 100%; }
+  path { stroke: #38bdf8; stroke-width: 8; stroke-linecap: round; fill: none; transition: stroke .3s, filter .3s; }
+  .loop-solved path { stroke: #34d399; filter: drop-shadow(0 0 10px #34d399); }
+  .tip { margin-top: 16px; font-size: 13.5px; color: #94a3b8; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>♾️</span> Infinity Loop</div>
+  <div style="font-size:13px; color:#38bdf8; font-weight:700;">Zen Circuit</div>
+</div>
+<div class="grid-box" id="grid"></div>
+<div class="tip" id="tip">Tap curved tiles to rotate them into a continuous closed loop</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function harmonicChime(f = 440) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.18, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.35);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.35);
+  }
+
+  // 4x4 Grid tile definitions: type 1 = corner arc, type 2 = straight line, type 0 = empty
+  // targetRot = winning rotation (0, 90, 180, 270)
+  const TILE_DATA = [
+    { type: 1, rot: 90, target: 0 },   { type: 1, rot: 0, target: 90 },   { type: 1, rot: 180, target: 0 },  { type: 1, rot: 270, target: 90 },
+    { type: 1, rot: 180, target: 270 },{ type: 1, rot: 90, target: 180 },{ type: 1, rot: 0, target: 270 },  { type: 1, rot: 90, target: 180 },
+    { type: 1, rot: 0, target: 0 },    { type: 1, rot: 270, target: 90 }, { type: 1, rot: 180, target: 0 },  { type: 1, rot: 90, target: 90 },
+    { type: 1, rot: 90, target: 270 }, { type: 1, rot: 0, target: 180 }, { type: 1, rot: 270, target: 270 },{ type: 1, rot: 180, target: 180 }
+  ];
+
+  const grid = document.getElementById('grid');
+
+  function renderGrid() {
+    grid.innerHTML = '';
+    TILE_DATA.forEach((t, i) => {
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.style.transform = `rotate(${t.rot}deg)`;
+      tile.onclick = () => rotateTile(i);
+
+      tile.innerHTML = `
+        <svg viewBox="0 0 100 100">
+          <path d="M 50 100 A 50 50 0 0 1 100 50" />
+        </svg>
+      `;
+      grid.appendChild(tile);
+    });
+  }
+
+  function rotateTile(idx) {
+    TILE_DATA[idx].rot = (TILE_DATA[idx].rot + 90) % 360;
+    harmonicChime(300 + (TILE_DATA[idx].rot * 1.5));
+    renderGrid();
+    checkLoop();
+  }
+
+  function checkLoop() {
+    const solved = TILE_DATA.every(t => t.rot === t.target);
+    if (solved) {
+      grid.classList.add('loop-solved');
+      document.getElementById('tip').innerHTML = '<span style="color:#34d399; font-weight:800; font-size:15px;">✨ Closed circuit complete! Ambient energy unlocked.</span>';
+      harmonicChime(523);
+      setTimeout(() => harmonicChime(659), 150);
+      setTimeout(() => harmonicChime(783), 300);
+    }
+  }
+
+  renderGrid();
+</script>
+</body>
+</html>

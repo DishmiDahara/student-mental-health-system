@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Shenzhen Mahjong</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #022c22; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 16px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #a7f3d0; }
+  .grid-box {
+    width: 360px; height: 360px; background: rgba(0,0,0,0.3); border-radius: 24px;
+    border: 2px solid #059669; display: grid; grid-template-columns: repeat(4, 1fr);
+    padding: 16px; gap: 10px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  }
+  .tile {
+    background: #fdfbf7; color: #022c22; border-radius: 12px; display: flex;
+    flex-direction: column; align-items: center; justify-content: center; font-size: 28px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3), inset 0 -3px 0 #cbd5e1; cursor: pointer;
+    transition: transform .15s, border-color .15s; border: 2px solid transparent;
+  }
+  .tile:hover { transform: translateY(-4px); }
+  .tile.selected { border-color: #10b981; transform: translateY(-8px); box-shadow: 0 8px 20px rgba(16,185,129,0.5); }
+  .tile.empty { visibility: hidden; }
+  .tip { margin-top: 16px; font-size: 13.5px; color: #a7f3d0; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🀄</span> Shenzhen Mahjong</div>
+  <div style="font-size:13px; color:#a7f3d0; font-weight:700;" id="pairsCount">8 Pairs Left</div>
+</div>
+<div class="grid-box" id="grid"></div>
+<div class="tip" id="tip">Click matching open Mahjong tiles to pair and clear them</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function stoneClick(f = 500) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+  }
+
+  const TILES = ['🎋', '🀄', '🀐', '🀏', '🌸', '🀅', '🪙', '🍃'];
+  let deck = [...TILES, ...TILES].sort(() => Math.random() - 0.5);
+  let selected = null;
+  let remaining = 8;
+
+  function render() {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    deck.forEach((t, i) => {
+      const el = document.createElement('div');
+      el.className = 'tile' + (t === null ? ' empty' : '') + (selected === i ? ' selected' : '');
+      el.textContent = t || '';
+      el.onclick = () => selectTile(i);
+      grid.appendChild(el);
+    });
+  }
+
+  function selectTile(idx) {
+    if (deck[idx] === null) return;
+    stoneClick(400);
+    if (selected === null) {
+      selected = idx;
+      render();
+    } else if (selected === idx) {
+      selected = null;
+      render();
+    } else {
+      if (deck[selected] === deck[idx]) {
+        deck[selected] = null;
+        deck[idx] = null;
+        remaining--;
+        stoneClick(700);
+        document.getElementById('pairsCount').textContent = `${remaining} Pairs Left`;
+        selected = null;
+        render();
+        if (remaining === 0) {
+          document.getElementById('tip').innerHTML = '<span style="color:#a7f3d0; font-weight:800; font-size:15px;">🎉 Mahjong board cleared! Zen serenity achieved.</span>';
+        }
+      } else {
+        selected = idx;
+        render();
+      }
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>

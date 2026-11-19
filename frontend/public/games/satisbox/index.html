@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SatisBox Mini Games</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 14px; }
+  .header { display: flex; justify-content: space-between; align-items: center; }
+  .title { font-size: 18px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+  .nav { display: flex; gap: 6px; }
+  .pill { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #94a3b8; padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .pill.active { background: #10b981; color: #0f172a; border-color: #10b981; font-weight: 800; }
+  .game-card {
+    background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 20px;
+    height: 380px; position: relative; overflow: hidden; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  }
+  /* Defog Mirror */
+  #mirrorCanvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; touch-action: none; }
+  .mirror-bg {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: linear-gradient(180deg, #f97316 0%, #ec4899 50%, #8b5cf6 100%);
+    color: white; font-size: 20px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+  }
+  /* Align Frames */
+  .frame-grid { display: flex; gap: 20px; justify-content: center; align-items: center; width: 100%; }
+  .picture-frame {
+    width: 90px; height: 120px; background: #334155; border: 6px solid #d97706; border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: pointer; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .picture-frame.straight { border-color: #10b981; }
+  /* Pencil Sort */
+  .pencil-box { display: flex; gap: 14px; align-items: flex-end; height: 220px; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 16px; }
+  .pencil {
+    width: 28px; border-radius: 6px 6px 0 0; cursor: pointer; display: flex; justify-content: center;
+    align-items: flex-start; padding-top: 6px; font-size: 11px; font-weight: 800; color: rgba(0,0,0,0.6);
+    transition: transform 0.2s ease, filter 0.2s ease;
+  }
+  .pencil:hover { transform: translateY(-8px); filter: brightness(1.2); }
+  .pencil.selected { outline: 3px solid white; transform: translateY(-14px); }
+  .footer-tip { text-align: center; color: #94a3b8; font-size: 13px; font-weight: 600; min-height: 24px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="title"><span>📦</span> SatisBox Mini</div>
+    <div class="nav">
+      <button class="pill active" onclick="switchStage(0)">1. Defog</button>
+      <button class="pill" onclick="switchStage(1)">2. Align</button>
+      <button class="pill" onclick="switchStage(2)">3. Pencils</button>
+    </div>
+  </div>
+  <div class="game-card" id="card">
+    <!-- Stage 0: Mirror Defog -->
+    <div id="stage0" style="width:100%; height:100%; position:relative;">
+      <div class="mirror-bg">
+        <div style="font-size:48px; margin-bottom:8px;">🌅</div>
+        <div>Sunset Serenity</div>
+      </div>
+      <canvas id="mirrorCanvas"></canvas>
+    </div>
+    <!-- Stage 1: Align Frames -->
+    <div id="stage1" style="display:none; width:100%; height:100%; flex-direction:column; align-items:center; justify-content:center;">
+      <div class="frame-grid">
+        <div class="picture-frame" id="frame1" onclick="rotateFrame(1)">
+          <span style="font-size:32px;">🌿</span>
+        </div>
+        <div class="picture-frame" id="frame2" onclick="rotateFrame(2)">
+          <span style="font-size:32px;">🌸</span>
+        </div>
+        <div class="picture-frame" id="frame3" onclick="rotateFrame(3)">
+          <span style="font-size:32px;">🍃</span>
+        </div>
+      </div>
+    </div>
+    <!-- Stage 2: Pencil Sort -->
+    <div id="stage2" style="display:none; width:100%; height:100%; flex-direction:column; align-items:center; justify-content:center;">
+      <div class="pencil-box" id="pencilBox"></div>
+    </div>
+  </div>
+  <div class="footer-tip" id="tip">Swipe with your finger or mouse to wipe the steamy window clean</div>
+</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function beep(f = 440, type = 'sine', d = 0.1) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + d);
+  }
+
+  let currentStage = 0;
+  function switchStage(idx) {
+    currentStage = idx;
+    document.querySelectorAll('.pill').forEach((p, i) => p.classList.toggle('active', i === idx));
+    document.getElementById('stage0').style.display = idx === 0 ? 'block' : 'none';
+    document.getElementById('stage1').style.display = idx === 1 ? 'flex' : 'none';
+    document.getElementById('stage2').style.display = idx === 2 ? 'flex' : 'none';
+    if (idx === 0) {
+      document.getElementById('tip').textContent = 'Swipe with your finger or mouse to wipe the steamy window clean';
+      initMirror();
+    } else if (idx === 1) {
+      document.getElementById('tip').textContent = 'Tap each crooked picture frame until it hangs perfectly straight';
+      initFrames();
+    } else if (idx === 2) {
+      document.getElementById('tip').textContent = 'Tap two pencils to swap their spots. Arrange them shortest to tallest!';
+      initPencils();
+    }
+  }
+
+  // --- STAGE 0: MIRROR DEFOG ---
+  function initMirror() {
+    const cvs = document.getElementById('mirrorCanvas');
+    const ctx = cvs.getContext('2d');
+    cvs.width = cvs.offsetWidth;
+    cvs.height = cvs.offsetHeight;
+    ctx.fillStyle = 'rgba(203, 213, 225, 0.94)';
+    ctx.fillRect(0, 0, cvs.width, cvs.height);
+    let wiping = false;
+    function wipe(x, y) {
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      ctx.arc(x, y, 28, 0, Math.PI * 2);
+      ctx.fill();
+      beep(200 + Math.random() * 50, 'triangle', 0.04);
+    }
+    cvs.onpointerdown = e => { wiping = true; wipe(e.offsetX, e.offsetY); };
+    cvs.onpointermove = e => { if (wiping) wipe(e.offsetX, e.offsetY); };
+    window.onpointerup = () => wiping = false;
+  }
+
+  // --- STAGE 1: ALIGN FRAMES ---
+  const frameAngles = { 1: -20, 2: 25, 3: -15 };
+  function initFrames() {
+    for (let i = 1; i <= 3; i++) {
+      const el = document.getElementById('frame' + i);
+      el.style.transform = `rotate(${frameAngles[i]}deg)`;
+      el.classList.remove('straight');
+    }
+  }
+  function rotateFrame(id) {
+    frameAngles[id] += 5;
+    if (Math.abs(frameAngles[id]) <= 2) {
+      frameAngles[id] = 0;
+      beep(587, 'sine', 0.15);
+    } else {
+      beep(300, 'sine', 0.05);
+    }
+    const el = document.getElementById('frame' + id);
+    el.style.transform = `rotate(${frameAngles[id]}deg)`;
+    if (frameAngles[id] === 0) el.classList.add('straight');
+    else el.classList.remove('straight');
+    if (frameAngles[1] === 0 && frameAngles[2] === 0 && frameAngles[3] === 0) {
+      document.getElementById('tip').textContent = '✨ Perfectly aligned! All frames are level.';
+      beep(880, 'sine', 0.3);
+    }
+  }
+
+  // --- STAGE 2: PENCIL SORT ---
+  let pencils = [
+    { height: 180, color: '#f43f5e' },
+    { height: 110, color: '#3b82f6' },
+    { height: 150, color: '#10b981' },
+    { height: 90, color: '#eab308' },
+    { height: 210, color: '#8b5cf6' }
+  ];
+  let selectedPencil = null;
+  function initPencils() {
+    renderPencils();
+  }
+  function renderPencils() {
+    const box = document.getElementById('pencilBox');
+    box.innerHTML = '';
+    pencils.forEach((p, idx) => {
+      const el = document.createElement('div');
+      el.className = 'pencil' + (selectedPencil === idx ? ' selected' : '');
+      el.style.height = p.height + 'px';
+      el.style.background = p.color;
+      el.onclick = () => selectPencil(idx);
+      box.appendChild(el);
+    });
+  }
+  function selectPencil(idx) {
+    if (selectedPencil === null) {
+      selectedPencil = idx;
+      beep(440, 'sine', 0.08);
+      renderPencils();
+    } else if (selectedPencil === idx) {
+      selectedPencil = null;
+      renderPencils();
+    } else {
+      const temp = pencils[selectedPencil];
+      pencils[selectedPencil] = pencils[idx];
+      pencils[idx] = temp;
+      selectedPencil = null;
+      beep(520, 'sine', 0.1);
+      renderPencils();
+      checkPencilsSorted();
+    }
+  }
+  function checkPencilsSorted() {
+    let sorted = true;
+    for (let i = 0; i < pencils.length - 1; i++) {
+      if (pencils[i].height > pencils[i+1].height) { sorted = false; break; }
+    }
+    if (sorted) {
+      document.getElementById('tip').textContent = '🎉 Beautifully organized! Shortest to tallest.';
+      beep(880, 'sine', 0.35);
+    }
+  }
+
+  window.onload = () => switchStage(0);
+</script>
+</body>
+</html>

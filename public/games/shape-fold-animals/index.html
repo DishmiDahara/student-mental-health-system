@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Shape Fold Animals</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #312e81; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 12px; }
+  .title { font-size: 19px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #a5b4fc; }
+  .canvas-box {
+    position: relative; width: 380px; height: 380px; background: #1e1b4b;
+    border-radius: 24px; border: 2px solid #4f46e5; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  }
+  canvas { width: 100%; height: 100%; border-radius: 22px; cursor: pointer; touch-action: none; }
+  .controls { display: flex; gap: 10px; margin-top: 14px; }
+  .btn {
+    background: #4f46e5; border: none; color: white; padding: 8px 16px; border-radius: 12px;
+    font-size: 13px; font-weight: 700; cursor: pointer; transition: background .2s;
+  }
+  .btn:hover { background: #6366f1; }
+  .tip { margin-top: 10px; font-size: 13px; color: #c7d2fe; text-align: center; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🦊</span> Shape Fold Animals</div>
+  <div style="font-size:13px; color:#a5b4fc; font-weight:700;">Origami Fox</div>
+</div>
+<div class="canvas-box">
+  <canvas id="cvs" width="380" height="380"></canvas>
+</div>
+<div class="controls">
+  <button class="btn" onclick="resetFold()">🔄 Reset Fold</button>
+</div>
+<div class="tip" id="status">Drag connected origami segments to fold them into the fox silhouette</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function chime(f = 520) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+  }
+
+  const cvs = document.getElementById('cvs');
+  const ctx = cvs.getContext('2d');
+
+  let parts = [
+    { angle: -50, length: 110, color: '#f97316', pivot: { x: 190, y: 240 } },
+    { angle: 60, length: 110, color: '#fb923c', pivot: { x: 190, y: 240 } },
+    { angle: -80, length: 70, color: '#fed7aa', pivot: { x: 190, y: 150 } }
+  ];
+
+  let draggingIdx = -1;
+
+  function render() {
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+    // Target outline
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 4;
+    ctx.setLineDash([8, 6]);
+    parts.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.pivot.x, p.pivot.y - p.length / 2, p.length / 3, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    // Folded parts
+    let allSolved = true;
+    parts.forEach(p => {
+      ctx.save();
+      ctx.translate(p.pivot.x, p.pivot.y);
+      ctx.rotate((p.angle * Math.PI) / 180);
+
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(-p.length / 3, -p.length);
+      ctx.lineTo(p.length / 3, -p.length);
+      ctx.closePath();
+      ctx.fill();
+
+      // Brass rivet
+      ctx.fillStyle = '#fbbf24';
+      ctx.beginPath();
+      ctx.arc(0, 0, 7, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+      if (Math.abs(p.angle) > 6) allSolved = false;
+    });
+
+    if (allSolved) {
+      document.getElementById('status').textContent = '🦊 Beautiful! Origami Fox is complete!';
+    }
+  }
+
+  cvs.onpointerdown = e => {
+    const r = cvs.getBoundingClientRect();
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    parts.forEach((p, i) => {
+      if (Math.hypot(x - p.pivot.x, y - p.pivot.y) < 70) draggingIdx = i;
+    });
+  };
+
+  cvs.onpointermove = e => {
+    if (draggingIdx >= 0) {
+      const r = cvs.getBoundingClientRect();
+      const x = e.clientX - r.left, y = e.clientY - r.top;
+      const p = parts[draggingIdx];
+      let ang = Math.atan2(x - p.pivot.x, -(y - p.pivot.y)) * (180 / Math.PI);
+      p.angle = ang;
+      if (Math.abs(p.angle) < 6) {
+        p.angle = 0;
+        chime(600);
+      }
+      render();
+    }
+  };
+
+  window.onpointerup = () => draggingIdx = -1;
+
+  function resetFold() {
+    parts[0].angle = -50;
+    parts[1].angle = 60;
+    parts[2].angle = -80;
+    document.getElementById('status').textContent = 'Drag connected origami segments to fold them into the fox silhouette';
+    render();
+  }
+
+  render();
+</script>
+</body>
+</html>
