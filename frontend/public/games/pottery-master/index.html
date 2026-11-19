@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Pottery Master 3D</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #1c1917; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 12px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #fb923c; }
+  .wheel-box {
+    position: relative; width: 380px; height: 380px; background: #292524;
+    border-radius: 28px; border: 2px solid #44403c; box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+  canvas { width: 100%; height: 100%; cursor: ew-resize; touch-action: none; }
+  .controls { display: flex; gap: 10px; width: 100%; max-width: 380px; margin-top: 14px; }
+  .btn {
+    flex: 1; background: #ea580c; border: none; color: white; padding: 12px;
+    border-radius: 14px; font-size: 13.5px; font-weight: 800; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(234,88,12,0.3); transition: transform .1s;
+  }
+  .btn:active { transform: scale(0.96); }
+  .tip { margin-top: 12px; font-size: 13px; color: #fdba74; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🏺</span> Pottery Master 3D</div>
+  <div style="font-size:13px; color:#fb923c; font-weight:800;" id="glazeState">Wet Clay</div>
+</div>
+<div class="wheel-box">
+  <canvas id="cvs" width="380" height="380"></canvas>
+</div>
+<div class="controls">
+  <button class="btn" onclick="applyGlaze('#38bdf8')"><span>🔵</span> Cobalt Blue</button>
+  <button class="btn" style="background:#10b981;" onclick="applyGlaze('#34d399')"><span>🟢</span> Jade Celadon</button>
+  <button class="btn" style="background:#78350f;" onclick="resetPot()"><span>🔄</span> Reset</button>
+</div>
+<div class="tip" id="tip">Drag left/right across the spinning clay to sculpt necks and curves!</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function humSound() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.08, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+  }
+
+  const cvs = document.getElementById('cvs');
+  const ctx = cvs.getContext('2d');
+
+  let slices = 16;
+  let radii = Array(slices).fill(65);
+  let glazeColor = '#c2410c';
+  let isDown = false;
+
+  function render() {
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+    // Turntable wheel
+    ctx.fillStyle = '#44403c';
+    ctx.beginPath();
+    ctx.ellipse(190, 340, 130, 25, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Clay body
+    ctx.fillStyle = glazeColor;
+    ctx.beginPath();
+    const startY = 80;
+    const h = 240 / slices;
+
+    ctx.moveTo(190 - radii[0], startY);
+    for (let i = 1; i < slices; i++) {
+      ctx.lineTo(190 - radii[i], startY + i * h);
+    }
+    for (let i = slices - 1; i >= 0; i--) {
+      ctx.lineTo(190 + radii[i], startY + i * h);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    // 3D Rim
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.beginPath();
+    ctx.ellipse(190, startY, radii[0], 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    requestAnimationFrame(render);
+  }
+
+  function sculpt(y, x) {
+    const idx = Math.floor((y - 80) / (240 / slices));
+    if (idx >= 0 && idx < slices) {
+      radii[idx] = Math.max(25, Math.min(105, Math.abs(x - 190)));
+      humSound();
+    }
+  }
+
+  cvs.onpointerdown = e => {
+    isDown = true;
+    const r = cvs.getBoundingClientRect();
+    sculpt(e.clientY - r.top, e.clientX - r.left);
+  };
+  cvs.onpointermove = e => {
+    if (isDown) {
+      const r = cvs.getBoundingClientRect();
+      sculpt(e.clientY - r.top, e.clientX - r.left);
+    }
+  };
+  window.onpointerup = () => isDown = false;
+
+  function applyGlaze(c) {
+    glazeColor = c;
+    document.getElementById('glazeState').textContent = 'Kiln Fired & Glazed';
+    document.getElementById('tip').innerHTML = '<span style="color:#fb923c; font-weight:800; font-size:15px;">🏺 Fine porcelain ceramic crafted with master precision!</span>';
+  }
+
+  function resetPot() {
+    radii = Array(slices).fill(65);
+    glazeColor = '#c2410c';
+    document.getElementById('glazeState').textContent = 'Wet Clay';
+  }
+
+  render();
+</script>
+</body>
+</html>

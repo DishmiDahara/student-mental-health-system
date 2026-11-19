@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Piece of Cake: Merge & Bake</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #fdf2f8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #475569; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 12px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #db2777; }
+  .grid-box {
+    width: 360px; height: 360px; background: #fce7f3; border-radius: 24px;
+    border: 3px solid #f472b6; display: grid; grid-template-columns: repeat(4, 1fr);
+    padding: 14px; gap: 10px; box-shadow: 0 25px 50px rgba(219,39,119,0.15);
+  }
+  .cake-slot {
+    background: #ffffff; border-radius: 16px; border: 2px dashed #fbcfe8;
+    display: flex; align-items: center; justify-content: center; font-size: 34px;
+    cursor: pointer; transition: transform .15s ease; box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+  }
+  .cake-slot:hover { transform: scale(1.08); border-color: #db2777; }
+  .cake-slot.selected { border-color: #db2777; box-shadow: 0 0 15px #f472b6; transform: scale(1.12); }
+  .tip { margin-top: 14px; font-size: 13.5px; color: #9d174d; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🧁</span> Piece of Cake</div>
+  <div style="font-size:13px; color:#db2777; font-weight:800;" id="pastryTier">Tier 1: Croissant</div>
+</div>
+<div class="grid-box" id="grid"></div>
+<div class="tip" id="tip">Tap two identical delicious pastries to merge them into exquisite treats!</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function chimeTone(f = 520) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(f * 1.4, audioCtx.currentTime + 0.15);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+  }
+
+  // Merge Progression: 🥐 -> 🧁 -> 🍰 -> 🎂
+  const TIERS = ['🥐', '🧁', '🍰', '🎂'];
+  let slots = ['🥐', '🥐', '🥐', '🥐', '🧁', '🧁', null, null, null, null, null, null, null, null, null, null];
+  let selectedIdx = null;
+
+  function render() {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    slots.forEach((item, idx) => {
+      const el = document.createElement('div');
+      el.className = 'cake-slot' + (selectedIdx === idx ? ' selected' : '');
+      el.textContent = item || '';
+      el.onclick = () => handleSlot(idx);
+      grid.appendChild(el);
+    });
+  }
+
+  function handleSlot(idx) {
+    if (selectedIdx === null) {
+      if (slots[idx]) {
+        selectedIdx = idx;
+        chimeTone(400);
+        render();
+      }
+    } else if (selectedIdx === idx) {
+      selectedIdx = null;
+      render();
+    } else {
+      if (slots[selectedIdx] === slots[idx]) {
+        const curTierIdx = TIERS.indexOf(slots[idx]);
+        if (curTierIdx < TIERS.length - 1) {
+          slots[idx] = TIERS[curTierIdx + 1];
+          slots[selectedIdx] = null;
+          chimeTone(650);
+          document.getElementById('pastryTier').textContent = `Tier ${curTierIdx + 2}: ${slots[idx]}`;
+          if (slots[idx] === '🎂') {
+            document.getElementById('tip').innerHTML = '<span style="color:#db2777; font-weight:800; font-size:15px;">🎉 Master Wedding Cake created! Bakery terrace thrives!</span>';
+          }
+        }
+      }
+      selectedIdx = null;
+      render();
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>

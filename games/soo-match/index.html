@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Soo Match: Room Design</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 12px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #a78bfa; }
+  .penthouse-box {
+    position: relative; width: 380px; height: 360px;
+    background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%);
+    border-radius: 28px; border: 3px solid #8b5cf6; box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+    overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  }
+  .skyline {
+    position: absolute; top: 0; width: 100%; height: 50%;
+    background: linear-gradient(180deg, #090d16 0%, #1e1b4b 100%);
+    display: flex; align-items: center; justify-content: center; font-size: 50px;
+  }
+  .glass-floor { width: 100%; height: 50%; background: rgba(255,255,255,0.06); border-top: 3px solid #a78bfa; }
+  .item-slot { position: absolute; font-size: 46px; cursor: pointer; transition: transform .2s ease; }
+  .item-slot:hover { transform: scale(1.18); }
+  .controls { display: flex; gap: 10px; width: 100%; max-width: 380px; margin-top: 14px; }
+  .btn {
+    flex: 1; background: #8b5cf6; border: none; color: white; padding: 12px;
+    border-radius: 14px; font-size: 13.5px; font-weight: 800; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(139,92,246,0.3); transition: transform .1s;
+  }
+  .btn:active { transform: scale(0.96); }
+  .tip { margin-top: 12px; font-size: 13px; color: #c4b5fd; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>✨</span> Soo Match Penthouse</div>
+  <div style="font-size:13px; color:#a78bfa; font-weight:800;">Modern Loft</div>
+</div>
+<div class="penthouse-box">
+  <div class="skyline">🌃</div>
+  <div class="glass-floor"></div>
+  <div class="item-slot" id="sofa" style="bottom:40px; left:40px;" onclick="swapSofa()">🛋️</div>
+  <div class="item-slot" id="fire" style="bottom:50px; left:165px;" onclick="swapFire()">🔥</div>
+  <div class="item-slot" id="plant" style="bottom:40px; right:40px;" onclick="swapPlant()">🪴</div>
+</div>
+<div class="controls">
+  <button class="btn" onclick="swapSofa()"><span>🛋️</span> Lounge</button>
+  <button class="btn" onclick="swapFire()"><span>🔥</span> Fireplace</button>
+  <button class="btn" onclick="swapPlant()"><span>🪴</span> Flora</button>
+</div>
+<div class="tip" id="tip">Tap the designer furniture to customize your high-rise skyline penthouse!</div>
+
+<script>
+  let sIdx = 0, fIdx = 0, pIdx = 0;
+  const SOFAS = ['🛋️', '🛏️', '🪑'];
+  const FIRES = ['🔥', '✨', '🏮'];
+  const PLANTS = ['🪴', '🌵', '🌺'];
+
+  function swapSofa() {
+    sIdx = (sIdx + 1) % SOFAS.length;
+    document.getElementById('sofa').textContent = SOFAS[sIdx];
+  }
+  function swapFire() {
+    fIdx = (fIdx + 1) % FIRES.length;
+    document.getElementById('fire').textContent = FIRES[fIdx];
+  }
+  function swapPlant() {
+    pIdx = (pIdx + 1) % PLANTS.length;
+    document.getElementById('plant').textContent = PLANTS[pIdx];
+    document.getElementById('tip').innerHTML = '<span style="color:#c4b5fd; font-weight:800; font-size:15px;">🌃 Breathtaking skyline penthouse customized to perfection!</span>';
+  }
+</script>
+</body>
+</html>

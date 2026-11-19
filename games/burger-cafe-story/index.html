@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Burger Cafe Story: ASMR Cooking</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 12px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #f59e0b; }
+  .kitchen-box {
+    position: relative; width: 380px; height: 360px; background: #78350f;
+    border-radius: 28px; border: 4px solid #b45309; box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+    overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .cutting-board {
+    width: 280px; height: 260px; background: #d97706; border-radius: 18px;
+    border: 4px solid #92400e; box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
+    display: flex; flex-direction: column-reverse; align-items: center; justify-content: flex-start;
+    padding-bottom: 20px; gap: 6px;
+  }
+  .ingredient-layer { font-size: 38px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+  .ingredients-bar { display: flex; gap: 10px; width: 100%; max-width: 380px; margin-top: 14px; }
+  .ing-btn {
+    flex: 1; background: #92400e; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px;
+    padding: 10px 4px; font-size: 24px; cursor: pointer; transition: transform .1s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ing-btn:active { transform: scale(0.92); }
+  .tip { margin-top: 12px; font-size: 13.5px; color: #fef08a; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🍔</span> Burger Cafe Story</div>
+  <div style="font-size:13px; color:#f59e0b; font-weight:800;" id="stackCount">1 Layer</div>
+</div>
+<div class="kitchen-box">
+  <div class="cutting-board" id="board">
+    <div class="ingredient-layer">🍞</div>
+  </div>
+</div>
+<div class="ingredients-bar">
+  <button class="ing-btn" onclick="addLayer('🥩')">🥩</button>
+  <button class="ing-btn" onclick="addLayer('🧀')">🧀</button>
+  <button class="ing-btn" onclick="addLayer('🥬')">🥬</button>
+  <button class="ing-btn" onclick="addLayer('🍅')">🍅</button>
+  <button class="ing-btn" onclick="addLayer('🍞')">🍞</button>
+</div>
+<div class="tip" id="tip">Tap culinary ingredients to stack a gourmet sensory burger!</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function sizzleAudio() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(350, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(700, audioCtx.currentTime + 0.1);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+  }
+
+  let layers = 1;
+
+  function addLayer(icon) {
+    sizzleAudio();
+    const el = document.createElement('div');
+    el.className = 'ingredient-layer';
+    el.textContent = icon;
+    document.getElementById('board').appendChild(el);
+    layers++;
+    document.getElementById('stackCount').textContent = `${layers} Layers`;
+    if (layers >= 5) {
+      document.getElementById('tip').innerHTML = '<span style="color:#fef08a; font-weight:800; font-size:15px;">🍔 Spectacular gourmet cafe burger! Chef excellence achieved.</span>';
+    }
+  }
+</script>
+</body>
+</html>

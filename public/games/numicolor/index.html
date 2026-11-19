@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Numicolor Scenic Art</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 12px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #a855f7; }
+  .canvas-box {
+    width: 360px; height: 340px; background: #ffffff; border-radius: 24px;
+    border: 3px solid #64748b; box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+    display: grid; grid-template-columns: repeat(4, 1fr); padding: 8px; gap: 4px;
+  }
+  .color-zone {
+    border-radius: 8px; border: 1px dashed #cbd5e1; display: flex;
+    align-items: center; justify-content: center; font-size: 16px; font-weight: 900;
+    color: #94a3b8; cursor: pointer; transition: background .2s ease;
+  }
+  .palette { display: flex; gap: 10px; margin-top: 14px; }
+  .swatch {
+    width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform .15s; border: 2px solid white;
+  }
+  .swatch.selected { transform: scale(1.2); box-shadow: 0 0 15px white; }
+  .tip { margin-top: 12px; font-size: 13.5px; color: #cbd5e1; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🎨</span> Numicolor Art</div>
+  <div style="font-size:13px; color:#a855f7; font-weight:800;" id="prog">0 / 16 Painted</div>
+</div>
+<div class="canvas-box" id="grid"></div>
+<div class="palette">
+  <div class="swatch selected" style="background:#f43f5e;" onclick="pickColor(1, '#f43f5e', this)">1</div>
+  <div class="swatch" style="background:#3b82f6;" onclick="pickColor(2, '#3b82f6', this)">2</div>
+  <div class="swatch" style="background:#10b981;" onclick="pickColor(3, '#10b981', this)">3</div>
+  <div class="swatch" style="background:#f59e0b;" onclick="pickColor(4, '#f59e0b', this)">4</div>
+</div>
+<div class="tip" id="tip">Select a numbered paint swatch and tap matching numbers on the canvas!</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function harpNote(f = 520) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+  }
+
+  let curNum = 1;
+  let curHex = '#f43f5e';
+  let filledCount = 0;
+
+  const GRID_DATA = [
+    1, 1, 2, 2,
+    1, 3, 3, 2,
+    4, 3, 3, 4,
+    4, 4, 2, 2
+  ];
+
+  const grid = document.getElementById('grid');
+
+  function renderGrid() {
+    grid.innerHTML = '';
+    GRID_DATA.forEach((num, idx) => {
+      const el = document.createElement('div');
+      el.className = 'color-zone';
+      el.textContent = num;
+      el.onclick = () => paintZone(idx, el);
+      grid.appendChild(el);
+    });
+  }
+
+  function pickColor(num, hex, btn) {
+    curNum = num;
+    curHex = hex;
+    document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+    btn.classList.add('selected');
+  }
+
+  function paintZone(idx, el) {
+    if (GRID_DATA[idx] === curNum && el.textContent !== '') {
+      el.style.background = curHex;
+      el.textContent = '';
+      el.style.border = 'none';
+      filledCount++;
+      harpNote(400 + curNum * 80);
+      document.getElementById('prog').textContent = `${filledCount} / 16 Painted`;
+      if (filledCount === 16) {
+        document.getElementById('tip').innerHTML = '<span style="color:#a855f7; font-weight:800; font-size:15px;">🎉 Masterpiece complete! Sunset scenery revealed.</span>';
+      }
+    }
+  }
+
+  renderGrid();
+</script>
+</body>
+</html>

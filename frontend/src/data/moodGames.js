@@ -2,9 +2,9 @@
 // MindSpace - Mood-Based Relaxing Games Catalog
 //
 // Single source of truth for genuine relaxing and mindfulness games.
-// Categorized for the 5 moods: Terrible, Bad, Okay, Good, and Great.
-// Recommends exactly 5 suitable games per mood; all other games appear
-// under "Explore More Games".
+// Upgraded with 25 advanced titles inspired by the CrazyGames Relaxing collection:
+// home decoration, interior design, garden & nature, ASMR cleaning, 3D pottery,
+// aquarium simulation, cozy farming, and satisfying sensory physics.
 // ---------------------------------------------------------------------------
 
 export const NEEDS = {
@@ -21,117 +21,117 @@ const g = (id, title, icon, desc, needs, launch, extra = {}) => ({ id, title, ic
 
 export const GAME_CATALOG = [
   // =========================================================================
-  // 25 Poki Brain & Relaxation Games (Self-Hosted, Legal & Zero External Block)
+  // 25 CrazyGames Advanced Relaxing Titles (High Production Quality)
   // =========================================================================
 
-  // ---- Group 1: Mood 1 - Terrible (Sensory Relief & Tactile Grounding) ----
-  g('popitmaster', 'Pop It Master', '🫧', 'Pop realistic silicone bubbles with multi-tone ASMR acoustics to relieve acute tension and stress.', ['stress', 'anger'], { type: 'local', src: '/games/pop-it-master/index.html' }, {
-    badge: 'Sensory ASMR',
-    credit: 'Tactile Silicone Bubble Simulator'
+  // ---- Group 1: Mood 1 - Terrible (Sensory Grounding, Tactile ASMR & Tension Relief) ----
+  g('makeoverasmr', 'Makeover Cleaning ASMR', '🧽', 'Power-wash grimy vintage items, scrape mud, and buff metals with soothing ASMR audio.', ['stress', 'anger'], { type: 'local', src: '/games/makeover-asmr/index.html' }, {
+    badge: 'ASMR Cleaning',
+    credit: 'Tactile Deep Cleaning Simulator'
   }),
-  g('satisbox', 'SatisBox Mini Games', '📦', 'Oddly satisfying tidying tasks: defog steamy windows, align picture frames, and sort pencils.', ['stress', 'sadness', 'anxiety'], { type: 'local', src: '/games/satisbox/index.html' }, {
-    badge: 'Oddly Satisfying',
-    credit: 'SatisBox Tidying & Organization'
+  g('smartybubbles', 'Smarty Bubbles Casual', '🫧', 'Pop vibrant glossy bubbles with crisp acoustic snaps in a relaxing, untimed flow.', ['stress', 'anxiety'], { type: 'local', src: '/games/smarty-bubbles/index.html' }, {
+    badge: 'Bubble Pops',
+    credit: 'Smarty Bubbles Casual'
   }),
-  g('shapefoldnature', 'Shape Fold Nature', '🌿', 'Gently fold interconnected botanical leaves and flower petals to form calming nature silhouettes.', ['anxiety', 'sadness'], { type: 'local', src: '/games/shape-fold-nature/index.html' }, {
-    badge: 'Nature Tangram',
-    credit: 'Botanical Polygon Folding Engine'
+  g('growyourhome', 'Grow Your Home', '🌱', 'Nurture cozy indoor windowsill plants from seed to bloom with water and gentle sunlight.', ['anxiety', 'sadness'], { type: 'local', src: '/games/grow-your-home/index.html' }, {
+    badge: 'Plant Care',
+    credit: 'Indoor Botanical Simulator'
   }),
-  g('watercolor', 'Water Color Sort', '🧪', 'Pour and sort soothing pastel liquids between glass test tubes at your own pace with zero timers.', ['anxiety', 'stress'], { type: 'local', src: '/games/water-color-sort/index.html' }, {
-    badge: 'Liquid Sorting',
-    credit: 'Fluid Color Tube Sorting Simulator'
+  g('stickerart', 'Sticker Art Studio', '✨', 'Peel glossy, textured stickers with satisfying crinkles to decorate wholesome dream scrapbook pages.', ['stress', 'sadness'], { type: 'local', src: '/games/sticker-art/index.html' }, {
+    badge: 'Scrapbook',
+    credit: 'Tactile Sticker Art Engine'
   }),
-  g('sugarsugar', 'Sugar, Sugar Physics', '☕', 'Draw smooth chalk paths to guide thousands of cascading granular sweet sugar grains into the mug.', ['stress', 'sadness'], { type: 'local', src: '/games/sugar-sugar/index.html' }, {
-    badge: 'Granular Physics',
-    credit: 'Sugar Particle Simulation'
-  }),
-
-  // ---- Group 2: Mood 2 - Bad (Gentle Comfort, Warm Reassurance & Untangling) ----
-  g('catslovecake', 'Cats Love Cake', '🐱', 'Bounce a cheerful marshmallow cat across pastel platforms to reach sweet cake with cozy physics.', ['sadness', 'anxiety'], { type: 'local', src: '/games/cats-love-cake/index.html' }, {
-    badge: 'Cozy Physics',
-    credit: 'Squash & Stretch Cat Bouncing'
-  }),
-  g('infinityloop', 'Infinity Loop', '♾️', 'Rotate neon curved lines to connect ambient circuits into soothing, unbroken glowing loops.', ['sadness', 'anxiety', 'refresh'], { type: 'local', src: '/games/infinity-loop/index.html' }, {
-    badge: 'Zen Circuit',
-    credit: 'Ambient Harmonic Circuit Loop'
-  }),
-  g('colorgreen', 'Green Color Logic', '🟢', 'Bart Bonte style: solve creative, peaceful puzzles where the only soothing goal is turning the screen green.', ['sadness', 'refresh'], { type: 'local', src: '/games/color-green/index.html' }, {
-    badge: 'Color Logic',
-    credit: 'Bonte-Inspired Minimalist Green'
-  }),
-  g('unpuzzle', 'Unpuzzle Deconstruction', '🧩', 'A therapeutic reverse-jigsaw: disassemble interlocking puzzle pieces one by one into clear space.', ['sadness', 'anxiety', 'stress'], { type: 'local', src: '/games/unpuzzle/index.html' }, {
-    badge: 'Reverse Puzzle',
-    credit: 'Jigsaw Disassembly Engine'
-  }),
-  g('linestofill', 'Lines to Fill', '〰️', 'Draw continuous pastel ribbon lines across clean tiles to fill the board with pure satisfying flow.', ['sadness', 'anxiety'], { type: 'local', src: '/games/lines-to-fill/index.html' }, {
-    badge: 'Grid Flow',
-    credit: 'Continuous Path Tile Filler'
+  g('fluidsimulation', 'Fluid Simulation 3D', '🌈', 'Swirl glowing bioluminescent smoke and luminous liquid dynamics on dark velvet.', ['stress', 'anxiety', 'refresh'], { type: 'local', src: '/games/fluid-simulation/index.html' }, {
+    badge: '3D Fluid',
+    credit: 'WebGL Fluid Dynamics'
   }),
 
-  // ---- Group 3: Mood 3 - Okay (Grounding Flow & Mental Refreshment) ----
-  g('onetmaster', 'Onet Master Tile Connect', '🍓', 'Connect pairs of cute nature and fruit tiles with soothing audio chimes and gentle logic.', ['refresh', 'anxiety'], { type: 'local', src: '/games/onet-master/index.html' }, {
-    badge: 'Tile Matching',
-    credit: 'Onet Fruit Pair Link'
+  // ---- Group 2: Mood 2 - Bad (Emotional Comfort, Cozy Nurturing & Gentle Solace) ----
+  g('roombox', 'Roombox Design Studio', '🛋️', 'Stage and arrange miniature pastel bedroom dioramas with cozy ambient lamps, plants, and books.', ['sadness', 'anxiety'], { type: 'local', src: '/games/roombox/index.html' }, {
+    badge: 'Room Staging',
+    credit: 'Miniature Roombox Staging'
   }),
-  g('shapefoldanimals', 'Shape Fold Animals', '🦊', 'Manipulate and fold hinged origami segments to complete charming animal silhouettes.', ['refresh', 'stress'], { type: 'local', src: '/games/shape-fold-animals/index.html' }, {
-    badge: 'Origami Animals',
-    credit: 'Origami Silhouette Kinematics'
+  g('botanica', 'Botanica: Greenhouse of Wishes', '🌺', 'Mist tropical foliage in a sunlit conservatory and watch exotic orchids bloom with glowing pollen.', ['sadness', 'refresh'], { type: 'local', src: '/games/botanica/index.html' }, {
+    badge: 'Greenhouse',
+    credit: 'Conservatory Botanical Engine'
   }),
-  g('colorblue', 'Blue Color Harmony', '🔵', 'Bart Bonte style: interact with rain clouds and tranquil oceans to make the screen peaceful blue.', ['refresh', 'anxiety'], { type: 'local', src: '/games/color-blue/index.html' }, {
-    badge: 'Color Logic',
-    credit: 'Bonte-Inspired Tranquil Blue'
+  g('aquariumtycoon', 'Pixel Aquarium Tycoon', '🐠', 'Drop flakes for swimming clownfish and seahorses in a serene, deep-blue coral reef sanctuary.', ['sadness', 'anxiety'], { type: 'local', src: '/games/aquarium-tycoon/index.html' }, {
+    badge: 'Marine Habitat',
+    credit: 'Pixel Aquarium Simulator'
   }),
-  g('blockyblast', 'Blocky Blast Puzzle', '🧱', 'Cozy 1010 block placement: clear full wooden rows and columns at your leisure without any timer.', ['refresh', 'stress'], { type: 'local', src: '/games/blocky-blast/index.html' }, {
-    badge: 'Cozy Blocks',
-    credit: 'Grid Line Clear Simulator'
+  g('yarnfever', 'Yarn Fever! Unravel Puzzle', '🧶', 'Untangle soft pastel woolen yarn skeins and knit them into warm, cozy winter sweaters.', ['sadness', 'anxiety', 'stress'], { type: 'local', src: '/games/yarn-fever/index.html' }, {
+    badge: 'Wool Knitting',
+    credit: 'Tactile Thread Untangling Engine'
   }),
-  g('unpuzzler', 'UnpuzzleR Radial Rings', '🔐', 'Rotate concentric rings and align mechanical keyways to smoothly release the golden core.', ['refresh', 'anxiety'], { type: 'local', src: '/games/unpuzzle-r/index.html' }, {
-    badge: 'Radial Untangling',
-    credit: 'Concentric Ring Lock Engine'
-  }),
-
-  // ---- Group 4: Mood 4 - Good (Mindful Joy & Creative Craft) ----
-  g('factoryballs', 'Factory Balls Forever', '🎨', 'Bart Bonte classic: dip balls in paint and apply masks in the right sequence to craft designer spheres.', ['refresh', 'anxiety'], { type: 'local', src: '/games/factory-balls/index.html' }, {
-    badge: 'Creative Craft',
-    credit: 'Layered Sequence Logic'
-  }),
-  g('game2048', '2048 Zen Edition', '🔢', 'Hypnotic sliding numbers: merge matching pastel tiles in rhythmic, satisfying flow with undo.', ['refresh', 'stress'], { type: 'local', src: '/games/game-2048/index.html' }, {
-    badge: 'Flow Sliding',
-    credit: '2048 Engine (MIT License)'
-  }),
-  g('colorpink', 'Pink Color Spark', '🌸', 'Bart Bonte style: inflate bubble gum, arrange flamingo feathers, and turn the canvas cheerful pink.', ['refresh', 'sadness'], { type: 'local', src: '/games/color-pink/index.html' }, {
-    badge: 'Color Logic',
-    credit: 'Bonte-Inspired Playful Pink'
-  }),
-  g('minitrain', 'Mini Train Builder', '🚂', 'Lay wooden bridge blocks across mountain canyons so the cheerful locomotive safely crosses.', ['refresh', 'stress'], { type: 'local', src: '/games/mini-train/index.html' }, {
-    badge: 'Toy Railway',
-    credit: 'Physics Bridge Builder'
-  }),
-  g('nonogram', 'Nonogram Pixel Art', '🔲', 'Picture cross deduction: fill cells according to numeric clues to reveal heartwarming pixel art.', ['refresh', 'anxiety'], { type: 'local', src: '/games/nonogram/index.html' }, {
-    badge: 'Pixel Picross',
-    credit: 'Nonogram Picture Cross Engine'
+  g('sproutvalley', 'Sprout Valley: Cozy Farm', '🌾', 'Help Nico the cat till soil, plant sweet strawberries, and harvest crops by the calm sea.', ['sadness', 'refresh'], { type: 'local', src: '/games/sprout-valley/index.html' }, {
+    badge: 'Cozy Farming',
+    credit: 'Sprout Valley Storybook Farm'
   }),
 
-  // ---- Group 5: Mood 5 - Great (Vibrant Play & Whimsical Celebration) ----
-  g('braintest', 'Brain Test Tricky Puzzles', '💡', 'Whimsical, humorous cartoon riddles and out-of-the-box puzzles that spark laughter and playful joy.', ['refresh', 'stress'], { type: 'local', src: '/games/brain-test/index.html' }, {
-    badge: 'Whimsical Riddles',
-    credit: 'Interactive Cartoon Lateral Thinking'
+  // ---- Group 3: Mood 3 - Okay (Structured Tidying, Mindful Flow & Brain Fog Reset) ----
+  g('goodsmatch3d', 'Goods Triple Match 3D', '🥫', 'Sort and organize snacks, drinks, and perfumes neatly onto clean wooden pantry shelves in 3D.', ['refresh', 'anxiety'], { type: 'local', src: '/games/goods-match-3d/index.html' }, {
+    badge: '3D Shelf Sort',
+    credit: 'Supermarket Organization 3D'
   }),
-  g('dualcat', 'Dual Cat Adventure', '🐾', 'Guide two adorable synchronized cats working together to press buttons, pass gates, and get tuna.', ['refresh', 'sadness'], { type: 'local', src: '/games/dual-cat/index.html' }, {
-    badge: 'Co-op Kittens',
-    credit: 'Dual Character Platform Puzzle'
+  g('potterymaster', 'Pottery Master 3D', '🏺', 'Spin the pottery wheel, sculpt ceramic clay with smooth gestures, fire in the kiln, and glaze in cobalt blue.', ['refresh', 'stress'], { type: 'local', src: '/games/pottery-master/index.html' }, {
+    badge: 'Ceramic Lathe',
+    credit: '3D Pottery Wheel Sculptor'
   }),
-  g('freethekey', 'Free The Key / Klotski', '🔑', 'Classic wooden sliding blocks: clear a path and slide the golden brass key out through the vault exit.', ['refresh', 'stress'], { type: 'local', src: '/games/free-the-key/index.html' }, {
-    badge: 'Wooden Klotski',
-    credit: 'Sliding Wooden Block Engine'
+  g('homemakeover', 'Home Makeover Cleaning', '🧹', 'Vacuum carpets, wipe panoramic glass windows, and tidy messy bedrooms to clear mental clutter.', ['refresh', 'stress'], { type: 'local', src: '/games/home-makeover/index.html' }, {
+    badge: 'Declutter',
+    credit: 'Room Restoration Simulator'
   }),
-  g('shenzhenmahjong', 'Shenzhen Mahjong', '🀄', 'Traditional relaxing Mahjong solitaire: match ivory bamboo and flower tiles amidst calm garden breezes.', ['refresh', 'anxiety'], { type: 'local', src: '/games/shenzhen-mahjong/index.html' }, {
-    badge: 'Zen Mahjong',
-    credit: 'Oriental Tile Solitaire'
+  g('numicolor', 'Numicolor Scenic Art', '🎨', 'Meditative paint-by-number digital canvas: bring scenic mountain sunsets and wildlife to life with watercolor.', ['refresh', 'sadness'], { type: 'local', src: '/games/numicolor/index.html' }, {
+    badge: 'Color by Number',
+    credit: 'Numicolor Digital Canvas'
   }),
-  g('colororange', 'Orange Color Burst', '🍊', 'Bart Bonte style: slice juicy oranges, set the sunset horizon, and turn the world warm sunny orange.', ['refresh', 'sadness'], { type: 'local', src: '/games/color-orange/index.html' }, {
-    badge: 'Color Logic',
-    credit: 'Bonte-Inspired Sunny Orange'
+  g('scandinavianmahjong', 'Scandinavian Mahjong', '❄️', 'Hygge Nordic minimalist stone and wood tiles: clear matching pinecones, coffee mugs, and mittens.', ['refresh', 'anxiety'], { type: 'local', src: '/games/scandinavian-mahjong/index.html' }, {
+    badge: 'Hygge Zen',
+    credit: 'Nordic Tile Solitaire'
+  }),
+
+  // ---- Group 4: Mood 4 - Good (Creative Interior Design, Floral Gardens & Craft) ----
+  g('homedesign', 'Home Design: Decorate House', '🏡', 'Customize luxury 3D penthouses with velvet sofas, marble tables, and atmospheric cove lighting.', ['refresh', 'anxiety'], { type: 'local', src: '/games/home-design/index.html' }, {
+    badge: 'Interior Design',
+    credit: 'Luxury Room Decorator'
+  }),
+  g('bloominggardens', 'Blooming Gardens', '🌸', 'Align matching flowerbeds in lines to trigger magnificent floral blossom explosions and butterfly swarms.', ['refresh', 'sadness'], { type: 'local', src: '/games/blooming-gardens/index.html' }, {
+    badge: 'Flower Garden',
+    credit: 'Floral Bloom Alignment'
+  }),
+  g('pieceofcake', 'Piece of Cake: Merge & Bake', '🧁', 'Merge French croissants and tarts to create master wedding cakes and decorate a sunny cafe terrace.', ['refresh', 'stress'], { type: 'local', src: '/games/piece-of-cake/index.html' }, {
+    badge: 'Bakery Merge',
+    credit: 'Pastry Merge & Terrace Decor'
+  }),
+  g('colormatch', 'Color Match 3D Studio', '🎨', 'Squeeze primary oil paint tubes, blend palette with spatula to match colors, and spray-paint 3D fruits.', ['refresh', 'anxiety'], { type: 'local', src: '/games/color-match/index.html' }, {
+    badge: 'Pigment Studio',
+    credit: '3D Color Blending Lab'
+  }),
+  g('idleseapark', 'Idle Sea Park 3D', '🐬', 'Build a 3D ocean rescue sanctuary with leaping dolphins, gentle sea turtles, and turquoise lagoons.', ['refresh', 'stress'], { type: 'local', src: '/games/idle-sea-park/index.html' }, {
+    badge: 'Marine Park',
+    credit: '3D Marine Sanctuary Simulator'
+  }),
+
+  // ---- Group 5: Mood 5 - Great (Grand Estate Renovation, Architectural Freedom & Joy) ----
+  g('designville', 'Designville: Merge & Design', '🏰', 'Merge workshop tools to earn design stars, then restore and decorate a coastal mansion estate.', ['refresh', 'stress'], { type: 'local', src: '/games/designville/index.html' }, {
+    badge: 'Mansion Renovation',
+    credit: 'Designville Estate Decorator'
+  }),
+  g('castawayisland', 'Castaway Island / Tiny Town', '🏝️', 'Click on turquoise water to procedural construct colorful Mediterranean cottages, archways, and piers.', ['refresh', 'sadness'], { type: 'local', src: '/games/castaway-island/index.html' }, {
+    badge: 'Island Builder',
+    credit: 'Procedural Island Town Engine'
+  }),
+  g('soomatch', 'Soo Match: Room Design', '✨', 'Renovate modern skyline penthouses with floor-to-ceiling glass, floating fireplaces, and designer lounges.', ['refresh', 'stress'], { type: 'local', src: '/games/soo-match/index.html' }, {
+    badge: 'Skyline Loft',
+    credit: 'Modern Penthouse Designer'
+  }),
+  g('burgercafestory', 'Burger Cafe Story ASMR', '🍔', 'Slice crisp vegetables, hear patties gently sizzle, and stack gourmet burgers in a cozy cafe.', ['refresh', 'stress'], { type: 'local', src: '/games/burger-cafe-story/index.html' }, {
+    badge: 'ASMR Kitchen',
+    credit: 'Culinary Cooking Simulation'
+  }),
+  g('bubbleshooterhd', 'Bubble Shooter HD', '🔮', 'High-definition glass spheres popping in cascading chain reactions with sparkling celestial feedback.', ['refresh', 'anxiety'], { type: 'local', src: '/games/bubble-shooter-hd/index.html' }, {
+    badge: 'HD Bubble Pop',
+    credit: 'Prismatic Bubble Shooter'
   }),
 
   // =========================================================================
@@ -214,7 +214,7 @@ export const GAME_CATALOG = [
   g('popit', 'Pop-It Fidget Toy', '🧸', 'Press every silicone bubble flat, then flip the board and pop again.', ['stress', 'anger'], { type: 'modal', modal: 'popit' }),
   g('mower', 'Stone Grass Mower', '🚜', 'Satisfying, repetitive lawn mowing that clears mental clutter.', ['stress', 'anger', 'refresh'], { type: 'modal', modal: 'mower' }),
   g('watersortmodal', 'Water Sort Puzzle Modal', '🧪', 'Gently sort soft pastel liquids between glass tubes at your own pace.', ['anxiety', 'refresh'], { type: 'modal', modal: 'watersort' }),
-  g('merge', 'DesignVille Merge', '🏡', 'Merge cozy items to decorate a peaceful dream room.', ['refresh', 'sadness'], { type: 'modal', modal: 'merge' }),
+  g('merge', 'DesignVille Merge Modal', '🏡', 'Merge cozy items to decorate a peaceful dream room.', ['refresh', 'sadness'], { type: 'modal', modal: 'merge' }),
   g('diff', 'Spot the Differences', '🔍', 'Spot subtle details between two peaceful, serene illustrations.', ['refresh'], { type: 'modal', modal: 'diff' }),
   g('catch', 'Catch the Stars', '🌠', 'Slide the basket to catch gentle falling stars.', ['sadness', 'refresh'], { type: 'game', subtype: 'catch' }),
   g('calmgenerator', 'Calm Activity Generator', '🧘', 'Get a simple, gentle mindfulness exercise to try right now.', ['anxiety', 'stress'], { type: 'game', subtype: 'calmgenerator', needsData: true }),
@@ -224,21 +224,21 @@ export const GAME_CATALOG = [
 const byId = Object.fromEntries(GAME_CATALOG.map(game => [game.id, game]))
 
 // Mood value (1 Terrible ... 5 Great) -> EXACTLY 5 recommended game ids.
-// Matches the 25 researched Poki relaxation & brain titles.
+// Matches the 25 CrazyGames relaxing titles.
 export const MOOD_GAME_MAP = {
-  1: ['popitmaster', 'satisbox', 'shapefoldnature', 'watercolor', 'sugarsugar'],
-  2: ['catslovecake', 'infinityloop', 'colorgreen', 'unpuzzle', 'linestofill'],
-  3: ['onetmaster', 'shapefoldanimals', 'colorblue', 'blockyblast', 'unpuzzler'],
-  4: ['factoryballs', 'game2048', 'colorpink', 'minitrain', 'nonogram'],
-  5: ['braintest', 'dualcat', 'freethekey', 'shenzhenmahjong', 'colororange']
+  1: ['makeoverasmr', 'smartybubbles', 'growyourhome', 'stickerart', 'fluidsimulation'],
+  2: ['roombox', 'botanica', 'aquariumtycoon', 'yarnfever', 'sproutvalley'],
+  3: ['goodsmatch3d', 'potterymaster', 'homemakeover', 'numicolor', 'scandinavianmahjong'],
+  4: ['homedesign', 'bloominggardens', 'pieceofcake', 'colormatch', 'idleseapark'],
+  5: ['designville', 'castawayisland', 'soomatch', 'burgercafestory', 'bubbleshooterhd']
 }
 
 export const MOOD_GAME_THEMES = {
-  1: { headline: 'Deep Sensory Relief & Tension Release', blurb: 'Tactile bubble popping, satisfying tidying, and gentle water sorting to ease high stress and heavy feelings.' },
-  2: { headline: 'Comfort, Cozy Joy & Untangling', blurb: 'Cute bouncing cats, glowing infinity loops, and gentle reverse puzzles to softly lift a low mood.' },
-  3: { headline: 'Grounding Flow & Mental Refreshment', blurb: 'Refreshing fruit tile connections, origami animal folding, and cozy block placement to clear brain fog.' },
-  4: { headline: 'Mindful Joy & Creative Craft', blurb: 'Designer factory balls, hypnotic 2048 number merges, and toy train construction for positive momentum.' },
-  5: { headline: 'Vibrant Play & Whimsical Celebration', blurb: 'Whimsical cartoon brain riddles, co-op kitten adventures, and zen mahjong to celebrate great energy!' }
+  1: { headline: 'Sensory Grounding, Tactile ASMR & Tension Release', blurb: 'Deep cleaning restoration, crisp bubble wrap acoustics, windowsill plant misting, and luminous fluid dynamics to melt away acute distress.' },
+  2: { headline: 'Emotional Comfort, Cozy Nurturing & Gentle Solace', blurb: 'Miniature pastel room arranging, exotic greenhouse plant care, peaceful aquarium fish, and warm cat island farming to lift heavy spirits.' },
+  3: { headline: 'Structured Tidying, Mindful Flow & Brain Fog Reset', blurb: 'Satisfying 3D shelf organization, ceramic pottery wheel sculpting, digital canvas coloring, and Nordic hygge tile matching to regain focus.' },
+  4: { headline: 'Creative Interior Design, Floral Gardens & Craft', blurb: 'Luxury room styling, vibrant flowerbed matching, Parisian bakery decoration, and 3D oil paint blending for uplifting momentum.' },
+  5: { headline: 'Grand Estate Renovation, Architectural Freedom & Joy', blurb: 'High-fidelity mansion makeover, procedural 3D island village building, modern penthouse design, and sensory cafe cooking to celebrate great energy!' }
 }
 
 export const getGameById = id => byId[id]

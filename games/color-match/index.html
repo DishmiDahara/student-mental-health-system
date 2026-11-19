@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Color Match 3D Studio</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 12px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #38bdf8; }
+  .easel-box {
+    position: relative; width: 380px; height: 340px; background: #1e293b;
+    border-radius: 28px; border: 3px solid #334155; display: flex;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.6); overflow: hidden;
+  }
+  .target-pane {
+    width: 50%; height: 100%; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; background: #059669; border-right: 2px solid #334155;
+  }
+  .mix-pane {
+    width: 50%; height: 100%; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; transition: background .3s;
+  }
+  .tubes-bar { display: flex; gap: 8px; width: 100%; max-width: 380px; margin-top: 14px; }
+  .tube-btn {
+    flex: 1; border: 2px solid white; border-radius: 12px; padding: 10px 4px; font-weight: 800;
+    font-size: 11px; cursor: pointer; transition: transform .1s; color: white;
+  }
+  .tube-btn:active { transform: scale(0.95); }
+  .tip { margin-top: 12px; font-size: 13.5px; color: #94a3b8; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🎨</span> Color Match 3D</div>
+  <div style="font-size:13px; color:#38bdf8; font-weight:800;" id="matchScore">Match: 0%</div>
+</div>
+<div class="easel-box">
+  <div class="target-pane" id="target">
+    <div style="font-size:60px;">🥑</div>
+    <div style="font-weight:800; font-size:13px; margin-top:6px;">Target Color</div>
+  </div>
+  <div class="mix-pane" id="mixed" style="background: rgb(255,255,255);">
+    <div style="font-size:60px;">🖌️</div>
+    <div style="font-weight:800; font-size:13px; margin-top:6px; color:#0f172a;">Your Palette</div>
+  </div>
+</div>
+<div class="tubes-bar">
+  <button class="tube-btn" style="background:#ef4444;" onclick="addPigment(100, 0, 0)">Red</button>
+  <button class="tube-btn" style="background:#eab308; color:#0f172a;" onclick="addPigment(0, 100, 0)">Yellow</button>
+  <button class="tube-btn" style="background:#3b82f6;" onclick="addPigment(0, 0, 100)">Blue</button>
+  <button class="tube-btn" style="background:#ffffff; color:#0f172a;" onclick="resetPaint()">Reset</button>
+</div>
+<div class="tip" id="tip">Squeeze primary pigment tubes to blend palette and match the avocado green!</div>
+
+<script>
+  let r = 255, g = 255, b = 255;
+  const targetR = 5, targetG = 150, targetB = 105;
+
+  function addPigment(dr, dg, db) {
+    r = Math.max(0, r - dr/2);
+    g = Math.max(0, g + dg/2);
+    b = Math.max(0, b - db/2);
+    const mixed = document.getElementById('mixed');
+    mixed.style.background = `rgb(${r}, ${g}, ${b})`;
+
+    // Score
+    const diff = Math.hypot(r - targetR, g - targetG, b - targetB);
+    const match = Math.max(0, Math.min(100, Math.floor(100 - diff / 3)));
+    document.getElementById('matchScore').textContent = `Match: ${match}%`;
+    if (match >= 85) {
+      document.getElementById('tip').innerHTML = '<span style="color:#38bdf8; font-weight:800; font-size:15px;">🎉 95%+ Precision Match! 3D model spray-painted to perfection!</span>';
+    }
+  }
+
+  function resetPaint() {
+    r = 255; g = 255; b = 255;
+    document.getElementById('mixed').style.background = `rgb(255, 255, 255)`;
+    document.getElementById('matchScore').textContent = `Match: 0%`;
+  }
+</script>
+</body>
+</html>

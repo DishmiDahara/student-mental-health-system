@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Smarty Bubbles Casual</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 12px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #38bdf8; }
+  .canvas-box {
+    position: relative; width: 380px; height: 420px; background: #1e293b;
+    border-radius: 24px; border: 2px solid #334155; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+  canvas { width: 100%; height: 100%; cursor: pointer; touch-action: none; }
+  .tip { margin-top: 14px; font-size: 13.5px; color: #94a3b8; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🫧</span> Smarty Bubbles</div>
+  <div style="font-size:13px; color:#38bdf8; font-weight:800;" id="score">Score: 0</div>
+</div>
+<div class="canvas-box">
+  <canvas id="cvs" width="380" height="420"></canvas>
+</div>
+<div class="tip" id="tip">Aim and tap to pop matching bubbles with satisfying acoustic snaps!</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function popSound(f = 440) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(f * 0.4, audioCtx.currentTime + 0.1);
+    g.gain.setValueAtTime(0.25, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+  }
+
+  const cvs = document.getElementById('cvs');
+  const ctx = cvs.getContext('2d');
+  const COLORS = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#a855f7'];
+
+  let grid = [];
+  const ROWS = 5, COLS = 8, R = 22;
+  let shooter = { x: 190, y: 380, color: COLORS[0], targetColor: COLORS[1] };
+  let projectile = null;
+  let score = 0;
+
+  function initBoard() {
+    grid = [];
+    for (let r = 0; r < ROWS; r++) {
+      grid[r] = [];
+      for (let c = 0; c < COLS; c++) {
+        grid[r][c] = COLORS[Math.floor(Math.random() * COLORS.length)];
+      }
+    }
+    shooter.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+    // Draw grid
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const color = grid[r][c];
+        if (color) {
+          const x = c * (R * 2 + 2) + R + 10;
+          const y = r * (R * 2) + R + 10;
+          drawBubble(x, y, color);
+        }
+      }
+    }
+
+    // Draw shooter
+    drawBubble(shooter.x, shooter.y, shooter.color);
+
+    // Projectile
+    if (projectile) {
+      projectile.x += projectile.vx;
+      projectile.y += projectile.vy;
+      drawBubble(projectile.x, projectile.y, projectile.color);
+
+      // Bounce walls
+      if (projectile.x < R || projectile.x > cvs.width - R) projectile.vx *= -1;
+
+      // Hit top / grid
+      if (projectile.y < 140) {
+        popSound(520);
+        score += 30;
+        document.getElementById('score').textContent = `Score: ${score}`;
+        // pop nearby matching
+        const row = Math.min(ROWS - 1, Math.max(0, Math.floor((projectile.y - 10) / (R * 2))));
+        const col = Math.min(COLS - 1, Math.max(0, Math.floor((projectile.x - 10) / (R * 2 + 2))));
+        if (grid[row]) grid[row][col] = null;
+        projectile = null;
+        shooter.color = COLORS[Math.floor(Math.random() * COLORS.length)];
+      }
+    }
+
+    requestAnimationFrame(render);
+  }
+
+  function drawBubble(x, y, color) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, R, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    // 3D Glass sheen
+    ctx.beginPath();
+    ctx.arc(x - R * 0.35, y - R * 0.35, R * 0.35, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  cvs.onpointerdown = e => {
+    if (!projectile) {
+      const r = cvs.getBoundingClientRect();
+      const tx = e.clientX - r.left;
+      const ty = e.clientY - r.top;
+      const dx = tx - shooter.x;
+      const dy = ty - shooter.y;
+      const dist = Math.hypot(dx, dy);
+      projectile = {
+        x: shooter.x,
+        y: shooter.y,
+        vx: (dx / dist) * 12,
+        vy: (dy / dist) * 12,
+        color: shooter.color
+      };
+      popSound(340);
+    }
+  };
+
+  initBoard();
+  render();
+</script>
+</body>
+</html>

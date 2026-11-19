@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Makeover Cleaning ASMR</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 480px; margin-bottom: 12px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #38bdf8; }
+  .badge { background: rgba(56,189,248,0.15); border: 1px solid #38bdf8; color: #38bdf8; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+  .studio-box {
+    position: relative; width: 440px; height: 380px; background: #1e293b;
+    border-radius: 28px; border: 2px solid #334155; box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+    overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .item-preview {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: radial-gradient(circle at center, #334155 0%, #1e293b 100%);
+  }
+  .clean-canvas {
+    position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; touch-action: none;
+  }
+  .toolbox {
+    display: flex; gap: 10px; width: 100%; max-width: 440px; margin-top: 14px;
+  }
+  .tool-btn {
+    flex: 1; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 14px;
+    padding: 10px 4px; color: white; font-size: 12px; font-weight: 700; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 4px; transition: all .15s;
+  }
+  .tool-btn.active {
+    background: #0284c7; border-color: #38bdf8; box-shadow: 0 0 15px rgba(56,189,248,0.4); transform: translateY(-2px);
+  }
+  .tip { margin-top: 12px; font-size: 13.5px; color: #94a3b8; font-weight: 600; text-align: center; }
+  .sparkle { animation: pulse 1s infinite alternate; }
+  @keyframes pulse { 0% { opacity: 0.6; } 100% { opacity: 1; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🧽</span> Makeover Cleaning ASMR</div>
+  <div class="badge" id="cleanScore">Grime: 100%</div>
+</div>
+<div class="studio-box">
+  <div class="item-preview">
+    <div style="font-size: 110px; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.5));" id="itemIcon">👟</div>
+    <div style="font-size: 15px; font-weight: 800; color: #f8fafc; margin-top: 8px;">Vintage Retro Sneaker</div>
+  </div>
+  <canvas class="clean-canvas" id="cleanCanvas"></canvas>
+</div>
+<div class="toolbox">
+  <button class="tool-btn active" id="toolWash" onclick="selectTool('wash')">
+    <span style="font-size:22px;">🚿</span>
+    <span>Pressure Jet</span>
+  </button>
+  <button class="tool-btn" id="toolSoap" onclick="selectTool('soap')">
+    <span style="font-size:22px;">🫧</span>
+    <span>Foam Soap</span>
+  </button>
+  <button class="tool-btn" id="toolPolish" onclick="selectTool('polish')">
+    <span style="font-size:22px;">✨</span>
+    <span>Buff & Shine</span>
+  </button>
+  <button class="tool-btn" onclick="nextItem()">
+    <span style="font-size:22px;">🔄</span>
+    <span>Next Item</span>
+  </button>
+</div>
+<div class="tip" id="tip">Use the High-Pressure Jet to blast thick mud off the sneaker!</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function playHiss(type = 'water') {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const bufferSize = audioCtx.sampleRate * 0.08;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = type === 'water' ? 'bandpass' : 'lowpass';
+    filter.frequency.value = type === 'water' ? 1200 : 600;
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(audioCtx.destination);
+    noise.start();
+  }
+
+  const cvs = document.getElementById('cleanCanvas');
+  const ctx = cvs.getContext('2d');
+  let currentTool = 'wash';
+  let isDown = false;
+  let clearedPixels = 0;
+  const items = [
+    { icon: '👟', name: 'Vintage Retro Sneaker' },
+    { icon: '🧳', name: 'Vintage Brass Suitcase' },
+    { icon: '🧭', name: 'Antique Nautical Compass' }
+  ];
+  let curItem = 0;
+
+  function initGrime() {
+    cvs.width = cvs.offsetWidth;
+    cvs.height = cvs.offsetHeight;
+    ctx.fillStyle = 'rgba(74, 52, 34, 0.94)'; // Mud / Grime layer
+    ctx.fillRect(0, 0, cvs.width, cvs.height);
+    // Draw grimy texture spots
+    for (let i = 0; i < 40; i++) {
+      ctx.fillStyle = 'rgba(40, 25, 15, 0.9)';
+      ctx.beginPath();
+      ctx.arc(Math.random() * cvs.width, Math.random() * cvs.height, 15 + Math.random() * 30, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    clearedPixels = 0;
+    document.getElementById('cleanScore').textContent = 'Grime: 100%';
+  }
+
+  function selectTool(t) {
+    currentTool = t;
+    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+    if (t === 'wash') document.getElementById('toolWash').classList.add('active');
+    if (t === 'soap') document.getElementById('toolSoap').classList.add('active');
+    if (t === 'polish') document.getElementById('toolPolish').classList.add('active');
+  }
+
+  function cleanAt(x, y) {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    const rad = currentTool === 'wash' ? 32 : (currentTool === 'soap' ? 45 : 25);
+    ctx.arc(x, y, rad, 0, Math.PI * 2);
+    ctx.fill();
+    clearedPixels += 1;
+    playHiss(currentTool);
+    const pct = Math.max(0, 100 - Math.floor(clearedPixels / 2.5));
+    document.getElementById('cleanScore').textContent = `Grime: ${pct}%`;
+    if (pct <= 5) {
+      document.getElementById('cleanScore').textContent = '✨ Pristine 100%';
+      document.getElementById('tip').innerHTML = '<span style="color:#38bdf8; font-weight:800; font-size:15px;">🎉 Deep restoration complete! Sparkling brand new!</span>';
+    }
+  }
+
+  cvs.onpointerdown = e => { isDown = true; cleanAt(e.offsetX, e.offsetY); };
+  cvs.onpointermove = e => { if (isDown) cleanAt(e.offsetX, e.offsetY); };
+  window.onpointerup = () => isDown = false;
+
+  function nextItem() {
+    curItem = (curItem + 1) % items.length;
+    document.getElementById('itemIcon').textContent = items[curItem].icon;
+    initGrime();
+  }
+
+  window.onload = initGrime;
+</script>
+</body>
+</html>

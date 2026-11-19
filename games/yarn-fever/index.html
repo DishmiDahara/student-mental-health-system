@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Yarn Fever! Unravel Puzzle</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #1e1b4b; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 12px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #f472b6; }
+  .yarn-box {
+    position: relative; width: 380px; height: 380px; background: #2e1065;
+    border-radius: 28px; border: 3px solid #f472b6; box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+  canvas { width: 100%; height: 100%; cursor: pointer; }
+  .tip { margin-top: 14px; font-size: 13.5px; color: #fbcfe8; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>🧶</span> Yarn Fever!</div>
+  <div style="font-size:13px; color:#f472b6; font-weight:800;" id="yarnProg">Unraveled: 0%</div>
+</div>
+<div class="yarn-box">
+  <canvas id="cvs" width="380" height="380"></canvas>
+</div>
+<div class="tip" id="tip">Tap and pull the soft wool pins to untangle overlapping threads!</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function woolSnap() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(320, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(540, audioCtx.currentTime + 0.12);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.12);
+  }
+
+  const cvs = document.getElementById('cvs');
+  const ctx = cvs.getContext('2d');
+
+  let pins = [
+    { x: 100, y: 100, color: '#f472b6' },
+    { x: 280, y: 120, color: '#38bdf8' },
+    { x: 250, y: 280, color: '#a78bfa' },
+    { x: 90, y: 270, color: '#34d399' }
+  ];
+
+  let draggingPin = null;
+
+  function render() {
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+    // Wool thread lines
+    ctx.lineWidth = 10;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#f472b6';
+    ctx.beginPath();
+    ctx.moveTo(pins[0].x, pins[0].y);
+    ctx.lineTo(pins[2].x, pins[2].y);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.moveTo(pins[1].x, pins[1].y);
+    ctx.lineTo(pins[3].x, pins[3].y);
+    ctx.stroke();
+
+    // Pins
+    pins.forEach((p, i) => {
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    });
+  }
+
+  cvs.onpointerdown = e => {
+    const r = cvs.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    pins.forEach((p, i) => {
+      if (Math.hypot(x - p.x, y - p.y) < 25) draggingPin = i;
+    });
+  };
+
+  cvs.onpointermove = e => {
+    if (draggingPin !== null) {
+      const r = cvs.getBoundingClientRect();
+      pins[draggingPin].x = Math.max(30, Math.min(350, e.clientX - r.left));
+      pins[draggingPin].y = Math.max(30, Math.min(350, e.clientY - r.top));
+      render();
+    }
+  };
+
+  window.onpointerup = () => {
+    if (draggingPin !== null) {
+      woolSnap();
+      draggingPin = null;
+      document.getElementById('yarnProg').textContent = 'Unraveled: 100%';
+      document.getElementById('tip').innerHTML = '<span style="color:#f472b6; font-weight:800; font-size:15px;">🧶 Knitted into a warm cozy sweater! So calming.</span>';
+    }
+  };
+
+  render();
+</script>
+</body>
+</html>

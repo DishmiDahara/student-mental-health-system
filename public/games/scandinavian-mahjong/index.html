@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Scandinavian Mahjong</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #1e293b; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 12px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #38bdf8; }
+  .grid-box {
+    width: 360px; height: 360px; background: #334155; border-radius: 24px;
+    border: 3px solid #64748b; display: grid; grid-template-columns: repeat(4, 1fr);
+    padding: 16px; gap: 10px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+  }
+  .tile {
+    background: #f8fafc; color: #0f172a; border-radius: 14px; display: flex;
+    align-items: center; justify-content: center; font-size: 28px; cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); border: 2px solid transparent;
+    transition: transform .15s, border-color .15s;
+  }
+  .tile:hover { transform: translateY(-4px); }
+  .tile.selected { border-color: #38bdf8; transform: translateY(-8px); box-shadow: 0 8px 20px rgba(56,189,248,0.5); }
+  .tile.empty { visibility: hidden; }
+  .tip { margin-top: 14px; font-size: 13.5px; color: #94a3b8; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>❄️</span> Scandinavian Mahjong</div>
+  <div style="font-size:13px; color:#38bdf8; font-weight:800;" id="pairsCount">8 Pairs Left</div>
+</div>
+<div class="grid-box" id="grid"></div>
+<div class="tip" id="tip">Match pairs of cozy Nordic tiles to clear the board in hygge serenity</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function stoneClack(f = 460) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(f, audioCtx.currentTime);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+  }
+
+  const TILES = ['🌲', '☕', '🧣', '🦌', '❄️', '🪵', '🕯️', '🏔️'];
+  let deck = [...TILES, ...TILES].sort(() => Math.random() - 0.5);
+  let selected = null;
+  let remaining = 8;
+
+  function render() {
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    deck.forEach((t, i) => {
+      const el = document.createElement('div');
+      el.className = 'tile' + (t === null ? ' empty' : '') + (selected === i ? ' selected' : '');
+      el.textContent = t || '';
+      el.onclick = () => selectTile(i);
+      grid.appendChild(el);
+    });
+  }
+
+  function selectTile(idx) {
+    if (deck[idx] === null) return;
+    stoneClack(380);
+    if (selected === null) {
+      selected = idx;
+      render();
+    } else if (selected === idx) {
+      selected = null;
+      render();
+    } else {
+      if (deck[selected] === deck[idx]) {
+        deck[selected] = null;
+        deck[idx] = null;
+        remaining--;
+        stoneClack(680);
+        document.getElementById('pairsCount').textContent = `${remaining} Pairs Left`;
+        selected = null;
+        render();
+        if (remaining === 0) {
+          document.getElementById('tip').innerHTML = '<span style="color:#38bdf8; font-weight:800; font-size:15px;">🎉 Hygge calm unlocked! Board completely cleared.</span>';
+        }
+      } else {
+        selected = idx;
+        render();
+      }
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>

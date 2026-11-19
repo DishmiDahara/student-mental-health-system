@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Sticker Art Scrapbook</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+  body {
+    background: #1e1b4b; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: white; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+  }
+  .header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 440px; margin-bottom: 12px; }
+  .title { font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px; color: #f472b6; }
+  .canvas-box {
+    position: relative; width: 380px; height: 360px; background: #fdf4ff;
+    border-radius: 24px; border: 4px solid #f472b6; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+  .sticker-palette {
+    display: flex; gap: 14px; margin-top: 14px; background: rgba(255,255,255,0.08);
+    padding: 10px 18px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);
+  }
+  .sticker-chip {
+    font-size: 38px; cursor: pointer; transition: transform .15s;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  }
+  .sticker-chip:hover { transform: scale(1.15) rotate(6deg); }
+  .placed-sticker {
+    position: absolute; font-size: 44px; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.25));
+    cursor: grab;
+  }
+  .tip { margin-top: 12px; font-size: 13.5px; color: #e879f9; font-weight: 600; text-align: center; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="title"><span>✨</span> Sticker Art Studio</div>
+  <div style="font-size:13px; color:#f472b6; font-weight:800;">Cozy Scrapbook</div>
+</div>
+<div class="canvas-box" id="board">
+  <div style="position:absolute; top:20px; left:20px; color:#d946ef; font-weight:800; font-size:16px;">📖 Dream Journal Canvas</div>
+</div>
+<div class="sticker-palette">
+  <div class="sticker-chip" onclick="placeSticker('🌸')">🌸</div>
+  <div class="sticker-chip" onclick="placeSticker('🐱')">🐱</div>
+  <div class="sticker-chip" onclick="placeSticker('⭐')">⭐</div>
+  <div class="sticker-chip" onclick="placeSticker('☕')">☕</div>
+  <div class="sticker-chip" onclick="placeSticker('🌈')">🌈</div>
+</div>
+<div class="tip" id="tip">Tap any cute sticker from the bottom sheet to paste it onto the scrapbook!</div>
+
+<script>
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  function peelSnap() {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.frequency.setValueAtTime(650, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(350, audioCtx.currentTime + 0.1);
+    g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+  }
+
+  const board = document.getElementById('board');
+  let count = 0;
+
+  function placeSticker(emoji) {
+    peelSnap();
+    const el = document.createElement('div');
+    el.className = 'placed-sticker';
+    el.textContent = emoji;
+    el.style.left = (40 + (count % 4) * 75 + Math.random() * 20) + 'px';
+    el.style.top = (60 + Math.floor(count / 4) * 80 + Math.random() * 20) + 'px';
+    board.appendChild(el);
+    count++;
+    if (count >= 5) {
+      document.getElementById('tip').innerHTML = '<span style="color:#f472b6; font-weight:800; font-size:15px;">💖 Beautiful scrapbook page complete! Hugely satisfying.</span>';
+    }
+  }
+</script>
+</body>
+</html>
