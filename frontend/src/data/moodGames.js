@@ -1,20 +1,9 @@
 // ---------------------------------------------------------------------------
-// MindSpace - Mood-Based Relaxing Games catalog
+// MindSpace - Mood-Based Relaxing Games Catalog
 //
-// Single source of truth for every game that can be launched from the Mood
-// page. Nothing here renders a game - each entry only DESCRIBES how the
-// existing MoodTracker launchers (launchGame / 3D / modal) or the new local
-// open-source iframe games should be opened.
-//
-// launch.type:
-//   'game'  -> launchGame(subtype)           (standard in-page game modal)
-//   '3d'    -> setActive3DGame(key)          (Three.js WebGL scenes)
-//   'modal' -> one of the dedicated dark modals (merge, diff, mower, popit, watersort)
-//   'local' -> open-source game hosted in /public/games/<id>/ shown in an iframe
-//
-// launch.needsData: the game's renderer needs a data payload (puzzle board,
-// quiz question, ...). MoodTracker supplies it from the live backend response
-// when available, otherwise from buildGameData() below.
+// Single source of truth for genuine relaxing games.
+// All brain-training, chess, math, and competitive quizzes are removed.
+// Every game here is a calming, tactile, soothing, or meditative experience.
 // ---------------------------------------------------------------------------
 
 export const NEEDS = {
@@ -30,112 +19,109 @@ export const NEED_ORDER = ['stress', 'sadness', 'anxiety', 'anger', 'refresh']
 const g = (id, title, icon, desc, needs, launch, extra = {}) => ({ id, title, icon, desc, needs, launch, ...extra })
 
 export const GAME_CATALOG = [
-  // ---- Calming & release games (standard modal) ----
-  g('bubbles', 'Zen Bubble Popper', '🫧', 'Pop soft bubbles one by one to release built-up tension.', ['stress', 'anxiety'], { type: 'game', subtype: 'bubbles' }),
-  g('balloon', 'Worry Balloon Release', '🎈', 'Write a worry on a balloon, then pop it and let it go.', ['anxiety', 'stress'], { type: 'game', subtype: 'balloon' }),
-  g('whack', 'Whack-A-Stress', '🔨', 'Safely vent frustration by tapping popping stress monsters.', ['anger', 'stress'], { type: 'game', subtype: 'whack' }),
-  g('breathing', 'Guided Breathing', '🌬️', 'Follow the expanding circle for slow, steady box-breathing.', ['anxiety', 'stress'], { type: 'game', subtype: 'breathing' }),
-  g('affirmation', 'Affirmation Spinner', '🎡', 'Spin the wheel to draw a kind, positive message for today.', ['sadness'], { type: 'game', subtype: 'affirmation' }),
-  g('safespace', 'Safe Space Story', '🏡', 'Choose the details that build your own peaceful dream place.', ['sadness', 'anxiety'], { type: 'game', subtype: 'safespace' }),
-  g('garden', 'Zen Garden Builder', '🌸', 'Plant flowers and place stones in raked sand at your own pace.', ['sadness', 'refresh'], { type: 'game', subtype: 'garden' }),
-  g('gratitude', 'Gratitude Garden', '🌻', 'Plant a flower for every thing you feel thankful for.', ['sadness'], { type: 'game', subtype: 'gratitude' }),
-  g('pet', 'Virtual Zen Pet', '🐱', 'Feed, clean and cuddle a gentle virtual kitten.', ['sadness'], { type: 'game', subtype: 'pet' }),
-  g('coloring', 'Coloring Book', '🎨', 'Paint calming templates and let your mind slow down.', ['refresh', 'sadness'], { type: 'game', subtype: 'coloring' }),
-  g('doodler', 'Zen Doodler', '✏️', 'A pastel canvas to sketch freely and let go of racing thoughts.', ['stress', 'refresh'], { type: 'game', subtype: 'doodler' }),
-  g('nature', 'Nature Sound Mixer', '🌲', 'Blend rain, waves, wind and a crackling campfire.', ['anxiety', 'refresh'], { type: 'game', subtype: 'nature' }),
-  g('soundboard', 'Calm Sound Board', '🎵', 'Play soft synthesized tones, rain and ocean swells.', ['anxiety', 'refresh'], { type: 'game', subtype: 'soundboard' }),
-  g('memory', 'Zen Memory Match', '🧩', 'Match pairs of peaceful icons to gently focus the mind.', ['refresh', 'anxiety'], { type: 'game', subtype: 'memory' }),
-
-  // ---- Open-source games hosted locally (new) ----
-  g('fluid', 'Calm Fluid Canvas', '🌈', 'Swirl glowing colour through water with your finger or mouse.', ['stress', 'anxiety'], { type: 'local', src: '/games/fluid/index.html' }, {
-    badge: 'Open source',
+  // ---- New Real Open-Source Relaxing Games (Locally Hosted) ----
+  g('zengarden', 'Zen Sand Garden', '🪨', 'Rake dry sand into ripples around meditation stones with soothing raking acoustics.', ['refresh', 'sadness', 'stress'], { type: 'local', src: '/games/zen-garden/index.html' }, {
+    badge: 'Zen Garden',
+    credit: 'Karesansui Sand Raking Simulator (MIT License)'
+  }),
+  g('koipond', 'Interactive Koi Pond', '🐟', 'Gentle Japanese Nishikigoi swimming with natural water ripples; tap to drop food.', ['sadness', 'refresh', 'anxiety'], { type: 'local', src: '/games/koi-pond/index.html' }, {
+    badge: 'Aquatic',
+    credit: 'Procedural Koi Flocking & Water Refraction (MIT License)'
+  }),
+  g('bubblewrap', 'Tactile Bubble Wrap', '🫧', 'Pop realistic plastic bubbles with authentic crisp acoustic snaps to relieve tension.', ['stress', 'anxiety', 'anger'], { type: 'local', src: '/games/bubble-wrap/index.html' }, {
+    badge: 'Tactile',
+    credit: 'Tactile Bubble Wrap Simulator (MIT License)'
+  }),
+  g('waterripples', 'Interactive Water Ripples', '💧', 'A responsive liquid pool surface that casts concentric refractive waves and raindrops.', ['anxiety', 'stress', 'refresh'], { type: 'local', src: '/games/water-ripples/index.html' }, {
+    badge: 'Hydrodynamics',
+    credit: 'Interactive Wave Propagation (MIT License)'
+  }),
+  g('fallingsand', 'Falling Sand Physics', '⏳', 'Creative elemental particle sandbox: pour sand, stream water, sprout plants, and watch soothing physics.', ['anxiety', 'refresh', 'stress'], { type: 'local', src: '/games/falling-sand/index.html' }, {
+    badge: 'Physics',
+    credit: 'Falling Sand Cellular Automata (MIT License)'
+  }),
+  g('harmony', 'Procedural Harmony Sketch', '🎨', 'Mr.doob procedural sketching with fluid ribbons, sketchy pencils, and web filaments.', ['refresh', 'sadness', 'anxiety'], { type: 'local', src: '/games/harmony/index.html' }, {
+    badge: 'Generative Art',
+    credit: 'Harmony Procedural Sketcher by Mr.doob (MIT License)'
+  }),
+  g('garten', 'Botanical Garden Bloom', '🌸', 'Plant seeds in fertile earth that organically sprout branching stems and blooming wildflowers.', ['sadness', 'refresh', 'anxiety'], { type: 'local', src: '/games/garten/index.html' }, {
+    badge: 'Nature',
+    credit: 'Procedural Botanical Growth Engine (MIT License)'
+  }),
+  g('cloth', 'Tearable Silk Cloth', '🧵', 'Interactive soft-body fabric floating in a breeze; stretch, ripple, and slice threads.', ['anger', 'stress', 'anxiety'], { type: 'local', src: '/games/cloth/index.html' }, {
+    badge: 'Soft-Body',
+    credit: 'Verlet Cloth Simulation by Dissimulate (MIT License)'
+  }),
+  g('pottery', 'Virtual Pottery Wheel', '🏺', 'Spin the turntable and gently press into soft wet clay to shape vases and ceramic bowls.', ['refresh', 'anxiety', 'stress'], { type: 'local', src: '/games/pottery/index.html' }, {
+    badge: 'Ceramics',
+    credit: 'Lathe Geometry Mesh Deformation (MIT License)'
+  }),
+  g('aquarium', 'Virtual Coral Aquarium', '🐠', 'Underwater tropical coral sanctuary with swimming clownfish, god rays, and floating bubbles.', ['sadness', 'refresh', 'anxiety'], { type: 'local', src: '/games/aquarium/index.html' }, {
+    badge: 'Marine',
+    credit: 'Coral Reef Sanctuary Simulation (MIT/BSD License)'
+  }),
+  g('fluid', 'Calm Fluid Canvas', '🌈', 'Swirl glowing fluid dynamics across dark velvet with your finger or mouse.', ['stress', 'anxiety', 'refresh'], { type: 'local', src: '/games/fluid/index.html' }, {
+    badge: 'Fluid Dynamics',
     credit: 'WebGL Fluid Simulation by Pavel Dobryakov (MIT License)'
   }),
-  g('floodit', 'Colour Flood', '🔵', 'Fill the board with a single colour in as few calm moves as you can.', ['anxiety', 'refresh'], { type: 'local', src: '/games/floodit/index.html' }, {
-    badge: 'Open source',
+  g('floodit', 'Colour Flood', '🔵', 'Fill the board with a single calming colour in as few gentle moves as you like.', ['anxiety', 'refresh'], { type: 'local', src: '/games/floodit/index.html' }, {
+    badge: 'Color Flow',
     credit: 'FloodIt by Thijs van As (MIT License)'
   }),
 
-  // ---- 3D WebGL worlds ----
-  g('starfield', '3D Cosmic Starfield', '🌌', 'Drift through a glowing particle universe. Drag to look around.', ['anxiety', 'refresh'], { type: '3d', key: 'starfield' }, { badge: '3D' }),
+  // ---- Calming & Release MindSpace Mini-Games ----
+  g('breathing', 'Guided Box Breathing', '🌬️', 'Follow the expanding resonant circle for slow, grounding 4-4-4-4 box breathing.', ['anxiety', 'stress'], { type: 'game', subtype: 'breathing' }),
+  g('balloon', 'Worry Balloon Release', '🎈', 'Write a worry on a balloon, then pop it and let it float into the sunset.', ['anxiety', 'stress'], { type: 'game', subtype: 'balloon' }),
+  g('bubbles', 'Zen Bubble Popper', '🫧', 'Pop soft pastel bubbles one by one to release built-up physical tension.', ['stress', 'anxiety'], { type: 'game', subtype: 'bubbles' }),
+  g('whack', 'Whack-A-Stress', '🔨', 'Safely vent frustration by gently tapping popping stress critters.', ['anger', 'stress'], { type: 'game', subtype: 'whack' }),
+  g('pet', 'Virtual Zen Pet', '🐱', 'Feed, brush and cuddle a gentle virtual kitten for instant comfort.', ['sadness'], { type: 'game', subtype: 'pet' }),
+  g('coloring', 'Coloring Book', '🎨', 'Paint calming templates and let your thoughts slow down.', ['refresh', 'sadness'], { type: 'game', subtype: 'coloring' }),
+  g('nature', 'Nature Sound Mixer', '🌲', 'Blend rain, ocean waves, forest wind and a crackling campfire.', ['anxiety', 'refresh'], { type: 'game', subtype: 'nature' }),
+  g('soundboard', 'Calm Sound Board', '🎵', 'Play soft synthesized musical tones and ocean swells.', ['anxiety', 'refresh'], { type: 'game', subtype: 'soundboard' }),
+  g('doodler', 'Zen Doodler', '✏️', 'A pastel canvas to sketch freely without judgment.', ['stress', 'refresh'], { type: 'game', subtype: 'doodler' }),
+  g('safespace', 'Safe Space Story', '🏡', 'Choose sensory details to construct your own peaceful sanctuary.', ['sadness', 'anxiety'], { type: 'game', subtype: 'safespace' }),
+  g('gratitude', 'Gratitude Garden', '🌻', 'Plant a blossom for every small thing you feel thankful for today.', ['sadness'], { type: 'game', subtype: 'gratitude' }),
+  g('affirmation', 'Affirmation Spinner', '🎡', 'Spin the wheel to receive a kind, comforting reminder.', ['sadness'], { type: 'game', subtype: 'affirmation' }),
+
+  // ---- 3D Relaxation Zone WebGL Worlds ----
+  g('starfield', '3D Cosmic Starfield', '🌌', 'Drift through a glowing deep-space nebula in 360° celestial peace.', ['anxiety', 'refresh'], { type: '3d', key: 'starfield' }, { badge: '3D' }),
+  g('sakura', '3D Sakura Sanctuary', '🌸', 'A Japanese temple pagoda with cherry blossom petals falling gently around you.', ['sadness', 'refresh'], { type: '3d', key: 'sakura' }, { badge: '3D' }),
   g('water', '3D Water Ripples', '🌊', 'A kinetic liquid pool that ripples wherever you touch.', ['stress', 'refresh'], { type: '3d', key: 'water' }, { badge: '3D' }),
-  g('sakura', '3D Sakura Sanctuary', '🌸', 'A cherry tree with petals falling softly around you.', ['sadness', 'refresh'], { type: '3d', key: 'sakura' }, { badge: '3D' }),
-  g('crystal', '3D Breathing Crystal', '🔮', 'Breathe in time with a slowly pulsing glass orb.', ['anxiety', 'stress'], { type: '3d', key: 'crystal' }, { badge: '3D' }),
-  g('saturn', '3D Saturn & Moons', '🪐', 'Watch moons orbit a ringed planet in peaceful silence.', ['refresh', 'anxiety'], { type: '3d', key: 'saturn' }, { badge: '3D' }),
-  g('autumn', '3D Autumn Forest', '🍃', 'Golden leaves drifting on a gentle breeze.', ['sadness', 'refresh'], { type: '3d', key: 'autumn' }, { badge: '3D' }),
-  g('prism', '3D Prism Kaleidoscope', '💎', 'Rainbow light beams bending through a crystal prism.', ['refresh', 'stress'], { type: '3d', key: 'prism' }, { badge: '3D' }),
-  g('warp', '3D Quantum Warp Tunnel', '🚀', 'A smooth infinite spiral of light to zone out to.', ['stress', 'anxiety'], { type: '3d', key: 'warp' }, { badge: '3D' }),
+  g('crystal', '3D Breathing Crystal', '🔮', 'Breathe in time with a slowly pulsing glowing glass orb.', ['anxiety', 'stress'], { type: '3d', key: 'crystal' }, { badge: '3D' }),
+  g('saturn', '3D Saturn & Moons', '🪐', 'Watch celestial moons orbit a ringed planet in tranquil silence.', ['refresh', 'anxiety'], { type: '3d', key: 'saturn' }, { badge: '3D' }),
+  g('autumn', '3D Autumn Forest', '🍃', 'Golden leaves drifting lazily in a quiet autumn breeze.', ['sadness', 'refresh'], { type: '3d', key: 'autumn' }, { badge: '3D' }),
+  g('prism', '3D Prism Kaleidoscope', '💎', 'Rainbow light beams bending through a multifaceted crystal prism.', ['refresh', 'stress'], { type: '3d', key: 'prism' }, { badge: '3D' }),
+  g('warp', '3D Quantum Warp Tunnel', '🚀', 'A smooth infinite spiral of soft light to quietly zone out to.', ['stress', 'anxiety'], { type: '3d', key: 'warp' }, { badge: '3D' }),
 
-  // ---- Satisfying toys & building games (dedicated modals) ----
-  g('popit', 'Pop-It Fidget Toy', '🧸', 'Press every bubble flat, then flip the board and start again.', ['stress', 'anger'], { type: 'modal', modal: 'popit' }),
-  g('mower', 'Stone Grass Mower', '🚜', 'Satisfying, repetitive lawn cutting that clears the mind.', ['stress', 'anger'], { type: 'modal', modal: 'mower' }),
-  g('watersort', 'Water Sort Puzzle', '🧪', 'Sort colourful liquids into tubes - slow, quiet, satisfying.', ['anxiety', 'refresh'], { type: 'modal', modal: 'watersort' }),
-  g('merge', 'DesignVille Merge', '🏡', 'Merge items to decorate your dream room piece by piece.', ['refresh', 'sadness'], { type: 'modal', modal: 'merge' }),
-  g('diff', 'Spot the Differences', '🔍', 'Find the hidden differences between two peaceful scenes.', ['refresh'], { type: 'modal', modal: 'diff' }),
-
-  // ---- Light arcade & classic games ----
-  g('catch', 'Catch the Stars', '🌠', 'Slide the basket to catch falling stars and lift your mood.', ['sadness', 'refresh'], { type: 'game', subtype: 'catch' }),
-  g('flappy', 'Flappy Bird', '🐦', 'Tap to flap through the gaps and enjoy a playful challenge.', ['refresh'], { type: 'game', subtype: 'flappy' }),
-  g('bricks', 'Brick Breaker', '🧱', 'Bounce the ball and smash bricks to burn off frustration.', ['anger', 'stress'], { type: 'game', subtype: 'bricks' }),
-  g('clicktest', 'Click Speed Test', '⚡', 'Tap as fast as you can for five seconds to burn off energy.', ['anger', 'stress'], { type: 'game', subtype: 'clicktest' }),
-  g('2048', '2048', '🔢', 'Slide and merge numbered tiles - a calm, absorbing puzzle.', ['refresh', 'anxiety'], { type: 'game', subtype: '2048' }),
-  g('snake', 'Snake', '🐍', 'Guide the snake to food without touching the walls.', ['stress'], { type: 'game', subtype: 'snake' }),
-  g('minesweeper', 'Minesweeper', '💣', 'Reveal safe tiles with quiet concentration.', ['anxiety'], { type: 'game', subtype: 'minesweeper' }),
-  g('tictactoe', 'Tic-Tac-Toe', '❌', 'A relaxed game of Tic-Tac-Toe against a gentle AI.', ['refresh'], { type: 'game', subtype: 'tictactoe' }),
-  g('connect4', 'Connect Four', '🔴', 'Drop chips to line up four in a row.', ['refresh'], { type: 'game', subtype: 'connect4' }),
-  g('rps', 'Rock Paper Scissors', '✊', 'The classic hand game against the computer.', ['refresh'], { type: 'game', subtype: 'rps' }),
-  g('hangman', 'Hangman', '😵', 'Guess the hidden word one letter at a time.', ['refresh'], { type: 'game', subtype: 'hangman' }),
-  g('wordbuilder', 'Word Builder', '🔤', 'Combine letter blocks to build calming words.', ['refresh', 'anxiety'], { type: 'game', subtype: 'wordbuilder' }),
-  g('wordsearch', 'Mindful Word Search', '🔍', 'Find hidden words of peace and hope in a letter grid.', ['anxiety', 'refresh'], { type: 'game', subtype: 'wordsearch' }),
-  g('simon', 'Simon Memory', '🧠', 'Repeat the flashing sequence of colours.', ['refresh'], { type: 'game', subtype: 'simon' }),
-  g('trivia', 'Trivia Quiz', '❓', 'Answer friendly questions about mind and wellbeing.', ['refresh'], { type: 'game', subtype: 'trivia' }),
-  g('mathquiz', 'Math Speed Quiz', '➕', 'Solve quick sums - a focused way to quiet racing thoughts.', ['anxiety'], { type: 'game', subtype: 'mathquiz' }),
-  g('colormatch', 'Color Reflex Match', '🎯', 'Match the colour name with the colour of the text.', ['refresh'], { type: 'game', subtype: 'colormatch' }),
-  g('wouldyourather', 'Would You Rather?', '⚖️', 'Pick between two light-hearted choices.', ['refresh'], { type: 'game', subtype: 'wouldyourather' }),
-  g('higherlower', 'Higher or Lower', '🃏', 'Guess whether the next card is higher or lower.', ['refresh'], { type: 'game', subtype: 'higherlower' }),
-  g('guessnumber', 'Guess the Number', '🎲', 'Find the secret number between 1 and 10.', ['refresh'], { type: 'game', subtype: 'guessnumber' }),
-  g('coinflip', 'Coin Flipper', '🪙', 'Call heads or tails and flip the coin.', ['refresh'], { type: 'game', subtype: 'coinflip' }),
-  g('slots', 'Emoji Slot Machine', '🎰', 'Spin the reels to match three emojis. Just for fun.', ['refresh'], { type: 'game', subtype: 'slots' }),
-
-  // ---- Puzzles & brain games (need puzzle data) ----
-  g('chess', 'Chess Puzzle', '👑', 'Solve a tactical chess puzzle at your own pace.', ['refresh'], { type: 'game', subtype: 'chess', needsData: true }),
-  g('sudoku', 'Sudoku', '🔢', 'Fill the grid so every row, column and box has 1 to 9.', ['anxiety', 'refresh'], { type: 'game', subtype: 'sudoku', needsData: true }),
-  g('crossword', 'Mindful Crossword', '📰', 'Solve word clues about calm, peace and mindfulness.', ['refresh'], { type: 'game', subtype: 'crossword', needsData: true }),
-  g('scramble', 'Word Scramble', '🔡', 'Unscramble the letters to find the hidden word.', ['refresh'], { type: 'game', subtype: 'scramble', needsData: true }),
-  g('numbersequence', 'Number Sequence', '📈', 'Spot the pattern and find the missing number.', ['anxiety', 'refresh'], { type: 'game', subtype: 'numbersequence', needsData: true }),
-  g('logicpuzzle', 'Logic Riddle', '💡', 'Think through a gentle riddle.', ['refresh'], { type: 'game', subtype: 'logicpuzzle', needsData: true }),
-  g('speedmath', 'Speed Math', '🧮', 'Answer rapid-fire sums to sharpen your focus.', ['refresh'], { type: 'game', subtype: 'speedmath', needsData: true }),
-  g('visualmemory', 'Visual Memory', '🔲', 'Remember and repeat the flashed grid sequence.', ['refresh'], { type: 'game', subtype: 'visualmemory', needsData: true }),
-  g('patternmatch', 'Pattern Match', '📊', 'Guess the missing shape in the pattern.', ['refresh'], { type: 'game', subtype: 'patternmatch', needsData: true }),
-  g('nonogram', 'Nonogram', '🖼️', 'Paint cells using number clues to reveal a hidden picture.', ['anxiety', 'refresh'], { type: 'game', subtype: 'nonogram', needsData: true }),
-  g('kakuro', 'Kakuro', '➕', 'Solve a small cross-sum number puzzle.', ['refresh'], { type: 'game', subtype: 'kakuro', needsData: true }),
-  g('jigsaw', 'Jigsaw Puzzle', '🧩', 'Swap pieces to assemble a calm picture.', ['sadness', 'refresh'], { type: 'game', subtype: 'jigsaw', needsData: true }),
-  g('shapesort', 'Shape Sort', '📐', 'Match each shape to its matching slot.', ['sadness', 'refresh'], { type: 'game', subtype: 'shapesort', needsData: true }),
-  g('relaxmatch', 'Relax Match', '🍃', 'Match calming pairs to soften the mind.', ['sadness', 'refresh'], { type: 'game', subtype: 'relaxmatch', needsData: true }),
-  g('zenpuzzle', 'Zen Sliding Puzzle', '🪷', 'Slide the blocks back into zen order.', ['sadness', 'refresh'], { type: 'game', subtype: 'zenpuzzle', needsData: true }),
-  g('emotionmatch', 'Emotion Match', '😊', 'Match pairs of emotional expressions.', ['sadness', 'anxiety'], { type: 'game', subtype: 'emotionmatch', needsData: true }),
-  g('positivequotes', 'Positive Quotes', '💬', 'Savour a random uplifting quote.', ['sadness'], { type: 'game', subtype: 'positivequotes', needsData: true }),
-  g('calmgenerator', 'Calm Activity Generator', '🧘', 'Get a simple, gentle exercise to try right now.', ['anxiety', 'stress'], { type: 'game', subtype: 'calmgenerator', needsData: true })
+  // ---- Dedicated Tactile Relaxation Modals ----
+  g('popit', 'Pop-It Fidget Toy', '🧸', 'Press every silicone bubble flat, then flip the board and pop again.', ['stress', 'anger'], { type: 'modal', modal: 'popit' }),
+  g('mower', 'Stone Grass Mower', '🚜', 'Satisfying, repetitive lawn mowing that clears mental clutter.', ['stress', 'anger', 'refresh'], { type: 'modal', modal: 'mower' }),
+  g('watersort', 'Water Sort Puzzle', '🧪', 'Gently sort soft pastel liquids between glass tubes at your own pace.', ['anxiety', 'refresh'], { type: 'modal', modal: 'watersort' }),
+  g('merge', 'DesignVille Merge', '🏡', 'Merge cozy items to decorate a peaceful dream room.', ['refresh', 'sadness'], { type: 'modal', modal: 'merge' }),
+  g('diff', 'Spot the Differences', '🔍', 'Spot subtle details between two peaceful, serene illustrations.', ['refresh'], { type: 'modal', modal: 'diff' }),
+  g('catch', 'Catch the Stars', '🌠', 'Slide the basket to catch gentle falling stars.', ['sadness', 'refresh'], { type: 'game', subtype: 'catch' }),
+  g('calmgenerator', 'Calm Activity Generator', '🧘', 'Get a simple, gentle mindfulness exercise to try right now.', ['anxiety', 'stress'], { type: 'game', subtype: 'calmgenerator', needsData: true }),
+  g('positivequotes', 'Positive Quotes', '💬', 'Savour an uplifting quote to ground your mindset.', ['sadness'], { type: 'game', subtype: 'positivequotes', needsData: true })
 ]
 
 const byId = Object.fromEntries(GAME_CATALOG.map(game => [game.id, game]))
 
 // Mood value (1 Terrible ... 5 Great) -> EXACTLY 5 recommended game ids.
-// Games can appear for more than one mood (e.g. fluid for Bad and Good).
+// 100% focused on genuine relaxing, calming, visual, and tactile games.
 export const MOOD_GAME_MAP = {
-  1: ['breathing', 'balloon', 'bubbles', 'whack', 'affirmation'],
-  2: ['garden', 'pet', 'fluid', 'coloring', 'nature'],
-  3: ['floodit', 'memory', 'wordsearch', 'watersort', 'crystal'],
-  4: ['sakura', 'mower', 'catch', 'merge', 'fluid'],
-  5: ['flappy', 'bricks', '2048', 'clicktest', 'diff']
+  1: ['breathing', 'bubblewrap', 'cloth', 'waterripples', 'balloon'],
+  2: ['koipond', 'garten', 'pet', 'aquarium', 'fluid'],
+  3: ['fallingsand', 'zengarden', 'floodit', 'pottery', 'waterripples'],
+  4: ['zengarden', 'harmony', 'sakura', 'garten', 'fluid'],
+  5: ['fluid', 'fallingsand', 'starfield', 'harmony', 'mower']
 }
 
 export const MOOD_GAME_THEMES = {
-  1: { headline: 'Calm, release and comfort', blurb: 'Grounding breathing, worry release and gentle venting for a really tough day.' },
-  2: { headline: 'Soothe and lift', blurb: 'Soft, creative and comforting games to ease a low mood.' },
-  3: { headline: 'Refresh and refocus', blurb: 'Light focus games and quiet puzzles to clear a flat, foggy mind.' },
-  4: { headline: 'Keep the good vibes', blurb: 'Playful, satisfying games to enjoy and extend a good mood.' },
-  5: { headline: 'Channel the energy', blurb: 'Upbeat, energetic games to play while you feel great.' }
+  1: { headline: 'Deep Grounding & Tension Release', blurb: 'Slow box-breathing, tactile bubble wrap, and gentle silk tearing to ease high stress and heavy feelings.' },
+  2: { headline: 'Comfort, Low Mood & Soothing', blurb: 'Gentle swimming koi fish, blooming wildflowers, and a peaceful aquarium to lift a low mood.' },
+  3: { headline: 'Mental Refreshment & Focus', blurb: 'Falling sand physics, meditative sand raking, and pottery shaping to clear a foggy, restless mind.' },
+  4: { headline: 'Creative Flow & Mindful Joy', blurb: 'Japanese zen gardens, procedural harmony sketching, and drifting cherry blossoms for mindful flow.' },
+  5: { headline: 'Vibrant Energy & Wonder', blurb: 'Luminous fluid flows, celestial cosmic nebulae, and satisfying physical sand to channel great energy.' }
 }
 
 export const getGameById = id => byId[id]
@@ -149,7 +135,7 @@ export const getExploreGames = moodValue => {
   return GAME_CATALOG.filter(game => !recommended.has(game.id))
 }
 
-// Small shape saved with the mood log (replaces the old backend list shape).
+// Small shape saved with the mood log
 export const toSavedRecommendation = game => ({
   key: 'game',
   title: `${game.title} ${game.icon}`,
@@ -158,46 +144,15 @@ export const toSavedRecommendation = game => ({
   subtype: game.launch.subtype || game.launch.key || game.launch.modal || game.id
 })
 
-// ---------------------------------------------------------------------------
-// Offline/local data for puzzle games. Used when the backend response does not
-// include fresh data for that game, so every Explore card always works.
-// ---------------------------------------------------------------------------
-const shuffle = arr => {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
-  }
-  return a
-}
 const pick = arr => arr[Math.floor(Math.random() * arr.length)]
 
-const CHESS_PUZZLES = [
-  { fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR b KQkq - 0 1', solution: ['c6d4', 'f3f7'], rating: 600, id: 'local_1' }
-]
-
-const SUDOKU_BOARDS = [
-  {
-    board: [
-      [5, 3, 0, 0, 7, 0, 0, 0, 0], [6, 0, 0, 1, 9, 5, 0, 0, 0], [0, 9, 8, 0, 0, 0, 0, 6, 0],
-      [8, 0, 0, 0, 6, 0, 0, 0, 3], [4, 0, 0, 8, 0, 3, 0, 0, 1], [7, 0, 0, 0, 2, 0, 0, 0, 6],
-      [0, 6, 0, 0, 0, 0, 2, 8, 0], [0, 0, 0, 4, 1, 9, 0, 0, 5], [0, 0, 0, 0, 8, 0, 0, 7, 9]
-    ],
-    solution: [
-      [5, 3, 4, 6, 7, 8, 9, 1, 2], [6, 7, 2, 1, 9, 5, 3, 4, 8], [1, 9, 8, 3, 4, 2, 5, 6, 7],
-      [8, 5, 9, 7, 6, 1, 4, 2, 3], [4, 2, 6, 8, 5, 3, 7, 9, 1], [7, 1, 3, 9, 2, 4, 8, 5, 6],
-      [9, 6, 1, 5, 3, 7, 2, 8, 4], [2, 8, 7, 4, 1, 9, 6, 3, 5], [3, 4, 5, 2, 8, 6, 1, 7, 9]
-    ]
-  }
-]
-
-const SCRAMBLE_WORDS = ['serenity', 'harmony', 'gratitude', 'balance', 'tranquil', 'sunrise', 'breathe', 'kindness']
 const QUOTES = [
-  { text: 'Act as if what you do makes a difference. It does.', author: 'William James' },
-  { text: 'You are allowed to be both a masterpiece and a work in progress.', author: 'Sophia Bush' },
   { text: 'Feelings come and go like clouds in a windy sky. Conscious breathing is my anchor.', author: 'Thich Nhat Hanh' },
+  { text: 'You are allowed to be both a masterpiece and a work in progress.', author: 'Sophia Bush' },
+  { text: 'Act as if what you do makes a difference. It does.', author: 'William James' },
   { text: 'Nothing can dim the light which shines from within.', author: 'Maya Angelou' }
 ]
+
 const CALM_ACTIVITIES = [
   'Sip a warm cup of herbal tea 🍵',
   'Close your eyes and take 3 deep belly breaths 🧘',
@@ -206,86 +161,8 @@ const CALM_ACTIVITIES = [
   'Write down one simple thing you appreciate about today ✍️'
 ]
 
-const scrambleWord = word => {
-  let out = word
-  for (let i = 0; i < 6 && out === word; i++) out = shuffle(word.split('')).join('')
-  return out
-}
-
 export const buildGameData = subtype => {
   switch (subtype) {
-    case 'chess':
-      return { ...pick(CHESS_PUZZLES) }
-    case 'sudoku':
-      return JSON.parse(JSON.stringify(pick(SUDOKU_BOARDS)))
-    case 'crossword':
-      return {
-        clues: [
-          { word: 'PEACE', clue: 'A state of tranquility or quiet.' },
-          { word: 'CALM', clue: 'Free from agitation or excitement.' },
-          { word: 'MINDFUL', clue: "Conscious or aware of one's surroundings." }
-        ]
-      }
-    case 'scramble': {
-      const original = pick(SCRAMBLE_WORDS)
-      return { scrambled: scrambleWord(original), original }
-    }
-    case 'numbersequence': {
-      const seq = pick([
-        { seq: [2, 4, 8, 16], ans: 32, opts: [24, 30, 32, 64] },
-        { seq: [5, 10, 15, 20], ans: 25, opts: [22, 25, 30, 35] },
-        { seq: [1, 3, 6, 10], ans: 15, opts: [12, 14, 15, 18] }
-      ])
-      return { sequence: seq.seq, answer: seq.ans, options: shuffle(seq.opts) }
-    }
-    case 'logicpuzzle':
-      return {
-        question: 'I speak without a mouth and hear without ears. I have no body, but I come alive with wind. What am I?',
-        answer: 'echo',
-        options: shuffle(['echo', 'shadow', 'cloud', 'mirror'])
-      }
-    case 'speedmath': {
-      const a = Math.floor(Math.random() * 80) + 15
-      const b = Math.floor(Math.random() * 80) + 15
-      const answer = a + b
-      return { question: `${a} + ${b} = ?`, answer, options: shuffle([answer, answer + 4, answer - 3]) }
-    }
-    case 'visualmemory':
-      return { sequence: Array.from({ length: 4 }, () => Math.floor(Math.random() * 4) + 1) }
-    case 'patternmatch': {
-      const shapes = ['🔺', '🟦', '🟡', '🟢']
-      const s1 = pick(shapes)
-      const s2 = pick(shapes)
-      return {
-        sequence: [s1, s2, s1, s2, '?'],
-        answer: s1,
-        options: shuffle([s1, s2, shapes.find(s => s !== s1 && s !== s2) || '🟡'])
-      }
-    }
-    case 'nonogram':
-      return {
-        rowClues: [[1], [3], [5], [3], [1]],
-        colClues: [[1], [3], [5], [3], [1]],
-        grid: [[0, 0, 1, 0, 0], [0, 1, 1, 1, 0], [1, 1, 1, 1, 1], [0, 1, 1, 1, 0], [0, 0, 1, 0, 0]]
-      }
-    case 'kakuro':
-      return { rowSums: [4, 6], colSums: [5, 5], solution: [[1, 3], [4, 2]] }
-    case 'jigsaw':
-      return { tiles: [2, 0, 3, 1], solution: [0, 1, 2, 3] }
-    case 'shapesort':
-      return {
-        shapes: [
-          { id: 1, name: 'Circle', color: '#f43f5e' },
-          { id: 2, name: 'Square', color: '#3b82f6' },
-          { id: 3, name: 'Triangle', color: '#10b981' }
-        ]
-      }
-    case 'relaxmatch':
-      return { cards: shuffle(['🌸', '🌸', '🪨', '🪨', '🍃', '🍃']) }
-    case 'zenpuzzle':
-      return { tiles: [1, 2, 0, 3], solution: [1, 2, 3, 0] }
-    case 'emotionmatch':
-      return { cards: shuffle(['😄 Great', '😄 Great', '😐 Okay', '😐 Okay', '😢 Terrible', '😢 Terrible']) }
     case 'positivequotes':
       return { ...pick(QUOTES) }
     case 'calmgenerator':
@@ -294,4 +171,3 @@ export const buildGameData = subtype => {
       return null
   }
 }
-

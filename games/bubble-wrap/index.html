@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Tactile Bubble Wrap</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; }
+    .header-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(8px); border-bottom: 1px solid rgba(255,255,255,0.08); color: white; z-index: 10; }
+    .score-badge { font-size: 14px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 6px; }
+    .btn-action { background: #0284c7; border: none; color: white; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+    .btn-action:hover { background: #0369a1; transform: scale(1.02); }
+    #sheet-container { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 20px 10px; display: flex; justify-content: center; }
+    .bubble-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); max-width: 720px; width: 100%; gap: 14px; padding-bottom: 40px; }
+    .bubble {
+      aspect-ratio: 1; border-radius: 50%; cursor: pointer; touch-action: manipulation;
+      position: relative; transition: transform 0.08s ease, filter 0.08s ease;
+      background: radial-gradient(circle at 32% 28%, #ffffff 0%, #bae6fd 25%, #38bdf8 65%, #0284c7 100%);
+      box-shadow: 0 6px 12px rgba(2, 132, 199, 0.35), inset 0 -3px 6px rgba(0,0,0,0.25), inset 0 3px 5px rgba(255,255,255,0.8);
+      border: 1px solid rgba(255,255,255,0.4);
+    }
+    .bubble::after {
+      content: ''; position: absolute; top: 15%; left: 22%; width: 35%; height: 22%;
+      background: rgba(255, 255, 255, 0.75); border-radius: 50%; transform: rotate(-25deg);
+      filter: blur(0.5px);
+    }
+    .bubble:active { transform: scale(0.92); }
+    .bubble.popped {
+      background: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
+      box-shadow: inset 0 4px 8px rgba(0,0,0,0.7), 0 1px 2px rgba(255,255,255,0.05);
+      border-color: rgba(255,255,255,0.05);
+      transform: scale(0.95);
+      filter: brightness(0.7);
+    }
+    .bubble.popped::after { display: none; }
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <div class="score-badge">🫧 Popped: <span id="popCount">0</span></div>
+    <div style="font-size: 13px; color: #94a3b8;">Pop bubbles to let go of tension</div>
+    <button class="btn-action" onclick="resetSheet()">✨ Fresh Sheet</button>
+  </div>
+  <div id="sheet-container">
+    <div class="bubble-grid" id="grid"></div>
+  </div>
+
+  <script>
+    let poppedCount = 0;
+    const countEl = document.getElementById('popCount');
+    const grid = document.getElementById('grid');
+
+    // Web Audio Synthesizer for realistic plastic snapping pop
+    let audioCtx = null;
+    function initAudio() {
+      if (audioCtx) return;
+      try {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioClass();
+      } catch (e) {}
+    }
+
+    function playPopSound() {
+      initAudio();
+      if (!audioCtx) return;
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      const t = audioCtx.currentTime;
+      // High-pitched initial plastic snap
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      const freq = 340 + Math.random() * 220;
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq * 1.8, t);
+      osc.frequency.exponentialRampToValueAtTime(80, t + 0.06);
+
+      gain.gain.setValueAtTime(0.35, t);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.08);
+
+      // Low thump of the pocket decompressing
+      const subOsc = audioCtx.createOscillator();
+      const subGain = audioCtx.createGain();
+      subOsc.type = 'sine';
+      subOsc.frequency.setValueAtTime(140 + Math.random() * 40, t);
+      subOsc.frequency.exponentialRampToValueAtTime(40, t + 0.08);
+      subGain.gain.setValueAtTime(0.2, t);
+      subGain.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+      subOsc.connect(subGain);
+      subGain.connect(audioCtx.destination);
+      subOsc.start(t);
+      subOsc.stop(t + 0.09);
+    }
+
+    function createBubble() {
+      const b = document.createElement('div');
+      b.className = 'bubble';
+      
+      const pop = () => {
+        if (!b.classList.contains('popped')) {
+          b.classList.add('popped');
+          poppedCount++;
+          countEl.innerText = poppedCount;
+          playPopSound();
+          if (navigator.vibrate) navigator.vibrate(15);
+        }
+      };
+
+      b.addEventListener('pointerdown', pop);
+      return b;
+    }
+
+    function buildGrid(num = 84) {
+      grid.innerHTML = '';
+      for (let i = 0; i < num; i++) {
+        grid.appendChild(createBubble());
+      }
+    }
+
+    function resetSheet() {
+      buildGrid(84);
+    }
+
+    buildGrid(84);
+  </script>
+</body>
+</html>

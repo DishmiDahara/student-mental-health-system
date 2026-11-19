@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Tearable Silk Cloth</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: #0c141f; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+    canvas:active { cursor: grabbing; }
+    .header-tip { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); z-index: 10; color: #bae6fd; font-size: 13px; background: rgba(12, 20, 31, 0.75); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); pointer-events: none; }
+    .bottom-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; gap: 8px; background: rgba(12, 20, 31, 0.85); backdrop-filter: blur(8px); padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); }
+    .btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); color: #e0f2fe; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .btn:hover { background: rgba(255,255,255,0.2); }
+    .btn.active { background: #0284c7; border-color: #38bdf8; color: white; }
+  </style>
+</head>
+<body>
+  <div class="header-tip">🧵 Left-click to billow silk · Right-click or slice mode to cut threads</div>
+  <canvas id="clothCanvas"></canvas>
+  <div class="bottom-bar">
+    <button class="btn active" id="btnDrag" onclick="setMode('drag')">✋ Drag & Billow</button>
+    <button class="btn" id="btnTear" onclick="setMode('tear')">✂️ Slice & Tear</button>
+    <button class="btn" onclick="toggleWind()">🍃 Gentle Wind</button>
+    <button class="btn" onclick="resetCloth()">✨ Reset Silk</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('clothCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Verlet Physics Parameters
+    const physicsAccuracy = 4;
+    const mouseInfluenceSize = 36;
+    const gravity = 180;
+    const spacing = 12;
+
+    let clothCols = 46;
+    let clothRows = 28;
+
+    let points = [];
+    let constraints = [];
+
+    let mouseMode = 'drag'; // 'drag' or 'tear'
+    let windActive = true;
+    let windPhase = 0;
+
+    let width, height;
+    function resize() {
+      const dpr = window.devicePixelRatio || 1;
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+
+    class Point {
+      constructor(x, y, pinned = false) {
+        this.x = x;
+        this.y = y;
+        this.px = x;
+        this.py = y;
+        this.vx = 0;
+        this.vy = 0;
+        this.pinned = pinned;
+      }
+
+      update(delta) {
+        if (this.pinned) return;
+
+        // Wind force
+        let wind = 0;
+        if (windActive) {
+          wind = Math.sin(windPhase + this.y * 0.02) * 16;
+        }
+
+        const forceX = this.vx + wind;
+        const forceY = this.vy + gravity;
+
+        const nx = this.x + (this.x - this.px) * 0.98 + (forceX * delta * delta);
+        const ny = this.y + (this.y - this.py) * 0.98 + (forceY * delta * delta);
+
+        this.px = this.x;
+        this.py = this.y;
+        this.x = nx;
+        this.y = ny;
+      }
+
+      resolve() {
+        if (this.pinned) return;
+        if (this.y > height - 10) this.y = height - 10;
+        if (this.x < 5) this.x = 5;
+        if (this.x > width - 5) this.x = width - 5;
+      }
+    }
+
+    class Constraint {
+      constructor(p1, p2) {
+        this.p1 = p1;
+        this.p2 = p2;
+        this.length = spacing;
+      }
+
+      resolve() {
+        const dx = this.p1.x - this.p2.x;
+        const dy = this.p1.y - this.p2.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist > this.length) {
+          const diff = (this.length - dist) / dist;
+          const mul = diff * 0.5;
+          const offsetX = dx * mul;
+          const offsetY = dy * mul;
+
+          if (!this.p1.pinned) {
+            this.p1.x += offsetX;
+            this.p1.y += offsetY;
+          }
+          if (!this.p2.pinned) {
+            this.p2.x -= offsetX;
+            this.p2.y -= offsetY;
+          }
+        }
+      }
+    }
+
+    function initCloth() {
+      points = [];
+      constraints = [];
+      clothCols = Math.min(52, Math.floor(width / (spacing * 1.3)));
+      const startX = (width - clothCols * spacing) / 2;
+      const startY = 40;
+
+      for (let y = 0; y < clothRows; y++) {
+        for (let x = 0; x < clothCols; x++) {
+          const pinned = (y === 0 && x % 2 === 0);
+          const pt = new Point(startX + x * spacing, startY + y * spacing, pinned);
+          points.push(pt);
+
+          if (x > 0) {
+            constraints.push(new Constraint(pt, points[points.length - 2]));
+          }
+          if (y > 0) {
+            constraints.push(new Constraint(pt, points[(y - 1) * clothCols + x]));
+          }
+        }
+      }
+    }
+
+    let mouseX = 0, mouseY = 0, pmouseX = 0, pmouseY = 0;
+    let isMouseDown = false;
+    let isRightDown = false;
+
+    canvas.addEventListener('pointerdown', e => {
+      isMouseDown = true;
+      if (e.button === 2) isRightDown = true;
+      const rect = canvas.getBoundingClientRect();
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
+      pmouseX = mouseX; pmouseY = mouseY;
+    });
+
+    window.addEventListener('pointermove', e => {
+      const rect = canvas.getBoundingClientRect();
+      pmouseX = mouseX;
+      pmouseY = mouseY;
+      mouseX = e.clientX - rect.left;
+      mouseY = e.clientY - rect.top;
+
+      if (!isMouseDown) return;
+
+      const shouldTear = isRightDown || mouseMode === 'tear';
+
+      if (shouldTear) {
+        // Cut threads passing through mouse line
+        for (let i = constraints.length - 1; i >= 0; i--) {
+          const c = constraints[i];
+          const midX = (c.p1.x + c.p2.x) * 0.5;
+          const midY = (c.p1.y + c.p2.y) * 0.5;
+          if (Math.hypot(mouseX - midX, mouseY - midY) < mouseInfluenceSize * 0.8) {
+            constraints.splice(i, 1);
+          }
+        }
+      } else {
+        // Drag and billow silk
+        const dx = mouseX - pmouseX;
+        const dy = mouseY - pmouseY;
+        points.forEach(p => {
+          const dist = Math.hypot(mouseX - p.x, mouseY - p.y);
+          if (dist < mouseInfluenceSize) {
+            p.px = p.x - dx * 1.2;
+            p.py = p.y - dy * 1.2;
+          }
+        });
+      }
+    });
+
+    window.addEventListener('pointerup', () => {
+      isMouseDown = false;
+      isRightDown = false;
+    });
+    canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+    function setMode(m) {
+      mouseMode = m;
+      document.getElementById('btnDrag').classList.toggle('active', m === 'drag');
+      document.getElementById('btnTear').classList.toggle('active', m === 'tear');
+    }
+
+    function toggleWind() {
+      windActive = !windActive;
+    }
+
+    function resetCloth() {
+      initCloth();
+    }
+
+    let lastTime = performance.now();
+    function loop(now) {
+      const delta = Math.min(0.032, (now - lastTime) / 1000);
+      lastTime = now;
+      windPhase += 0.035;
+
+      // Physics integration
+      points.forEach(p => p.update(delta));
+      for (let i = 0; i < physicsAccuracy; i++) {
+        constraints.forEach(c => c.resolve());
+        points.forEach(p => p.resolve());
+      }
+
+      // Render Silk Cloth
+      ctx.clearRect(0, 0, width, height);
+
+      // Deep silk shimmer gradient
+      ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      constraints.forEach(c => {
+        ctx.moveTo(c.p1.x, c.p1.y);
+        ctx.lineTo(c.p2.x, c.p2.y);
+      });
+      ctx.strokeStyle = '#38bdf8';
+      ctx.stroke();
+
+      // Top suspension pins
+      points.forEach(p => {
+        if (p.pinned) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = '#f59e0b';
+          ctx.fill();
+        }
+      });
+
+      requestAnimationFrame(loop);
+    }
+
+    window.addEventListener('resize', () => { resize(); initCloth(); });
+    resize();
+    initCloth();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+</html>

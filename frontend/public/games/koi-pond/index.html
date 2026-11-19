@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Zen Koi Pond</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: #0c1a1e; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    #canvas-wrap { position: relative; width: 100%; height: 100%; cursor: pointer; }
+    canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .header-tip { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); z-index: 10; color: #a5f3fc; font-size: 13px; background: rgba(10, 25, 30, 0.75); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); pointer-events: none; }
+    .footer-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; gap: 10px; background: rgba(10, 25, 30, 0.85); backdrop-filter: blur(8px); padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); }
+    .ctrl-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .ctrl-btn:hover { background: rgba(255,255,255,0.2); }
+  </style>
+</head>
+<body>
+  <div class="header-tip">🐟 Tap anywhere to drop food · Drag to ripple water</div>
+  <div id="canvas-wrap">
+    <canvas id="pondCanvas"></canvas>
+  </div>
+  <div class="footer-bar">
+    <button class="ctrl-btn" onclick="addKoi()">+ Add Koi</button>
+    <button class="ctrl-btn" onclick="feedAll()">🍃 Feed All</button>
+    <button class="ctrl-btn" onclick="toggleAudio()">🔊 Ambient Sound</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('pondCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let audioEnabled = false;
+    let audioCtx = null;
+    let waterGain = null;
+
+    function initAudio() {
+      if (audioCtx) return;
+      try {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioClass();
+        // Gentle water stream noise
+        const bufferSize = audioCtx.sampleRate * 2;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const out = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) out[i] = Math.random() * 2 - 1;
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 400;
+
+        waterGain = audioCtx.createGain();
+        waterGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+
+        noise.connect(filter);
+        filter.connect(waterGain);
+        waterGain.connect(audioCtx.destination);
+        noise.start();
+        audioEnabled = true;
+      } catch (e) {}
+    }
+
+    function toggleAudio() {
+      if (!audioCtx) {
+        initAudio();
+        return;
+      }
+      audioEnabled = !audioEnabled;
+      if (waterGain) {
+        waterGain.gain.setTargetAtTime(audioEnabled ? 0.08 : 0, audioCtx.currentTime, 0.1);
+      }
+    }
+
+    function playPlopSound() {
+      if (!audioCtx || !audioEnabled) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.frequency.setValueAtTime(550, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(180, audioCtx.currentTime + 0.12);
+        g.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
+        osc.connect(g);
+        g.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.14);
+      } catch (e) {}
+    }
+
+    let width, height;
+    function resize() {
+      const dpr = window.devicePixelRatio || 1;
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Ripples
+    const ripples = [];
+    function addRipple(x, y, maxR = 45, speed = 1.2) {
+      ripples.push({ x, y, r: 4, maxR, alpha: 0.65, speed });
+    }
+
+    // Food Pellets
+    const foods = [];
+    function dropFood(x, y) {
+      initAudio();
+      playPlopSound();
+      foods.push({ x, y, r: 4.5, life: 600 });
+      addRipple(x, y, 32, 1.4);
+    }
+
+    // Lily Pads
+    const lilyPads = [
+      { x: 0.18, y: 0.22, r: 52, rot: 0.4 },
+      { x: 0.24, y: 0.26, r: 38, rot: 1.8 },
+      { x: 0.82, y: 0.72, r: 64, rot: 2.1 },
+      { x: 0.76, y: 0.80, r: 44, rot: 0.8 },
+      { x: 0.88, y: 0.35, r: 48, rot: 3.4 }
+    ];
+
+    // Koi Class with procedural spine physics
+    class Koi {
+      constructor(colorScheme = 'kohaku') {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.angle = Math.random() * Math.PI * 2;
+        this.speed = 1.2 + Math.random() * 0.8;
+        this.targetSpeed = this.speed;
+        this.spineLength = 12; // 12 joints
+        this.jointDist = 4.5;
+        this.phase = Math.random() * Math.PI * 2;
+        this.phaseSpeed = 0.08 + Math.random() * 0.04;
+        this.size = 0.85 + Math.random() * 0.35;
+        this.colorScheme = colorScheme; // kohaku (red/white), showa (black/red), yamabuki (gold)
+        
+        // Spine joints positions
+        this.spine = [];
+        for (let i = 0; i < this.spineLength; i++) {
+          this.spine.push({ x: this.x - i * this.jointDist, y: this.y });
+        }
+      }
+
+      update() {
+        this.phase += this.phaseSpeed;
+
+        // Food seeking behavior
+        let steerTarget = null;
+        if (foods.length > 0) {
+          let closestDist = 280;
+          for (let f of foods) {
+            const d = Math.hypot(f.x - this.x, f.y - this.y);
+            if (d < closestDist) {
+              closestDist = d;
+              steerTarget = f;
+            }
+          }
+        }
+
+        if (steerTarget) {
+          const targetAngle = Math.atan2(steerTarget.y - this.y, steerTarget.x - this.x);
+          let diff = targetAngle - this.angle;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          this.angle += diff * 0.06;
+          this.targetSpeed = 2.4;
+
+          // Eat food
+          if (Math.hypot(steerTarget.x - this.x, steerTarget.y - this.y) < 14) {
+            const idx = foods.indexOf(steerTarget);
+            if (idx !== -1) {
+              foods.splice(idx, 1);
+              addRipple(this.x, this.y, 24, 1.8);
+            }
+          }
+        } else {
+          // Wandering natural drift with gentle border repulsion
+          this.angle += (Math.sin(this.phase * 0.7) * 0.02);
+          const margin = 80;
+          if (this.x < margin) this.angle += 0.04;
+          if (this.x > width - margin) this.angle -= 0.04;
+          if (this.y < margin) this.angle += 0.04;
+          if (this.y > height - margin) this.angle -= 0.04;
+          this.targetSpeed = 1.3;
+        }
+
+        this.speed += (this.targetSpeed - this.speed) * 0.05;
+        this.x += Math.cos(this.angle) * this.speed;
+        this.y += Math.sin(this.angle) * this.speed;
+
+        // Update head joint
+        this.spine[0].x = this.x;
+        this.spine[0].y = this.y;
+
+        // Kinematic chain undulation
+        for (let i = 1; i < this.spineLength; i++) {
+          const prev = this.spine[i - 1];
+          const curr = this.spine[i];
+          const dx = curr.x - prev.x;
+          const dy = curr.y - prev.y;
+          const dist = Math.hypot(dx, dy) || 1;
+          const wiggle = Math.sin(this.phase - i * 0.45) * (i * 0.75);
+
+          const targetX = prev.x + (dx / dist) * this.jointDist * this.size;
+          const targetY = prev.y + (dy / dist) * this.jointDist * this.size;
+          curr.x = targetX + Math.cos(this.angle + Math.PI / 2) * wiggle * 0.15;
+          curr.y = targetY + Math.sin(this.angle + Math.PI / 2) * wiggle * 0.15;
+        }
+      }
+
+      draw() {
+        ctx.save();
+
+        // 1. Shadow underneath koi
+        ctx.beginPath();
+        for (let i = 0; i < this.spine.length; i++) {
+          const pt = this.spine[i];
+          const r = (1 - (i / this.spineLength) * 0.7) * 11 * this.size;
+          ctx.arc(pt.x + 12, pt.y + 14, r, 0, Math.PI * 2);
+        }
+        ctx.fillStyle = 'rgba(5, 15, 20, 0.4)';
+        ctx.filter = 'blur(6px)';
+        ctx.fill();
+        ctx.filter = 'none';
+
+        // 2. Body Segments
+        const bodyColors = {
+          kohaku: { primary: '#f8fafc', accent: '#ea580c', fins: 'rgba(255,255,255,0.7)' },
+          showa: { primary: '#18181b', accent: '#dc2626', fins: 'rgba(230,230,230,0.6)' },
+          yamabuki: { primary: '#f59e0b', accent: '#fef08a', fins: 'rgba(254,240,138,0.7)' }
+        };
+        const palette = bodyColors[this.colorScheme] || bodyColors.kohaku;
+
+        // Pectoral Fins
+        const p1 = this.spine[2];
+        ctx.save();
+        ctx.translate(p1.x, p1.y);
+        ctx.rotate(this.angle);
+        ctx.fillStyle = palette.fins;
+        // Left fin
+        ctx.beginPath();
+        ctx.ellipse(2, -14 * this.size, 14 * this.size, 6 * this.size, -0.6, 0, Math.PI * 2);
+        ctx.fill();
+        // Right fin
+        ctx.beginPath();
+        ctx.ellipse(2, 14 * this.size, 14 * this.size, 6 * this.size, 0.6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Tail Fin
+        const tail = this.spine[this.spine.length - 1];
+        const prevTail = this.spine[this.spine.length - 2];
+        const tailAngle = Math.atan2(tail.y - prevTail.y, tail.x - prevTail.x);
+        ctx.save();
+        ctx.translate(tail.x, tail.y);
+        ctx.rotate(tailAngle);
+        ctx.fillStyle = palette.fins;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(14 * this.size, -12 * this.size, 22 * this.size, -4 * this.size);
+        ctx.quadraticCurveTo(14 * this.size, 0, 22 * this.size, 4 * this.size);
+        ctx.quadraticCurveTo(14 * this.size, 12 * this.size, 0, 0);
+        ctx.fill();
+        ctx.restore();
+
+        // Fleshy Body Circles
+        for (let i = this.spine.length - 1; i >= 0; i--) {
+          const pt = this.spine[i];
+          const factor = 1 - (i / this.spineLength);
+          const r = Math.sin(factor * Math.PI * 0.85 + 0.15) * 12 * this.size;
+
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, Math.max(1, r), 0, Math.PI * 2);
+          // Alternating color patches
+          ctx.fillStyle = (i % 3 === 0 || (i >= 2 && i <= 5)) ? palette.accent : palette.primary;
+          ctx.fill();
+        }
+
+        // Eyes on Head
+        const head = this.spine[0];
+        ctx.save();
+        ctx.translate(head.x, head.y);
+        ctx.rotate(this.angle);
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.arc(4 * this.size, -6 * this.size, 1.8 * this.size, 0, Math.PI * 2);
+        ctx.arc(4 * this.size, 6 * this.size, 1.8 * this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.restore();
+      }
+    }
+
+    const koiFish = [
+      new Koi('kohaku'),
+      new Koi('showa'),
+      new Koi('yamabuki'),
+      new Koi('kohaku'),
+      new Koi('yamabuki')
+    ];
+
+    function addKoi() {
+      const schemes = ['kohaku', 'showa', 'yamabuki'];
+      koiFish.push(new Koi(schemes[Math.floor(Math.random() * schemes.length)]));
+      addRipple(width / 2, height / 2, 40);
+    }
+
+    function feedAll() {
+      for (let i = 0; i < 6; i++) {
+        dropFood(
+          width * (0.2 + Math.random() * 0.6),
+          height * (0.2 + Math.random() * 0.6)
+        );
+      }
+    }
+
+    // Interactive pointer handling
+    let lastX = 0, lastY = 0;
+    canvas.addEventListener('pointerdown', e => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      dropFood(x, y);
+      lastX = x; lastY = y;
+    });
+
+    canvas.addEventListener('pointermove', e => {
+      if (e.buttons === 1) {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        if (Math.hypot(x - lastX, y - lastY) > 25) {
+          addRipple(x, y, 28, 1.0);
+          lastX = x; lastY = y;
+        }
+      }
+    });
+
+    // Main animation loop
+    function loop() {
+      // Clear pond water background
+      ctx.fillStyle = '#08252d';
+      ctx.fillRect(0, 0, width, height);
+
+      // Deep aquatic gradient
+      const grad = ctx.createRadialGradient(width * 0.5, height * 0.5, 40, width * 0.5, height * 0.5, width * 0.7);
+      grad.addColorStop(0, '#0e3a44');
+      grad.addColorStop(1, '#051b22');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+
+      // Draw and update Ripples
+      for (let i = ripples.length - 1; i >= 0; i--) {
+        const r = ripples[i];
+        r.r += r.speed;
+        r.alpha -= 0.012;
+        if (r.alpha <= 0) {
+          ripples.splice(i, 1);
+          continue;
+        }
+        ctx.beginPath();
+        ctx.arc(r.x, r.y, r.r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(165, 243, 252, ${r.alpha * 0.5})`;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+      }
+
+      // Draw and update Foods
+      for (let i = foods.length - 1; i >= 0; i--) {
+        const f = foods[i];
+        f.life--;
+        if (f.life <= 0) {
+          foods.splice(i, 1);
+          continue;
+        }
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        ctx.fillStyle = '#92400e';
+        ctx.fill();
+        ctx.strokeStyle = '#b45309';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      // Update & Render Koi
+      koiFish.forEach(koi => {
+        koi.update();
+        koi.draw();
+      });
+
+      // Render Floating Lily Pads
+      lilyPads.forEach(pad => {
+        const px = pad.x * width;
+        const py = pad.y * height;
+
+        // Lily shadow
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(px + 8, py + 10, pad.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(2, 10, 14, 0.45)';
+        ctx.filter = 'blur(8px)';
+        ctx.fill();
+        ctx.restore();
+
+        // Lily pad leaf
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(pad.rot);
+        ctx.beginPath();
+        ctx.arc(0, 0, pad.r, 0.25, Math.PI * 2 - 0.25);
+        ctx.lineTo(0, 0);
+        ctx.closePath();
+        ctx.fillStyle = '#15803d';
+        ctx.fill();
+
+        // Inner lighter vein lines
+        ctx.strokeStyle = '#22c55e';
+        ctx.lineWidth = 1.5;
+        for (let a = 0.5; a < Math.PI * 2 - 0.5; a += 0.8) {
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(Math.cos(a) * pad.r * 0.85, Math.sin(a) * pad.r * 0.85);
+          ctx.stroke();
+        }
+        ctx.restore();
+      });
+
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>

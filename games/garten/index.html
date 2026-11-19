@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Botanical Garden Bloom</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: #0c1a1a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: pointer; }
+    .header-tip { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); z-index: 10; color: #d1fae5; font-size: 13px; background: rgba(12, 26, 26, 0.75); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); pointer-events: none; }
+    .footer-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; gap: 8px; background: rgba(12, 26, 26, 0.85); backdrop-filter: blur(8px); padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); }
+    .btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); color: #ecfdf5; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .btn:hover { background: rgba(255,255,255,0.2); }
+  </style>
+</head>
+<body>
+  <div class="header-tip">🌱 Tap the ground to sprout flowers · Watch them bloom & sway</div>
+  <canvas id="gardenCanvas"></canvas>
+  <div class="footer-bar">
+    <button class="btn" onclick="plantRandom()">🌸 Bloom Wildflowers</button>
+    <button class="btn" onclick="toggleTime()">🌅 Switch Atmosphere</button>
+    <button class="btn" onclick="clearGarden()">✨ Fresh Soil</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gardenCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    function resize() {
+      const dpr = window.devicePixelRatio || 1;
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    let atmosphere = 'dusk'; // dusk, night, dawn
+    const atmospheres = {
+      dusk: { top: '#1e1b4b', bot: '#311042', hill: '#0f172a', ground: '#141e24' },
+      night: { top: '#050c14', bot: '#0d1f2d', hill: '#071118', ground: '#09151e' },
+      dawn: { top: '#0284c7', bot: '#fed7aa', hill: '#164e63', ground: '#1e293b' }
+    };
+
+    function toggleTime() {
+      const modes = ['dusk', 'night', 'dawn'];
+      const nextIdx = (modes.indexOf(atmosphere) + 1) % modes.length;
+      atmosphere = modes[nextIdx];
+    }
+
+    // Plant Class
+    class Plant {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.maxHeight = 60 + Math.random() * 80;
+        this.currentHeight = 0;
+        this.growthSpeed = 1.2 + Math.random() * 0.8;
+        this.stemColor = Math.random() > 0.5 ? '#15803d' : '#166534';
+        this.flowerType = ['sakura', 'daisy', 'lotus', 'fern'][Math.floor(Math.random() * 4)];
+        this.petalColor = ['#f472b6', '#fb7185', '#c084fc', '#fef08a', '#e0e7ff'][Math.floor(Math.random() * 5)];
+        this.swayPhase = Math.random() * Math.PI * 2;
+        this.swayAmp = 0.04 + Math.random() * 0.05;
+        this.leafAngles = [-0.6, 0.6];
+      }
+
+      update() {
+        if (this.currentHeight < this.maxHeight) {
+          this.currentHeight += this.growthSpeed;
+        }
+      }
+
+      draw(time) {
+        const sway = Math.sin(time * 0.002 + this.swayPhase) * (this.currentHeight * this.swayAmp);
+        const topX = this.x + sway;
+        const topY = this.y - this.currentHeight;
+
+        ctx.save();
+        // Stem
+        ctx.strokeStyle = this.stemColor;
+        ctx.lineWidth = 2.5;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
+        ctx.quadraticCurveTo(this.x + sway * 0.4, this.y - this.currentHeight * 0.5, topX, topY);
+        ctx.stroke();
+
+        // Leaves along the stem
+        if (this.currentHeight > 35) {
+          const midX = this.x + sway * 0.3;
+          const midY = this.y - this.currentHeight * 0.45;
+          ctx.fillStyle = '#22c55e';
+          // Left leaf
+          ctx.beginPath();
+          ctx.ellipse(midX - 8, midY, 9, 4, -0.4, 0, Math.PI * 2);
+          ctx.fill();
+          // Right leaf
+          ctx.beginPath();
+          ctx.ellipse(midX + 8, midY - 6, 9, 4, 0.4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Flower Blossom at the peak
+        if (this.currentHeight >= this.maxHeight * 0.85) {
+          const bloomScale = Math.min(1, (this.currentHeight - this.maxHeight * 0.85) / (this.maxHeight * 0.15));
+          ctx.translate(topX, topY);
+          ctx.scale(bloomScale, bloomScale);
+
+          const petalCount = this.flowerType === 'lotus' ? 8 : 5;
+          for (let p = 0; p < petalCount; p++) {
+            const angle = (p * (Math.PI * 2 / petalCount));
+            ctx.save();
+            ctx.rotate(angle);
+            ctx.beginPath();
+            ctx.ellipse(0, -11, 5, 11, 0, 0, Math.PI * 2);
+            ctx.fillStyle = this.petalColor;
+            ctx.globalAlpha = 0.9;
+            ctx.fill();
+            ctx.restore();
+          }
+
+          // Pistil center
+          ctx.beginPath();
+          ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = '#fef08a';
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+    }
+
+    const plants = [];
+    const fireflies = [];
+    for (let i = 0; i < 25; i++) {
+      fireflies.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight * 0.7,
+        r: 1.5 + Math.random() * 2,
+        speedX: (Math.random() - 0.5) * 0.6,
+        speedY: (Math.random() - 0.5) * 0.4,
+        pulse: Math.random() * Math.PI
+      });
+    }
+
+    function plantSeed(x, y) {
+      const groundY = height - 40;
+      plants.push(new Plant(x, groundY));
+    }
+
+    function plantRandom() {
+      for (let i = 0; i < 8; i++) {
+        const x = width * (0.08 + Math.random() * 0.84);
+        plantSeed(x);
+      }
+    }
+
+    function clearGarden() {
+      plants.length = 0;
+    }
+
+    // Initial bouquet
+    for (let i = 0; i < 14; i++) {
+      setTimeout(() => plantSeed(width * (0.1 + (i / 14) * 0.8) + (Math.random() - 0.5) * 20), i * 60);
+    }
+
+    canvas.addEventListener('pointerdown', e => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      plantSeed(x);
+    });
+
+    let time = 0;
+    function loop() {
+      time += 16;
+      const atm = atmospheres[atmosphere];
+
+      // Sky Gradient
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, height);
+      skyGrad.addColorStop(0, atm.top);
+      skyGrad.addColorStop(1, atm.bot);
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, width, height);
+
+      // Distant rolling hills
+      ctx.fillStyle = atm.hill;
+      ctx.beginPath();
+      ctx.moveTo(0, height - 70);
+      ctx.bezierCurveTo(width * 0.3, height - 120, width * 0.7, height - 50, width, height - 90);
+      ctx.lineTo(width, height);
+      ctx.lineTo(0, height);
+      ctx.fill();
+
+      // Fertile soil ground
+      ctx.fillStyle = atm.ground;
+      ctx.beginPath();
+      ctx.ellipse(width / 2, height + 40, width * 0.7, 90, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Render & update plants
+      plants.forEach(p => {
+        p.update();
+        p.draw(time);
+      });
+
+      // Fireflies floating
+      fireflies.forEach(f => {
+        f.x += f.speedX;
+        f.y += f.speedY;
+        if (f.x < 0) f.x = width;
+        if (f.x > width) f.x = 0;
+        if (f.y < 0) f.y = height * 0.8;
+        if (f.y > height * 0.8) f.y = 0;
+
+        f.pulse += 0.05;
+        const alpha = 0.3 + Math.sin(f.pulse) * 0.4;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(254, 240, 138, ${Math.max(0, alpha)})`;
+        ctx.shadowColor = '#fef08a';
+        ctx.shadowBlur = 8;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>

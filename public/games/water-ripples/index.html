@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Interactive Water Ripples</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: #071724; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+    .header-tip { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); z-index: 10; color: #bae6fd; font-size: 13px; background: rgba(7, 23, 36, 0.75); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); pointer-events: none; }
+    .bottom-bar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10; display: flex; gap: 8px; background: rgba(7, 23, 36, 0.85); backdrop-filter: blur(8px); padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); }
+    .btn-theme { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 6px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    .btn-theme:hover { background: rgba(255,255,255,0.2); }
+  </style>
+</head>
+<body>
+  <div class="header-tip">💧 Move or tap to ripple water · Watch raindrops fall</div>
+  <canvas id="waterCanvas"></canvas>
+  <div class="bottom-bar">
+    <button class="btn-theme" onclick="setTheme('pebbles')">🪨 River Pebbles</button>
+    <button class="btn-theme" onclick="setTheme('lagoon')">🌴 Azure Lagoon</button>
+    <button class="btn-theme" onclick="setTheme('moonlight')">🌙 Night Pond</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('waterCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Downscaled buffer for 60fps wave propagation
+    const scale = 3;
+    let width, height;
+    let currentBuffer, previousBuffer;
+    let dampening = 0.985;
+    let imgData, textureData;
+
+    let theme = 'pebbles';
+
+    // Audio
+    let audioCtx = null;
+    function playDropSound(freq = 600) {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.4, audioCtx.currentTime + 0.15);
+        g.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+        osc.connect(g);
+        g.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.16);
+      } catch (e) {}
+    }
+
+    function initBuffers() {
+      width = Math.floor(window.innerWidth / scale);
+      height = Math.floor(window.innerHeight / scale);
+      canvas.width = width;
+      canvas.height = height;
+
+      currentBuffer = new Int16Array(width * height);
+      previousBuffer = new Int16Array(width * height);
+      imgData = ctx.createImageData(width, height);
+      generateTexture();
+    }
+
+    function generateTexture() {
+      textureData = new Uint8ClampedArray(width * height * 4);
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const idx = (y * width + x) * 4;
+          if (theme === 'pebbles') {
+            const grain = (Math.sin(x * 0.1) * Math.cos(y * 0.1) * 30);
+            textureData[idx] = 40 + grain;     // R
+            textureData[idx + 1] = 75 + grain; // G
+            textureData[idx + 2] = 95 + grain; // B
+          } else if (theme === 'lagoon') {
+            textureData[idx] = 10 + (y / height) * 30;
+            textureData[idx + 1] = 110 + (y / height) * 60;
+            textureData[idx + 2] = 140 + (y / height) * 50;
+          } else { // moonlight
+            textureData[idx] = 8;
+            textureData[idx + 1] = 20;
+            textureData[idx + 2] = 45;
+          }
+          textureData[idx + 3] = 255;
+        }
+      }
+    }
+
+    function setTheme(t) {
+      theme = t;
+      generateTexture();
+    }
+
+    function disturb(cx, cy, strength = 450, radius = 3) {
+      for (let j = -radius; j <= radius; j++) {
+        for (let i = -radius; i <= radius; i++) {
+          const x = cx + i;
+          const y = cy + j;
+          if (x >= 0 && x < width && y >= 0 && y < height) {
+            if (i * i + j * j <= radius * radius) {
+              currentBuffer[y * width + x] = -strength;
+            }
+          }
+        }
+      }
+    }
+
+    function updateWave() {
+      for (let y = 1; y < height - 1; y++) {
+        const row = y * width;
+        for (let x = 1; x < width - 1; x++) {
+          const idx = row + x;
+          let val = (
+            previousBuffer[idx - 1] +
+            previousBuffer[idx + 1] +
+            previousBuffer[idx - width] +
+            previousBuffer[idx + width]
+          ) >> 1;
+
+          val -= currentBuffer[idx];
+          val = (val * dampening);
+          currentBuffer[idx] = val;
+        }
+      }
+
+      // Swap buffers
+      const temp = previousBuffer;
+      previousBuffer = currentBuffer;
+      currentBuffer = temp;
+    }
+
+    function render() {
+      const data = imgData.data;
+      for (let y = 1; y < height - 1; y++) {
+        const row = y * width;
+        for (let x = 1; x < width - 1; x++) {
+          const idx = row + x;
+          // Refraction displacement based on height gradient
+          const dx = currentBuffer[idx + 1] - currentBuffer[idx - 1];
+          const dy = currentBuffer[idx + width] - currentBuffer[idx - width];
+
+          const sourceX = Math.max(0, Math.min(width - 1, x + (dx >> 3)));
+          const sourceY = Math.max(0, Math.min(height - 1, y + (dy >> 3)));
+
+          const pixelIdx = idx * 4;
+          const sourceIdx = (sourceY * width + sourceX) * 4;
+
+          const light = dx + dy;
+          data[pixelIdx] = Math.max(0, Math.min(255, textureData[sourceIdx] + light));
+          data[pixelIdx + 1] = Math.max(0, Math.min(255, textureData[sourceIdx + 1] + light));
+          data[pixelIdx + 2] = Math.max(0, Math.min(255, textureData[sourceIdx + 2] + light * 1.5));
+          data[pixelIdx + 3] = 255;
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+
+    let rainTimer = 0;
+    function loop() {
+      rainTimer++;
+      // Gentle automatic raindrops every 80 frames
+      if (rainTimer % 75 === 0) {
+        const rx = Math.floor(Math.random() * (width - 40) + 20);
+        const ry = Math.floor(Math.random() * (height - 40) + 20);
+        disturb(rx, ry, 320, 2);
+        playDropSound(450 + Math.random() * 250);
+      }
+
+      updateWave();
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    window.addEventListener('resize', initBuffers);
+    initBuffers();
+    loop();
+
+    function handlePointer(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      const x = Math.floor((clientX - rect.left) / scale);
+      const y = Math.floor((clientY - rect.top) / scale);
+      disturb(x, y, 400, 3);
+      playDropSound(520 + Math.random() * 200);
+    }
+
+    canvas.addEventListener('pointerdown', handlePointer);
+    canvas.addEventListener('pointermove', e => {
+      if (e.buttons === 1) handlePointer(e);
+    });
+  </script>
+</body>
+</html>

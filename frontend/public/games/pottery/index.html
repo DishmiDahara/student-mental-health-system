@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Virtual Pottery Wheel</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: #181513; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; }
+    canvas { flex: 1; width: 100%; display: block; touch-action: none; cursor: crosshair; }
+    .header-tip { position: absolute; top: 18px; left: 50%; transform: translateX(-50%); z-index: 10; color: #fed7aa; font-size: 13px; background: rgba(24, 21, 19, 0.85); backdrop-filter: blur(8px); padding: 6px 16px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); pointer-events: none; }
+    .toolbar { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; padding: 12px 16px; background: rgba(28, 23, 20, 0.95); border-top: 1px solid rgba(255,255,255,0.08); z-index: 10; }
+    .btn { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18); color: #fed7aa; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+    .btn:hover { background: rgba(255,255,255,0.18); }
+    .glaze-picker { display: flex; gap: 6px; margin-left: 6px; padding-left: 10px; border-left: 1px solid rgba(255,255,255,0.15); }
+    .glaze-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+    .glaze-dot.active { border-color: white; transform: scale(1.15); }
+  </style>
+</head>
+<body>
+  <div class="header-tip">🏺 Drag left & right to shape the spinning clay vase</div>
+  <canvas id="potteryCanvas"></canvas>
+  <div class="toolbar">
+    <button class="btn" onclick="smoothClay()">✨ Smooth Clay</button>
+    <button class="btn" onclick="resetClay()">🌀 New Lump</button>
+    <div class="glaze-picker">
+      <div class="glaze-dot active" style="background: #c2410c;" title="Terracotta" onclick="setGlaze('#c2410c', '#ea580c', this)"></div>
+      <div class="glaze-dot" style="background: #059669;" title="Celadon Jade" onclick="setGlaze('#059669', '#10b981', this)"></div>
+      <div class="glaze-dot" style="background: #1d4ed8;" title="Cobalt Blue" onclick="setGlaze('#1d4ed8', '#3b82f6', this)"></div>
+      <div class="glaze-dot" style="background: #f8fafc;" title="White Porcelain" onclick="setGlaze('#cbd5e1', '#f8fafc', this)"></div>
+      <div class="glaze-dot" style="background: #27272a;" title="Matte Obsidian" onclick="setGlaze('#18181b', '#3f3f46', this)"></div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('potteryCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const slices = 48; // Vertical slices
+    let profile = [];
+    let initialProfile = [];
+
+    let glazeBase = '#c2410c';
+    let glazeHighlight = '#ea580c';
+    let spinAngle = 0;
+    let isSculpting = false;
+
+    function initProfile() {
+      profile = [];
+      for (let i = 0; i < slices; i++) {
+        // Natural tapered cylindrical clay lump
+        const t = i / (slices - 1);
+        const radius = 55 + Math.sin(t * Math.PI) * 20 - (t * 12);
+        profile.push(radius);
+      }
+      initialProfile = [...profile];
+    }
+
+    let width, height;
+    function resize() {
+      const dpr = window.devicePixelRatio || 1;
+      width = canvas.parentElement.clientWidth;
+      height = canvas.parentElement.clientHeight - 60;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
+    }
+    window.addEventListener('resize', resize);
+
+    function setGlaze(base, hl, el) {
+      glazeBase = base;
+      glazeHighlight = hl;
+      document.querySelectorAll('.glaze-dot').forEach(d => d.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function smoothClay() {
+      for (let i = 1; i < slices - 1; i++) {
+        profile[i] = (profile[i - 1] + profile[i] * 2 + profile[i + 1]) / 4;
+      }
+    }
+
+    function resetClay() {
+      initProfile();
+    }
+
+    // Sculpting interaction
+    function sculptAt(y, deltaX) {
+      const potHeight = height * 0.62;
+      const startY = (height - potHeight) * 0.45;
+      const relativeY = (y - startY) / potHeight;
+
+      if (relativeY >= 0 && relativeY <= 1) {
+        const sliceIndex = Math.floor(relativeY * (slices - 1));
+        const influence = 5;
+
+        for (let i = Math.max(0, sliceIndex - influence); i <= Math.min(slices - 1, sliceIndex + influence); i++) {
+          const dist = Math.abs(i - sliceIndex);
+          const factor = Math.cos((dist / influence) * (Math.PI / 2));
+          profile[i] = Math.max(16, Math.min(135, profile[i] + deltaX * factor * 0.45));
+        }
+      }
+    }
+
+    let lastX = 0, lastY = 0;
+    canvas.addEventListener('pointerdown', e => {
+      isSculpting = true;
+      const rect = canvas.getBoundingClientRect();
+      lastX = e.clientX - rect.left;
+      lastY = e.clientY - rect.top;
+    });
+
+    window.addEventListener('pointermove', e => {
+      if (!isSculpting) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const deltaX = (x - width / 2) > 0 ? (x - lastX) : -(x - lastX);
+      sculptAt(y, deltaX);
+      lastX = x;
+      lastY = y;
+    });
+
+    window.addEventListener('pointerup', () => { isSculpting = false; });
+
+    // Render loop
+    function loop() {
+      spinAngle += 0.04;
+      ctx.clearRect(0, 0, width, height);
+
+      const potHeight = height * 0.62;
+      const startY = (height - potHeight) * 0.45;
+      const centerX = width / 2;
+
+      // 1. Spinning Wooden Turntable Wheel at the base
+      const wheelY = startY + potHeight + 10;
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(centerX, wheelY, 150, 32, 0, 0, Math.PI * 2);
+      ctx.fillStyle = '#292524';
+      ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#44403c';
+      ctx.stroke();
+
+      // Spinning spokes on turntable
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 2;
+      for (let a = 0; a < Math.PI * 2; a += Math.PI / 3) {
+        ctx.beginPath();
+        ctx.moveTo(centerX, wheelY);
+        ctx.lineTo(centerX + Math.cos(a + spinAngle) * 140, wheelY + Math.sin(a + spinAngle) * 28);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 2. Render 3D shaded Clay Lathe Vase
+      const stepY = potHeight / (slices - 1);
+
+      for (let i = 0; i < slices - 1; i++) {
+        const y1 = startY + i * stepY;
+        const y2 = y1 + stepY;
+        const r1 = profile[i];
+        const r2 = profile[i + 1];
+
+        // Lathe segment trapezoid
+        ctx.beginPath();
+        ctx.moveTo(centerX - r1, y1);
+        ctx.lineTo(centerX + r1, y1);
+        ctx.lineTo(centerX + r2, y2);
+        ctx.lineTo(centerX - r2, y2);
+        ctx.closePath();
+
+        // 3D cylindrical lighting gradient
+        const grad = ctx.createLinearGradient(centerX - r1, 0, centerX + r1, 0);
+        grad.addColorStop(0, '#1c1917');
+        grad.addColorStop(0.35, glazeBase);
+        grad.addColorStop(0.55, glazeHighlight);
+        grad.addColorStop(0.85, glazeBase);
+        grad.addColorStop(1, '#1c1917');
+
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Horizontal lathe spin rings (wet clay grooves)
+        if (i % 2 === 0) {
+          ctx.beginPath();
+          ctx.ellipse(centerX, y1, r1, r1 * 0.18, 0, 0, Math.PI * 2);
+          ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+
+      // Top vase opening lip (rim)
+      ctx.beginPath();
+      ctx.ellipse(centerX, startY, profile[0], profile[0] * 0.22, 0, 0, Math.PI * 2);
+      ctx.fillStyle = '#0f0e0d';
+      ctx.fill();
+      ctx.strokeStyle = glazeHighlight;
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+
+      requestAnimationFrame(loop);
+    }
+
+    initProfile();
+    resize();
+    loop();
+  </script>
+</body>
+</html>
