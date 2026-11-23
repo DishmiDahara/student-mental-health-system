@@ -2,14 +2,13 @@
  * MindSpace - Google Gemini AI Provider
  * 
  * Server-side integration with the official Google Gemini API (REST endpoint).
- * Model: Generally Available (GA) flagship lightweight model: gemini-2.0-flash (default),
- * with support for gemini-1.5-flash and gemini-3.8-flash via GEMINI_MODEL env var.
+ * Robust model cascading: Tries configured model, then automatically falls back across
+ * GA models (gemini-1.5-flash, gemini-2.0-flash, gemini-1.5-pro) to guarantee high uptime.
  * 
  * Core Principles:
  * - API key kept strictly server-side (GEMINI_API_KEY).
  * - System instructions and boundary enforcement run on the server.
  * - Multi-turn conversation history with strict Gemini turn alternation.
- * - Handles rate limits, timeouts, safety blocks, and network failures with user-friendly messages.
  * - Privacy: Does NOT forward private mood logs, sleep logs, or triggers without explicit consent.
  */
 
@@ -119,11 +118,11 @@ const isInvalidOrPlaceholderKey = (key) => {
 }
 
 /**
- * Calls Google Gemini API
+ * Calls Google Gemini API with automatic model cascading
  * @param {Object} params
  * @param {string} params.prompt - Current user prompt
  * @param {Array} params.conversationHistory - Recent conversation history
- * @returns {Promise<{ reply: string, provider: string }>}
+ * @returns {Promise<{ reply: string, provider: string, model: string }>}
  */
 const generateGeminiResponse = async ({ prompt, conversationHistory = [] }) => {
   const rawKey = (
@@ -144,19 +143,24 @@ const generateGeminiResponse = async ({ prompt, conversationHistory = [] }) => {
 
   const apiKey = rawKey
 
-  // Clean model name: default to gemini-2.0-flash if model contains placeholder text
-  let rawModel = (process.env.GEMINI_MODEL || 'gemini-2.0-flash').trim()
+  // Clean configured model
+  let rawModel = (process.env.GEMINI_MODEL || 'gemini-1.5-flash').trim()
   if (
     rawModel.toLowerCase().includes('the value in') ||
     rawModel.toLowerCase().includes('for example') ||
     rawModel.toLowerCase().includes('placeholder') ||
     rawModel === ''
   ) {
-    rawModel = 'gemini-2.0-flash'
+    rawModel = 'gemini-1.5-flash'
   }
 
-  let activeModel = rawModel
-  let endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(activeModel)}:generateContent?key=${apiKey}`
+  // Cascading list of models to try in order
+  const candidateModels = [
+    rawModel,
+    'gemini-1.5-flash',
+    'gemini-2.0-flash',
+    'gemini-1.5-pro'
+  ].filter((m, idx, arr) => m && arr.indexOf(m) === idx)
 
   const contents = buildGeminiContents(conversationHistory, prompt)
 
@@ -178,18 +182,21 @@ const generateGeminiResponse = async ({ prompt, conversationHistory = [] }) => {
     ]
   }
 
-  const maxAttempts = 2
-  let attempt = 0
+  let lastError = null
 
-  while (attempt < maxAttempts) {
-    attempt++
+  // Try candidate models in order until one succeeds
+  for (const model of candidateModels) {
     try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${apiKey}`
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 18000)
 
       const response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey
+        },
         body: JSON.stringify(payload),
         signal: controller.signal
       })
@@ -198,19 +205,12 @@ const generateGeminiResponse = async ({ prompt, conversationHistory = [] }) => {
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => '')
-        console.warn(`[Gemini Provider] API returned HTTP ${response.status} (attempt ${attempt}/${maxAttempts}): ${errorText.substring(0, 140)}`)
+        console.warn(`[Gemini Provider] Model '${model}' returned HTTP ${response.status}: ${errorText.substring(0, 150)}`)
 
-        // If requested model returns 404 (e.g. gemini-3.8-flash not found on public v1beta endpoint),
-        // automatically fallback to the Generally Available gemini-2.0-flash
-        if (response.status === 404 && activeModel !== 'gemini-2.0-flash' && activeModel !== 'gemini-1.5-flash') {
-          console.warn(`[Gemini Provider] Model '${activeModel}' returned HTTP 404. Automatically falling back to 'gemini-2.0-flash'...`)
-          activeModel = 'gemini-2.0-flash'
-          endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(activeModel)}:generateContent?key=${apiKey}`
-          continue
-        }
-
-        if (response.status === 429 && attempt < maxAttempts) {
-          await new Promise(r => setTimeout(r, 1200))
+        // If 404 (model not found) or 400 (unsupported on this endpoint), try next model
+        if (response.status === 404 || response.status === 400) {
+          lastError = new Error(`Model ${model} returned HTTP ${response.status}: ${errorText.substring(0, 100)}`)
+          lastError.status = response.status
           continue
         }
 
@@ -226,6 +226,7 @@ const generateGeminiResponse = async ({ prompt, conversationHistory = [] }) => {
         return {
           reply: "I want to support you in a safe and healthy way, but I cannot discuss that particular topic. If you are experiencing high distress or need crisis care, please reach out to our emergency helplines like 1926 or a trusted professional.",
           provider: 'gemini',
+          model,
           isSafetyBlocked: true
         }
       }
@@ -238,20 +239,23 @@ const generateGeminiResponse = async ({ prompt, conversationHistory = [] }) => {
 
       return {
         reply: replyText.trim(),
-        provider: 'gemini'
+        provider: 'gemini',
+        model
       }
     } catch (err) {
-      if (err.name === 'AbortError') {
-        console.warn(`[Gemini Provider] Request timed out on attempt ${attempt}.`)
-      }
+      lastError = err
 
-      if (attempt >= maxAttempts) {
+      // Authorization errors (401/403) or rate limits (429) mean the key or quota is the issue,
+      // so retrying other model names won't help; rethrow immediately
+      if (err.status === 401 || err.status === 403 || err.status === 429) {
         throw err
       }
 
-      await new Promise(r => setTimeout(r, 800))
+      console.warn(`[Gemini Provider] Attempt with '${model}' failed: ${err.message}. Trying next candidate model...`)
     }
   }
+
+  throw lastError || new Error('All candidate Gemini models failed to generate content.')
 }
 
 module.exports = {
