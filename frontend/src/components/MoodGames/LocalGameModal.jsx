@@ -1,9 +1,9 @@
 import { useRef, useEffect, useState } from 'react'
 import { BackButton, FullscreenButton } from './GameControls'
 
-// Plays one of the open-source HTML5 games that is bundled and hosted locally
-// in /public/games/<name>/. It runs in a same-origin iframe inside MindSpace,
-// so nobody is redirected to another website.
+// Plays one of the authorized relaxing HTML5 games (commercial webmaster syndications
+// or locally hosted open-source games). It runs in an iframe inside MindSpace,
+// allowing users to play directly without leaving the application.
 export default function LocalGameModal({ game, onClose }) {
   const frameBoxRef = useRef(null)
   const [loaded, setLoaded] = useState(false)
@@ -31,7 +31,7 @@ export default function LocalGameModal({ game, onClose }) {
       <div
         ref={frameBoxRef}
         style={{
-          width: '100%', maxWidth: '900px', height: 'min(86vh, 760px)', background: '#0f172a',
+          width: '100%', maxWidth: '960px', height: 'min(88vh, 780px)', background: '#0f172a',
           borderRadius: '24px', border: '1px solid rgba(255,255,255,0.15)',
           boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)', overflow: 'hidden',
           display: 'flex', flexDirection: 'column'
@@ -42,28 +42,34 @@ export default function LocalGameModal({ game, onClose }) {
           <h3 style={{ margin: 0, flex: 1, color: 'white', fontSize: '15px', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
             <span aria-hidden="true">{game.icon}</span>
             <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{game.title}</span>
+            {game.badge && (
+              <span style={{ fontSize: '11px', fontWeight: 700, padding: '2px 8px', borderRadius: '999px', background: 'rgba(255,255,255,0.15)', color: '#e2e8f0' }}>
+                {game.badge}
+              </span>
+            )}
           </h3>
           <FullscreenButton variant="dark" targetRef={frameBoxRef} />
         </div>
 
         <div style={{ position: 'relative', flex: 1, background: '#000' }}>
           {!loaded && (
-            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '14px' }}>
-              Loading {game.title}…
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '14px', gap: '8px' }}>
+              <span style={{ fontSize: '28px' }}>{game.icon}</span>
+              <span>Loading {game.title}…</span>
             </div>
           )}
           <iframe
             title={game.title}
             src={game.launch.src}
             onLoad={() => setLoaded(true)}
-            allow="fullscreen; autoplay"
+            allow="fullscreen; autoplay; screen-wake-lock; clipboard-write"
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', background: game.id === 'floodit' ? '#f5f7fb' : '#000' }}
           />
         </div>
 
         <div style={{ padding: '8px 16px', color: '#94a3b8', fontSize: '11.5px', background: 'rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
           <span>{game.desc}</span>
-          {game.credit && <span>Open source · {game.credit}</span>}
+          {game.credit && <span>{game.credit}</span>}
         </div>
       </div>
     </div>

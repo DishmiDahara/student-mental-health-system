@@ -2781,7 +2781,7 @@ export default function MoodTracker() {
       else if (l.modal === 'mower') setShowMowerModal(true)
       else if (l.modal === 'popit') setShowPopItModal(true)
       else if (l.modal === 'watersort') setShowWaterSortModal(true)
-    } else if (l.type === 'local') {
+    } else if (l.type === 'local' || l.type === 'embed') {
       setLocalGame(game)
     }
   }

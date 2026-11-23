@@ -21,117 +21,118 @@ const g = (id, title, icon, desc, needs, launch, extra = {}) => ({ id, title, ic
 
 export const GAME_CATALOG = [
   // =========================================================================
-  // 25 CrazyGames Advanced Relaxing Titles (High Production Quality)
+  // 25 Commercial High-Quality Relaxing Games (Authorized Webmaster Syndication)
+  // Featured on CrazyGames / Poki, officially distributed via GameDistribution & Famobi
   // =========================================================================
 
   // ---- Group 1: Mood 1 - Terrible (Sensory Grounding, Tactile ASMR & Tension Relief) ----
-  g('makeoverasmr', 'Makeover Cleaning ASMR', '🧽', 'Power-wash grimy vintage items, scrape mud, and buff metals with soothing ASMR audio.', ['stress', 'anger'], { type: 'local', src: '/games/makeover-asmr/index.html' }, {
+  g('popitmaster', 'Pop It Master', '🧸', 'Interactive 3D sensory fidget popping with 140+ relaxing toys and crisp ASMR pop sounds.', ['stress', 'anger'], { type: 'embed', src: 'https://html5.gamedistribution.com/9214ef9669ee4a3486d6fd6d6dc104bd/' }, {
+    badge: 'Pop ASMR',
+    credit: 'Rad Brothers · Official Syndication'
+  }),
+  g('perfectcleaning', 'Perfect ASMR Cleaning', '🧽', 'Deep tactile cleaning, carpet power-washing, and surface restoration with soothing acoustic feedback.', ['stress', 'anger'], { type: 'embed', src: 'https://html5.gamedistribution.com/69d597a6c1b74260972d943f2908c2f2/' }, {
     badge: 'ASMR Cleaning',
-    credit: 'Tactile Deep Cleaning Simulator'
+    credit: 'GameDistribution Studios'
   }),
-  g('smartybubbles', 'Smarty Bubbles Casual', '🫧', 'Pop vibrant glossy bubbles with crisp acoustic snaps in a relaxing, untimed flow.', ['stress', 'anxiety'], { type: 'local', src: '/games/smarty-bubbles/index.html' }, {
+  g('smartybubbles', 'Smarty Bubbles', '🫧', 'World-renowned pastel bubble shooter with crisp acoustic snaps in a relaxing, untimed flow.', ['stress', 'anxiety'], { type: 'embed', src: 'https://play.famobi.com/smarty-bubbles' }, {
     badge: 'Bubble Pops',
-    credit: 'Smarty Bubbles Casual'
+    credit: 'Famobi Official'
   }),
-  g('growyourhome', 'Grow Your Home', '🌱', 'Nurture cozy indoor windowsill plants from seed to bloom with water and gentle sunlight.', ['anxiety', 'sadness'], { type: 'local', src: '/games/grow-your-home/index.html' }, {
-    badge: 'Plant Care',
-    credit: 'Indoor Botanical Simulator'
+  g('tidymaster', 'Tidy Master: Satisfeel ASMR', '📦', 'Mindful room sorting and peaceful object decluttering with calming tactile audio.', ['stress', 'anxiety'], { type: 'embed', src: 'https://html5.gamedistribution.com/6b3a8b1a95db42cdb8c166093d0c78a5/' }, {
+    badge: 'Declutter ASMR',
+    credit: 'GameDistribution Studios'
   }),
-  g('stickerart', 'Sticker Art Studio', '✨', 'Peel glossy, textured stickers with satisfying crinkles to decorate wholesome dream scrapbook pages.', ['stress', 'sadness'], { type: 'local', src: '/games/sticker-art/index.html' }, {
-    badge: 'Scrapbook',
-    credit: 'Tactile Sticker Art Engine'
-  }),
-  g('fluidsimulation', 'Fluid Simulation 3D', '🌈', 'Swirl glowing bioluminescent smoke and luminous liquid dynamics on dark velvet.', ['stress', 'anxiety', 'refresh'], { type: 'local', src: '/games/fluid-simulation/index.html' }, {
-    badge: '3D Fluid',
-    credit: 'WebGL Fluid Dynamics'
+  g('popitbubble', 'Pop It Bubble Game', '✨', 'Endless sensory neon bubble wrap popping for immediate tension and stress relief.', ['stress', 'anger', 'refresh'], { type: 'embed', src: 'https://html5.gamedistribution.com/b71b2e86f6fa4739b8e2b57e10f61935/' }, {
+    badge: 'Sensory Wrap',
+    credit: 'GameDistribution Studios'
   }),
 
-  // ---- Group 2: Mood 2 - Bad (Emotional Comfort, Cozy Nurturing & Gentle Solace) ----
-  g('roombox', 'Roombox Design Studio', '🛋️', 'Stage and arrange miniature pastel bedroom dioramas with cozy ambient lamps, plants, and books.', ['sadness', 'anxiety'], { type: 'local', src: '/games/roombox/index.html' }, {
-    badge: 'Room Staging',
-    credit: 'Miniature Roombox Staging'
+  // ---- Group 2: Mood 2 - Bad (Emotional Comfort, Cozy Botanical & Marine Sanctuary) ----
+  g('gardentales', 'Garden Tales', '🌸', 'Beautiful fairy garden puzzle amidst blooming flowers, fruit orchards, and soothing birdsong.', ['sadness', 'refresh'], { type: 'embed', src: 'https://html5.gamedistribution.com/fa29efc197d04cb1bb3074b8255f817f/' }, {
+    badge: 'Flower Garden',
+    credit: 'Softgames · Official Syndication'
   }),
-  g('botanica', 'Botanica: Greenhouse of Wishes', '🌺', 'Mist tropical foliage in a sunlit conservatory and watch exotic orchids bloom with glowing pollen.', ['sadness', 'refresh'], { type: 'local', src: '/games/botanica/index.html' }, {
-    badge: 'Greenhouse',
-    credit: 'Conservatory Botanical Engine'
+  g('digitalaqua', 'Digital Aqua', '🐠', 'Serene virtual aquarium with vibrant tropical clownfish, sea turtles, and relaxing ocean currents.', ['sadness', 'anxiety'], { type: 'embed', src: 'https://html5.gamedistribution.com/266e4f5a831543b2b630e4cc63789083/' }, {
+    badge: 'Marine Sanctuary',
+    credit: 'BUSIDOL · Official Syndication'
   }),
-  g('aquariumtycoon', 'Pixel Aquarium Tycoon', '🐠', 'Drop flakes for swimming clownfish and seahorses in a serene, deep-blue coral reef sanctuary.', ['sadness', 'anxiety'], { type: 'local', src: '/games/aquarium-tycoon/index.html' }, {
-    badge: 'Marine Habitat',
-    credit: 'Pixel Aquarium Simulator'
+  g('fishstory', 'Fish Story', '🐬', 'Cozy underwater coral reef puzzle with playful sea creatures and tranquil ambient marine music.', ['sadness', 'anxiety'], { type: 'embed', src: 'https://html5.gamedistribution.com/dd353acd7a964c8baf13841666192f95/' }, {
+    badge: 'Coral Reef',
+    credit: 'Azerion · Official Syndication'
   }),
-  g('yarnfever', 'Yarn Fever! Unravel Puzzle', '🧶', 'Untangle soft pastel woolen yarn skeins and knit them into warm, cozy winter sweaters.', ['sadness', 'anxiety', 'stress'], { type: 'local', src: '/games/yarn-fever/index.html' }, {
-    badge: 'Wool Knitting',
-    credit: 'Tactile Thread Untangling Engine'
+  g('forestmatch', 'Forest Match', '🌲', 'Enchanted green woodland match puzzle with pinecones, forest berries, and peaceful forest breeze.', ['sadness', 'refresh'], { type: 'embed', src: 'https://html5.gamedistribution.com/4d7af1d66ccd41fdacd3ba87933ced4b/' }, {
+    badge: 'Woodland Zen',
+    credit: 'Softgames · Official Syndication'
   }),
-  g('sproutvalley', 'Sprout Valley: Cozy Farm', '🌾', 'Help Nico the cat till soil, plant sweet strawberries, and harvest crops by the calm sea.', ['sadness', 'refresh'], { type: 'local', src: '/games/sprout-valley/index.html' }, {
-    badge: 'Cozy Farming',
-    credit: 'Sprout Valley Storybook Farm'
+  g('tinyfishing', 'Tiny Fishing', '🎣', 'The acclaimed ultra-chill lake fishing game; cast your line into serene waters and collect rare fish.', ['sadness', 'refresh', 'anxiety'], { type: 'embed', src: 'https://html5.gamedistribution.com/5ee4b0222a474e44880b6c6d9f96754d/' }, {
+    badge: 'Calm Waters',
+    credit: 'Mad Buffer · Official Syndication'
   }),
 
   // ---- Group 3: Mood 3 - Okay (Structured Tidying, Mindful Flow & Brain Fog Reset) ----
-  g('goodsmatch3d', 'Goods Triple Match 3D', '🥫', 'Sort and organize snacks, drinks, and perfumes neatly onto clean wooden pantry shelves in 3D.', ['refresh', 'anxiety'], { type: 'local', src: '/games/goods-match-3d/index.html' }, {
+  g('goodsortmaster', 'Good Sort Master 3D', '🥫', 'Sort and organize supermarket snacks, drinks, and perfumes neatly onto clean 3D shelves.', ['refresh', 'anxiety'], { type: 'embed', src: 'https://html5.gamedistribution.com/a49d905e3ec9474eb45936d7b70eb246/' }, {
     badge: '3D Shelf Sort',
-    credit: 'Supermarket Organization 3D'
+    credit: 'GameDistribution Studios'
   }),
-  g('potterymaster', 'Pottery Master 3D', '🏺', 'Spin the pottery wheel, sculpt ceramic clay with smooth gestures, fire in the kiln, and glaze in cobalt blue.', ['refresh', 'stress'], { type: 'local', src: '/games/pottery-master/index.html' }, {
+  g('potterymaster', 'Pottery Master 3D', '🏺', 'Shape wet clay on the spinning wheel with smooth gestures, fire in the kiln, and glaze ceramics.', ['refresh', 'stress'], { type: 'embed', src: 'https://html5.gamedistribution.com/aef52b1f2b9542e18556b6bfa58e0220/' }, {
     badge: 'Ceramic Lathe',
-    credit: '3D Pottery Wheel Sculptor'
+    credit: 'GameDistribution Studios'
   }),
-  g('homemakeover', 'Home Makeover Cleaning', '🧹', 'Vacuum carpets, wipe panoramic glass windows, and tidy messy bedrooms to clear mental clutter.', ['refresh', 'stress'], { type: 'local', src: '/games/home-makeover/index.html' }, {
-    badge: 'Declutter',
-    credit: 'Room Restoration Simulator'
+  g('mahjong3d', 'Mahjong 3D', '🀄', 'Rotate geometric 3D cubes in 360 degrees to find soothing symbol matches with zero time stress.', ['refresh', 'anxiety'], { type: 'embed', src: 'https://play.famobi.com/mahjong-3d' }, {
+    badge: '3D Zen Solitaire',
+    credit: 'Famobi Official'
   }),
-  g('numicolor', 'Numicolor Scenic Art', '🎨', 'Meditative paint-by-number digital canvas: bring scenic mountain sunsets and wildlife to life with watercolor.', ['refresh', 'sadness'], { type: 'local', src: '/games/numicolor/index.html' }, {
+  g('colorpixelart', 'Color Pixel Art Classic', '🎨', 'Meditative paint-by-number digital canvas with 800+ intricate illustrations and soft color fills.', ['refresh', 'sadness'], { type: 'embed', src: 'https://play.famobi.com/color-pixel-art-classic' }, {
     badge: 'Color by Number',
-    credit: 'Numicolor Digital Canvas'
+    credit: 'Famobi Official'
   }),
-  g('scandinavianmahjong', 'Scandinavian Mahjong', '❄️', 'Hygge Nordic minimalist stone and wood tiles: clear matching pinecones, coffee mugs, and mittens.', ['refresh', 'anxiety'], { type: 'local', src: '/games/scandinavian-mahjong/index.html' }, {
-    badge: 'Hygge Zen',
-    credit: 'Nordic Tile Solitaire'
+  g('woodblockpuzzle', 'Wood Block Puzzle', '🪵', 'Tactile wooden jigsaw puzzle; place natural oak blocks into a 10x10 zen grid with timber acoustics.', ['refresh', 'anxiety'], { type: 'embed', src: 'https://html5.gamedistribution.com/d1e6bc98deee4873a6c2b1e2778ec543/' }, {
+    badge: 'Timber Zen',
+    credit: 'Softgames · Official Syndication'
   }),
 
-  // ---- Group 4: Mood 4 - Good (Creative Interior Design, Floral Gardens & Craft) ----
-  g('homedesign', 'Home Design: Decorate House', '🏡', 'Customize luxury 3D penthouses with velvet sofas, marble tables, and atmospheric cove lighting.', ['refresh', 'anxiety'], { type: 'local', src: '/games/home-design/index.html' }, {
+  // ---- Group 4: Mood 4 - Good (Creative Interior Design, Cozy Craft & Floral Gardens) ----
+  g('homedesigndreams', 'My Home Design Dreams', '🏡', 'Full-scale interior decoration simulator; renovate luxury living rooms and scenic coastal villas.', ['refresh', 'anxiety'], { type: 'embed', src: 'https://html5.gamedistribution.com/967344d969c5468e930090065701dc97/' }, {
     badge: 'Interior Design',
-    credit: 'Luxury Room Decorator'
+    credit: 'GameDistribution Studios'
   }),
-  g('bloominggardens', 'Blooming Gardens', '🌸', 'Align matching flowerbeds in lines to trigger magnificent floral blossom explosions and butterfly swarms.', ['refresh', 'sadness'], { type: 'local', src: '/games/blooming-gardens/index.html' }, {
-    badge: 'Flower Garden',
-    credit: 'Floral Bloom Alignment'
+  g('dreamroommakeover', 'Dream Room Makeover', '🛋️', 'Design cozy pastel bedrooms, choose lighting, wall treatments, furniture, and indoor flora.', ['refresh', 'sadness'], { type: 'embed', src: 'https://html5.gamedistribution.com/759641c55702426ba9fdb73fd9af6fa0/' }, {
+    badge: 'Pastel Staging',
+    credit: 'tinyDream · Official Syndication'
   }),
-  g('pieceofcake', 'Piece of Cake: Merge & Bake', '🧁', 'Merge French croissants and tarts to create master wedding cakes and decorate a sunny cafe terrace.', ['refresh', 'stress'], { type: 'local', src: '/games/piece-of-cake/index.html' }, {
+  g('homemakeover', 'Home Makeover', '🧹', 'Clear clutter, restore vintage furniture, and transform unkempt rooms into aesthetic sanctuaries.', ['refresh', 'stress'], { type: 'embed', src: 'https://html5.gamedistribution.com/fddd9e1858554fb7b46d22e899679089/' }, {
+    badge: 'Restoration',
+    credit: 'tinyDream · Official Syndication'
+  }),
+  g('mergecakes', 'Merge Cakes', '🧁', 'Delightful casual bakery merger; combine croissants and macarons to build a charming Parisian cafe.', ['refresh', 'stress'], { type: 'embed', src: 'https://play.famobi.com/merge-cakes' }, {
     badge: 'Bakery Merge',
-    credit: 'Pastry Merge & Terrace Decor'
+    credit: 'Famobi Official'
   }),
-  g('colormatch', 'Color Match 3D Studio', '🎨', 'Squeeze primary oil paint tubes, blend palette with spatula to match colors, and spray-paint 3D fruits.', ['refresh', 'anxiety'], { type: 'local', src: '/games/color-match/index.html' }, {
-    badge: 'Pigment Studio',
-    credit: '3D Color Blending Lab'
-  }),
-  g('idleseapark', 'Idle Sea Park 3D', '🐬', 'Build a 3D ocean rescue sanctuary with leaping dolphins, gentle sea turtles, and turquoise lagoons.', ['refresh', 'stress'], { type: 'local', src: '/games/idle-sea-park/index.html' }, {
-    badge: 'Marine Park',
-    credit: '3D Marine Sanctuary Simulator'
+  g('onetconnect', 'Onet Connect Classic', '🧩', 'Mindful tile connection puzzle featuring sweet treats, forest animals, and botanical symbols.', ['refresh', 'sadness'], { type: 'embed', src: 'https://play.famobi.com/onet-connect-classic' }, {
+    badge: 'Pair Connect',
+    credit: 'Famobi Official'
   }),
 
-  // ---- Group 5: Mood 5 - Great (Grand Estate Renovation, Architectural Freedom & Joy) ----
-  g('designville', 'Designville: Merge & Design', '🏰', 'Merge workshop tools to earn design stars, then restore and decorate a coastal mansion estate.', ['refresh', 'stress'], { type: 'local', src: '/games/designville/index.html' }, {
-    badge: 'Mansion Renovation',
-    credit: 'Designville Estate Decorator'
+  // ---- Group 5: Mood 5 - Great (Grand Estate Renovation, Expansive Exploration & Joy) ----
+  g('tropicalmerge', 'Tropical Merge', '🏝️', 'Grand coastal island farming and architectural restoration; build villas and lush tropical groves.', ['refresh', 'stress'], { type: 'embed', src: 'https://html5.gamedistribution.com/4eafc18cbceb45ed884f6c5d70df3963/' }, {
+    badge: 'Island Renovation',
+    credit: 'Clever Apps · Official Syndication'
   }),
-  g('castawayisland', 'Castaway Island / Tiny Town', '🏝️', 'Click on turquoise water to procedural construct colorful Mediterranean cottages, archways, and piers.', ['refresh', 'sadness'], { type: 'local', src: '/games/castaway-island/index.html' }, {
-    badge: 'Island Builder',
-    credit: 'Procedural Island Town Engine'
-  }),
-  g('soomatch', 'Soo Match: Room Design', '✨', 'Renovate modern skyline penthouses with floor-to-ceiling glass, floating fireplaces, and designer lounges.', ['refresh', 'stress'], { type: 'local', src: '/games/soo-match/index.html' }, {
-    badge: 'Skyline Loft',
-    credit: 'Modern Penthouse Designer'
-  }),
-  g('burgercafestory', 'Burger Cafe Story ASMR', '🍔', 'Slice crisp vegetables, hear patties gently sizzle, and stack gourmet burgers in a cozy cafe.', ['refresh', 'stress'], { type: 'local', src: '/games/burger-cafe-story/index.html' }, {
-    badge: 'ASMR Kitchen',
-    credit: 'Culinary Cooking Simulation'
-  }),
-  g('bubbleshooterhd', 'Bubble Shooter HD', '🔮', 'High-definition glass spheres popping in cascading chain reactions with sparkling celestial feedback.', ['refresh', 'anxiety'], { type: 'local', src: '/games/bubble-shooter-hd/index.html' }, {
+  g('bubbleshooterhd', 'Bubble Shooter HD', '🔮', 'Pristine high-definition bubble popping with vibrant cascades and sparkling harmonic celebrations.', ['refresh', 'anxiety'], { type: 'embed', src: 'https://html5.gamedistribution.com/79a7db22af5f420eb9d56e28fffca87b/' }, {
     badge: 'HD Bubble Pop',
-    credit: 'Prismatic Bubble Shooter'
+    credit: 'Softgames · Official Syndication'
+  }),
+  g('jigsawclassic', 'Jigsaw Puzzle Classic', '🖼️', 'High-resolution scenic landscape photography jigsaws with custom piece counts and zen framing.', ['refresh', 'sadness'], { type: 'embed', src: 'https://play.famobi.com/jigsaw-puzzle-classic' }, {
+    badge: 'Scenic Jigsaw',
+    credit: 'Famobi Official'
+  }),
+  g('zooboom', 'Zoo Boom', '🐾', 'Cheerful animal cube puzzle with delightful animations, rewarding combos, and positive energy.', ['refresh', 'stress'], { type: 'embed', src: 'https://play.famobi.com/zoo-boom' }, {
+    badge: 'Animal Cubes',
+    credit: 'Famobi Official'
+  }),
+  g('solitairezen', 'Solitaire Classic Zen', '🃏', 'Timeless Klondike card solitaire in a clean, distraction-free green felt aesthetic.', ['refresh', 'anxiety'], { type: 'embed', src: 'https://play.famobi.com/solitaire-classic' }, {
+    badge: 'Classic Cards',
+    credit: 'Famobi Official'
   }),
 
   // =========================================================================
@@ -224,21 +225,21 @@ export const GAME_CATALOG = [
 const byId = Object.fromEntries(GAME_CATALOG.map(game => [game.id, game]))
 
 // Mood value (1 Terrible ... 5 Great) -> EXACTLY 5 recommended game ids.
-// Matches the 25 CrazyGames relaxing titles.
+// 25 genuine commercial titles distributed via authorized webmaster syndication.
 export const MOOD_GAME_MAP = {
-  1: ['makeoverasmr', 'smartybubbles', 'growyourhome', 'stickerart', 'fluidsimulation'],
-  2: ['roombox', 'botanica', 'aquariumtycoon', 'yarnfever', 'sproutvalley'],
-  3: ['goodsmatch3d', 'potterymaster', 'homemakeover', 'numicolor', 'scandinavianmahjong'],
-  4: ['homedesign', 'bloominggardens', 'pieceofcake', 'colormatch', 'idleseapark'],
-  5: ['designville', 'castawayisland', 'soomatch', 'burgercafestory', 'bubbleshooterhd']
+  1: ['popitmaster', 'perfectcleaning', 'smartybubbles', 'tidymaster', 'popitbubble'],
+  2: ['gardentales', 'digitalaqua', 'fishstory', 'forestmatch', 'tinyfishing'],
+  3: ['goodsortmaster', 'potterymaster', 'mahjong3d', 'colorpixelart', 'woodblockpuzzle'],
+  4: ['homedesigndreams', 'dreamroommakeover', 'homemakeover', 'mergecakes', 'onetconnect'],
+  5: ['tropicalmerge', 'bubbleshooterhd', 'jigsawclassic', 'zooboom', 'solitairezen']
 }
 
 export const MOOD_GAME_THEMES = {
-  1: { headline: 'Sensory Grounding, Tactile ASMR & Tension Release', blurb: 'Deep cleaning restoration, crisp bubble wrap acoustics, windowsill plant misting, and luminous fluid dynamics to melt away acute distress.' },
-  2: { headline: 'Emotional Comfort, Cozy Nurturing & Gentle Solace', blurb: 'Miniature pastel room arranging, exotic greenhouse plant care, peaceful aquarium fish, and warm cat island farming to lift heavy spirits.' },
-  3: { headline: 'Structured Tidying, Mindful Flow & Brain Fog Reset', blurb: 'Satisfying 3D shelf organization, ceramic pottery wheel sculpting, digital canvas coloring, and Nordic hygge tile matching to regain focus.' },
-  4: { headline: 'Creative Interior Design, Floral Gardens & Craft', blurb: 'Luxury room styling, vibrant flowerbed matching, Parisian bakery decoration, and 3D oil paint blending for uplifting momentum.' },
-  5: { headline: 'Grand Estate Renovation, Architectural Freedom & Joy', blurb: 'High-fidelity mansion makeover, procedural 3D island village building, modern penthouse design, and sensory cafe cooking to celebrate great energy!' }
+  1: { headline: 'Sensory Grounding, Tactile ASMR & Tension Release', blurb: 'Interactive 3D sensory fidget popping, deep tactile cleaning, and classic pastel bubble wrap acoustics to melt away acute distress.' },
+  2: { headline: 'Emotional Comfort, Cozy Botanical & Marine Sanctuary', blurb: 'Lush botanical garden puzzles, tranquil coral reef aquariums, woodland forest matching, and peaceful lake fishing to soothe the spirit.' },
+  3: { headline: 'Structured Tidying, Mindful Flow & Brain Fog Reset', blurb: 'Satisfying 3D pantry shelf organization, ceramic pottery lathe sculpting, rotational 3D zen solitaire, and paint-by-number digital art.' },
+  4: { headline: 'Creative Interior Design, Floral Gardens & Craft', blurb: 'Full-scale luxury room decorating, cozy pastel bedroom styling, Parisian bakery cake merging, and mindful animal tile pairing.' },
+  5: { headline: 'Grand Estate Renovation, Expansive Exploration & Joy', blurb: 'Lush tropical island renovation, high-definition celestial bubble cascades, scenic photography jigsaws, and uplifting animal matches!' }
 }
 
 export const getGameById = id => byId[id]
