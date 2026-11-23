@@ -126,7 +126,13 @@ const isInvalidOrPlaceholderKey = (key) => {
  * @returns {Promise<{ reply: string, provider: string }>}
  */
 const generateGeminiResponse = async ({ prompt, conversationHistory = [] }) => {
-  const rawKey = (process.env.GEMINI_API_KEY || '').trim()
+  const rawKey = (
+    process.env.GEMINI_API_KEY ||
+    process.env.GEMINI_API_KEY6 ||
+    process.env.GEMINI_KEY ||
+    process.env.GOOGLE_GEMINI_API_KEY ||
+    ''
+  ).trim()
 
   if (isInvalidOrPlaceholderKey(rawKey)) {
     const err = new Error(
