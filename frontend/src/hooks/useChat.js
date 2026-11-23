@@ -123,9 +123,9 @@ export const useChat = () => {
       const fallbackAiMessage = {
         id: Date.now() + 1,
         sender: 'ai',
-        text: "I'm having trouble connecting right now. Please try again in a moment.",
+        text: err.response?.data?.reply || "I'm having a little trouble connecting right now. Please wait a moment and try sending your message again.",
         timestamp: new Date().toISOString(),
-        provider: 'error_fallback',
+        provider: 'gemini',
         isError: true
       }
       setMessages(prev => [...prev, fallbackAiMessage])

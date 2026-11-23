@@ -43,13 +43,20 @@
 - **Custom Advisor Suggestions**: Assign personalized relaxation activities and games to students.
 - **Settlement & Reporting**: Financial settlement tracking and PDF/Docx report generation.
 
+### 🤖 7. AI Mental Health Companion (Aura)
+- **Google Gemini Integration**: Powered by Google's flagship Generally Available `gemini-2.0-flash` model for empathetic, natural conversational support.
+- **Trilingual Fluency**: Seamlessly supports English, Sinhala (සිංහල Unicode), and conversational Singlish.
+- **Responsible Boundaries**: Operates as a supportive wellbeing companion with strict non-clinical safeguards (no medical diagnoses, no medication advice, no false promises).
+- **Multi-Layered Crisis Safety**: Built-in automated crisis detection directing users in acute distress to verified Sri Lankan emergency helplines (1926 NIMH, 1990 Suwa Seriya Ambulance, 1333 CCCline, 011 269 6666 Sumithrayo).
+- **Privacy First**: Securely stores conversation history on MindSpace while never transmitting private mood logs, sleep metrics, or profile details to the external AI model.
+
 ---
 
 ## 🛠️ Technology Architecture
 
 ### **Frontend**
 - **Framework**: React 19 + Vite 8
-- **Styling**: Vanilla CSS (Custom Design System with Glassmorphic Elements)
+- **Styling**: Vanilla CSS (Custom Design System with Light/Dark Glassmorphic Elements)
 - **3D Graphics & Visuals**: Three.js (WebGL Engine)
 - **Data Visualization**: Recharts
 - **Real-Time Client**: Socket.IO Client
@@ -58,8 +65,9 @@
 - **Runtime**: Node.js + Express.js
 - **Database**: MongoDB + Mongoose ODM
 - **Real-Time Server**: Socket.IO (WebSockets)
+- **AI Engine**: Google Gemini API (`gemini-2.0-flash` / `gemini-1.5-flash`)
 - **Authentication**: JSON Web Tokens (JWT) + Bcrypt.js
-- **Security**: CORS, Dotenv, Admin Auth Middleware
+- **Security**: In-memory Rate Limiting, XSS Input Sanitization, Dotenv
 
 ---
 
@@ -102,11 +110,16 @@ cd student-mental-health-system
 cd backend
 npm install
 ```
-Create a `.env` file inside the `backend` folder:
+Create a `.env` file inside the `backend` folder (or copy from `.env.example`):
 ```env
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/mentalhealth
+JWT_SECRET=your_jwt_secret_here
 
+# AI Companion (Google Gemini API)
+AI_PROVIDER=gemini
+GEMINI_API_KEY=your_google_gemini_api_key_here
+GEMINI_MODEL=gemini-2.0-flash
 ```
 Seed initial data & start backend:
 ```bash

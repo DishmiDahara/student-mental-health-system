@@ -1,129 +1,108 @@
+/**
+ * MindSpace - Chat Service
+ * 
+ * Coordinates chat processing, multi-turn history scoping, crisis detection,
+ * and persistence.
+ * 
+ * Strict Privacy & Safety Guarantees:
+ * - Multi-layered crisis detection triggers verified emergency resources.
+ * - Chat history is scoped strictly to the authenticated user and conversation.
+ * - Does NOT send private mood logs, sleep logs, or profile details to the AI provider.
+ */
+
 const ChatHistory = require('../../models/ChatHistory')
-const Mood = require('../../models/Mood')
-const User = require('../../models/User')
 const { generateAIResponse } = require('./aiProviderFactory')
+const { detectCrisis } = require('./crisisDetector')
+const { CRISIS_RESOURCES, buildCrisisResponse } = require('../../config/crisisResources')
 
-// Self-harm & Crisis keywords list
-const CRISIS_KEYWORDS = [
-  'suicide', 'kill myself', 'end my life', 'want to die', 'self harm',
-  'cutting myself', 'take my life', 'better off dead', 'don\'t want to live',
-  'hanging myself', 'overdose', 'end it all'
-]
-
-// Emergency Hotline Guidance Response
-const CRISIS_RESPONSE = `
-⚠️ **IMMEDIATE SUPPORT & EMERGENCY RESOURCES**
-
-It sounds like you are going through a very difficult time right now, and I want you to know that **you are not alone**. Please reach out to someone who can help immediately:
-
-📞 **Emergency Helplines (Sri Lanka)**:
-• **National Mental Health Helpline**: **1926** (Toll-Free, 24/7 Confidential)
-• **Sumithrayo Lifeline Support**: **011 268 2535** / **011 269 2909**
-• **Suwa Seriya Emergency Ambulance**: **1990**
-• **Emergency Police**: **119**
-
-🌏 **International Crisis Support**:
-• **US / Canada**: Call or text **988**
-• **UK**: Call **111** or **0800 689 5652**
-• **Befrienders Worldwide**: [befrienders.org](https://www.befrienders.org/)
-
-Please reach out to a trusted friend, family member, or healthcare professional right away. You matter, and support is available for you 24/7. 💖
-`
-
+/**
+ * Processes an incoming user message
+ * @param {Object} params
+ * @param {string} params.userId - Authenticated user ObjectId
+ * @param {string} params.message - Sanitized message text
+ * @param {string} [params.conversationId] - Active conversation UUID or identifier
+ * @returns {Promise<{ reply: string, provider: string, conversationId: string, isCrisis: boolean, crisisResources?: Array }>}
+ */
 const processUserMessage = async ({ userId, message, conversationId }) => {
-  const cleanMessage = message.trim()
-  const lowerMessage = cleanMessage.toLowerCase()
+  const cleanMessage = (message || '').trim()
+  const activeConversationId = conversationId || `conv_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
 
-  // 1. Check for Crisis / Self-Harm triggers first
-  const isCrisisTriggered = CRISIS_KEYWORDS.some(keyword => lowerMessage.includes(keyword))
+  // 1. Multi-layered crisis intent detection
+  const crisisEvaluation = detectCrisis(cleanMessage)
 
-  if (isCrisisTriggered) {
-    // Save User message & Crisis response to DB
-    const activeConversationId = conversationId || `conv_${Date.now()}`
-    
+  if (crisisEvaluation.isCrisis) {
+    const crisisReply = buildCrisisResponse(crisisEvaluation.language)
+
+    // Persist crisis exchange to database with crisis flag
     await ChatHistory.create([
-      { userId, conversationId: activeConversationId, role: 'user', message: cleanMessage, isCrisis: true },
-      { userId, conversationId: activeConversationId, role: 'assistant', message: CRISIS_RESPONSE, isCrisis: true }
+      {
+        userId,
+        conversationId: activeConversationId,
+        role: 'user',
+        message: cleanMessage,
+        provider: 'gemini',
+        isCrisis: true
+      },
+      {
+        userId,
+        conversationId: activeConversationId,
+        role: 'assistant',
+        message: crisisReply,
+        provider: 'gemini',
+        isCrisis: true
+      }
     ])
 
     return {
-      reply: CRISIS_RESPONSE,
-      provider: 'crisis_escaper',
+      reply: crisisReply,
+      provider: 'gemini',
       conversationId: activeConversationId,
       isCrisis: true,
-      suggestedQuestions: ['Where can I find a counselor?', 'How to reach Sumithrayo?', 'What are breathing exercises?']
+      crisisResources: CRISIS_RESOURCES.sriLanka.resources
     }
   }
 
-  // 2. Build User Context from DB
-  const user = await User.findById(userId)
-  const recentMoods = await Mood.find({ user: userId }).sort({ createdAt: -1 }).limit(10)
-
-  // Calculate Streak & Stats
-  let streak = 1
-  let avgScore = 7.0
-  let latestMood = 'Neutral'
-  let latestSleep = 7
-  let latestWater = 2
-  let latestTriggers = []
-
-  if (recentMoods.length > 0) {
-    latestMood = recentMoods[0].mood || 'Normal'
-    latestSleep = recentMoods[0].sleepHours || 7
-    latestWater = recentMoods[0].waterIntake || 2
-    latestTriggers = recentMoods[0].triggers || []
-
-    const validScores = recentMoods.map(m => m.score || 7)
-    avgScore = (validScores.reduce((a, b) => a + b, 0) / validScores.length).toFixed(1)
-
-    // Calculate streak
-    const uniqueDays = new Set(recentMoods.map(m => new Date(m.createdAt).toISOString().split('T')[0]))
-    streak = uniqueDays.size
-  }
-
-  const userContext = {
-    userName: user ? user.name : 'Friend',
-    latestMood,
-    streak,
-    avgScore,
-    latestSleep,
-    latestWater,
-    latestTriggers
-  }
-
-  // 3. Fetch recent conversation history
-  const activeConversationId = conversationId || `conv_${Date.now()}`
-  const historyRecords = await ChatHistory.find({ userId, conversationId: activeConversationId })
+  // 2. Fetch scoped recent conversation history (strictly for this user and conversation)
+  const historyRecords = await ChatHistory.find({
+    userId,
+    conversationId: activeConversationId
+  })
     .sort({ timestamp: 1 })
     .limit(10)
+    .lean()
 
-  // 4. Generate AI Response via Provider Engine
+  // 3. Request response from Google Gemini AI
+  // Note: Sensitive mood logs, health metrics, and profile data are NOT transmitted.
   const aiResult = await generateAIResponse({
     prompt: cleanMessage,
-    conversationHistory: historyRecords,
-    userContext
+    conversationHistory: historyRecords
   })
 
-  // 5. Persist to MongoDB
+  // 4. Persist user message and AI response to MongoDB
   await ChatHistory.create([
-    { userId, conversationId: activeConversationId, role: 'user', message: cleanMessage, provider: aiResult.provider },
-    { userId, conversationId: activeConversationId, role: 'assistant', message: aiResult.reply, provider: aiResult.provider }
+    {
+      userId,
+      conversationId: activeConversationId,
+      role: 'user',
+      message: cleanMessage,
+      provider: aiResult.provider || 'gemini',
+      isCrisis: false
+    },
+    {
+      userId,
+      conversationId: activeConversationId,
+      role: 'assistant',
+      message: aiResult.reply,
+      provider: aiResult.provider || 'gemini',
+      isCrisis: false
+    }
   ])
-
-  // Suggested contextual quick questions
-  const suggestedQuestions = [
-    'Why am I stressed?',
-    'Explain my mood report.',
-    'How can I improve my mood?',
-    'Where can I see my history?'
-  ]
 
   return {
     reply: aiResult.reply,
-    provider: aiResult.provider,
+    provider: aiResult.provider || 'gemini',
     conversationId: activeConversationId,
-    isCrisis: false,
-    suggestedQuestions
+    isCrisis: false
   }
 }
 

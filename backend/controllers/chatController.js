@@ -1,7 +1,7 @@
 const { processUserMessage } = require('../services/ai/chatService')
 const ChatHistory = require('../models/ChatHistory')
 
-// POST /api/ai/chat
+// POST /api/ai/chat - Process user message with Google Gemini AI
 const handleSendMessage = async (req, res) => {
   try {
     const userId = req.user.id
@@ -19,54 +19,65 @@ const handleSendMessage = async (req, res) => {
 
     return res.json(result)
   } catch (err) {
-    console.error('Chat Controller Error:', err)
-    // Production requirement: Never expose raw API/system errors to user
-    return res.status(500).json({
-      reply: "I'm having trouble connecting right now. Please try again in a moment.",
-      provider: 'error_fallback',
+    // Log system error category without logging private message content
+    console.error('[Chat Controller] Request processing error:', err.message || 'Unknown error')
+
+    const friendlyReply = err.isUserFriendly
+      ? err.message
+      : "I'm having a little trouble connecting to my AI service right now. Please wait a moment and try sending your message again."
+
+    return res.status(503).json({
+      reply: friendlyReply,
+      provider: 'gemini',
       isError: true
     })
   }
 }
 
-// GET /api/ai/history
+// GET /api/ai/history - Retrieve user's conversation history
 const handleGetHistory = async (req, res) => {
   try {
     const userId = req.user.id
     const conversationId = req.query.conversationId
 
+    // Strictly scoped to the authenticated user
     const query = { userId }
-    if (conversationId) {
-      query.conversationId = conversationId
+    if (conversationId && typeof conversationId === 'string') {
+      query.conversationId = conversationId.trim()
     }
 
     const history = await ChatHistory.find(query)
       .sort({ timestamp: 1 })
-      .limit(50)
+      .limit(60)
+      .lean()
 
     return res.json({ history })
   } catch (err) {
-    console.error('Get History Error:', err)
-    return res.status(500).json({ message: 'Error retrieving chat history.' })
+    console.error('[Chat Controller] Get history error:', err.message || 'Unknown error')
+    return res.status(500).json({ message: 'Unable to retrieve chat history at this time.' })
   }
 }
 
-// DELETE /api/ai/history
+// DELETE /api/ai/history - Permanently clear conversation history
 const handleClearHistory = async (req, res) => {
   try {
     const userId = req.user.id
     const conversationId = req.query.conversationId
 
+    // Strictly scoped to the authenticated user
     const query = { userId }
-    if (conversationId) {
-      query.conversationId = conversationId
+    if (conversationId && typeof conversationId === 'string') {
+      query.conversationId = conversationId.trim()
     }
 
-    await ChatHistory.deleteMany(query)
-    return res.json({ message: 'Chat history cleared successfully.' })
+    const deleteResult = await ChatHistory.deleteMany(query)
+    return res.json({
+      message: 'Chat history cleared successfully.',
+      deletedCount: deleteResult.deletedCount
+    })
   } catch (err) {
-    console.error('Clear History Error:', err)
-    return res.status(500).json({ message: 'Error clearing chat history.' })
+    console.error('[Chat Controller] Clear history error:', err.message || 'Unknown error')
+    return res.status(500).json({ message: 'Unable to clear chat history at this time.' })
   }
 }
 

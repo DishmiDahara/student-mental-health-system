@@ -1,48 +1,51 @@
 /**
- * AI Provider Factory
- * Dynamically resolves provider based on AI_PROVIDER environment variable.
- * Fallback priority:
- * Configured Provider (e.g. Gemini / OpenRouter) -> Alternate Free Provider -> Free Fallback Engine
+ * MindSpace - AI Provider Factory
+ * 
+ * Routes conversational queries to the Google Gemini AI provider.
+ * Enforces strict compliance:
+ * - Does NOT silently switch to alternate providers upon Gemini failure.
+ * - Handles errors with friendly retry messaging without exposing raw system faults.
  */
 
 const { generateGeminiResponse } = require('./providers/geminiProvider')
-const { generateOpenRouterResponse } = require('./providers/openrouterProvider')
-const { generateFallbackResponse } = require('./providers/freeFallbackProvider')
 
-const generateAIResponse = async ({ prompt, conversationHistory = [], userContext = {} }) => {
-  const configuredProvider = (process.env.AI_PROVIDER || 'gemini').toLowerCase().trim()
+/**
+ * Generates an AI response using the configured provider (default: Google Gemini)
+ * @param {Object} params
+ * @param {string} params.prompt
+ * @param {Array} params.conversationHistory
+ * @returns {Promise<{ reply: string, provider: string }>}
+ */
+const generateAIResponse = async ({ prompt, conversationHistory = [] }) => {
+  const provider = (process.env.AI_PROVIDER || 'gemini').toLowerCase().trim()
 
-  console.log(`[AI Provider Factory] Executing provider: '${configuredProvider}'`)
-
-  // 1. Try Configured Provider first
-  if (configuredProvider === 'gemini') {
+  if (provider === 'gemini') {
     try {
-      return await generateGeminiResponse({ prompt, conversationHistory, userContext })
+      return await generateGeminiResponse({ prompt, conversationHistory })
     } catch (err) {
-      console.warn('[AI Factory] Gemini Provider failed:', err.message, '--> Trying fallback.')
+      console.error('[AI Provider Factory] Gemini request failed:', err.message)
+
+      // Friendly empathetic message according to requirements
+      let userFriendlyMessage = "I'm having a little trouble connecting to my AI service right now. Please take a gentle breath, wait a moment, and try sending your message again."
+
+      if (err.isConfigError) {
+        userFriendlyMessage = "Aura's AI service is currently undergoing maintenance. Please check back shortly, or reach out to our emergency support resources if you need immediate care."
+      } else if (err.status === 429) {
+        userFriendlyMessage = "I'm receiving a lot of messages right now. Please wait a minute and try again."
+      }
+
+      const friendlyError = new Error(userFriendlyMessage)
+      friendlyError.isUserFriendly = true
+      friendlyError.provider = 'gemini'
+      throw friendlyError
     }
   }
 
-  if (configuredProvider === 'openrouter') {
-    try {
-      return await generateOpenRouterResponse({ prompt, conversationHistory, userContext })
-    } catch (err) {
-      console.warn('[AI Factory] OpenRouter Provider failed:', err.message, '--> Trying fallback.')
-    }
-  }
-
-  // 2. Try secondary provider if Gemini failed or OpenRouter failed
-  if (process.env.OPENROUTER_API_KEY) {
-    try {
-      return await generateOpenRouterResponse({ prompt, conversationHistory, userContext })
-    } catch (err) {
-      console.warn('[AI Factory] Secondary OpenRouter failed:', err.message)
-    }
-  }
-
-  // 3. Guaranteed Free Fallback Engine (Never fails!)
-  console.log('[AI Factory] Using Free Fallback Engine for instant response.')
-  return await generateFallbackResponse({ prompt, conversationHistory, userContext })
+  // Fallback check: if someone explicitly set another provider, throw clear error
+  const err = new Error(`Unsupported AI provider '${provider}'. MindSpace is configured to use Google Gemini.`)
+  err.isUserFriendly = true
+  err.provider = provider
+  throw err
 }
 
 module.exports = { generateAIResponse }
