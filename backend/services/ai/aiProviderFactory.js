@@ -24,11 +24,11 @@ const generateAIResponse = async ({ prompt, conversationHistory = [] }) => {
     let userFriendlyMessage = "I'm having a little trouble connecting to my AI service right now. Please take a gentle breath, wait a moment, and try sending your message again."
 
     if (err.isConfigError) {
-      userFriendlyMessage = err.message || "Aura is waiting for a valid GEMINI_API_KEY. Please configure your key in your environment settings."
+      userFriendlyMessage = err.message || "Aura is waiting for a valid GEMINI_API_KEY. In Vercel Project Settings > Environment Variables, please ensure GEMINI_API_KEY is configured for both Production and Preview."
     } else if (err.status === 429) {
       userFriendlyMessage = "I'm receiving a lot of messages right now. Please wait a minute and try again."
-    } else if (err.status === 401 || err.status === 403) {
-      userFriendlyMessage = "Google Gemini reported an invalid or unauthorized API key (HTTP 401/403). Please verify your GEMINI_API_KEY in Google AI Studio."
+    } else if (err.status === 401 || err.status === 403 || err.status === 400) {
+      userFriendlyMessage = "Google Gemini reported an invalid or unauthorized API key (HTTP " + (err.status || 400) + "). Please verify your GEMINI_API_KEY in Google AI Studio and ensure it is saved in Vercel for both Production and Preview."
     }
 
     const friendlyError = new Error(userFriendlyMessage)

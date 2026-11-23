@@ -1,48 +1,41 @@
 /**
- * AI Provider Factory
- * Dynamically resolves provider based on AI_PROVIDER environment variable.
- * Fallback priority:
- * Configured Provider (e.g. Gemini / OpenRouter) -> Alternate Free Provider -> Free Fallback Engine
+ * MindSpace - AI Provider Factory
+ * 
+ * Routes conversational queries to the Google Gemini AI provider.
+ * Forgiving resolution: Always routes to Google Gemini, handling any placeholder
+ * environment variables gracefully.
  */
 
 const { generateGeminiResponse } = require('./providers/geminiProvider')
-const { generateOpenRouterResponse } = require('./providers/openrouterProvider')
-const { generateFallbackResponse } = require('./providers/freeFallbackProvider')
 
-const generateAIResponse = async ({ prompt, conversationHistory = [], userContext = {} }) => {
-  const configuredProvider = (process.env.AI_PROVIDER || 'gemini').toLowerCase().trim()
+/**
+ * Generates an AI response using Google Gemini
+ * @param {Object} params
+ * @param {string} params.prompt
+ * @param {Array} params.conversationHistory
+ * @returns {Promise<{ reply: string, provider: string }>}
+ */
+const generateAIResponse = async ({ prompt, conversationHistory = [] }) => {
+  try {
+    return await generateGeminiResponse({ prompt, conversationHistory })
+  } catch (err) {
+    console.error('[AI Provider Factory] Gemini request failed:', err.message)
 
-  console.log(`[AI Provider Factory] Executing provider: '${configuredProvider}'`)
+    let userFriendlyMessage = "I'm having a little trouble connecting to my AI service right now. Please take a gentle breath, wait a moment, and try sending your message again."
 
-  // 1. Try Configured Provider first
-  if (configuredProvider === 'gemini') {
-    try {
-      return await generateGeminiResponse({ prompt, conversationHistory, userContext })
-    } catch (err) {
-      console.warn('[AI Factory] Gemini Provider failed:', err.message, '--> Trying fallback.')
+    if (err.isConfigError) {
+      userFriendlyMessage = err.message || "Aura is waiting for a valid GEMINI_API_KEY. In Vercel Project Settings > Environment Variables, please ensure GEMINI_API_KEY is configured for both Production and Preview."
+    } else if (err.status === 429) {
+      userFriendlyMessage = "I'm receiving a lot of messages right now. Please wait a minute and try again."
+    } else if (err.status === 401 || err.status === 403 || err.status === 400) {
+      userFriendlyMessage = "Google Gemini reported an invalid or unauthorized API key (HTTP " + (err.status || 400) + "). Please verify your GEMINI_API_KEY in Google AI Studio and ensure it is saved in Vercel for both Production and Preview."
     }
-  }
 
-  if (configuredProvider === 'openrouter') {
-    try {
-      return await generateOpenRouterResponse({ prompt, conversationHistory, userContext })
-    } catch (err) {
-      console.warn('[AI Factory] OpenRouter Provider failed:', err.message, '--> Trying fallback.')
-    }
+    const friendlyError = new Error(userFriendlyMessage)
+    friendlyError.isUserFriendly = true
+    friendlyError.provider = 'gemini'
+    throw friendlyError
   }
-
-  // 2. Try secondary provider if Gemini failed or OpenRouter failed
-  if (process.env.OPENROUTER_API_KEY) {
-    try {
-      return await generateOpenRouterResponse({ prompt, conversationHistory, userContext })
-    } catch (err) {
-      console.warn('[AI Factory] Secondary OpenRouter failed:', err.message)
-    }
-  }
-
-  // 3. Guaranteed Free Fallback Engine (Never fails!)
-  console.log('[AI Factory] Using Free Fallback Engine for instant response.')
-  return await generateFallbackResponse({ prompt, conversationHistory, userContext })
 }
 
 module.exports = { generateAIResponse }
