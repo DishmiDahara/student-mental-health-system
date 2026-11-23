@@ -113,15 +113,20 @@ const buildGeminiContents = (conversationHistory, currentPrompt) => {
  */
 const generateGeminiResponse = async ({ prompt, conversationHistory = [] }) => {
   const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey || apiKey.trim() === '') {
-    const err = new Error('GEMINI_API_KEY is not configured on the server.')
+  if (
+    !apiKey ||
+    apiKey.trim() === '' ||
+    apiKey.trim() === 'your_actual_key' ||
+    apiKey.trim() === 'your_google_gemini_api_key_here'
+  ) {
+    const err = new Error('GEMINI_API_KEY is not configured with a valid key on the server.')
     err.isConfigError = true
     throw err
   }
 
-  // Use recommended Generally Available (GA) model: gemini-2.0-flash, or fallback to gemini-1.5-flash
-  const modelName = (process.env.GEMINI_MODEL || 'gemini-2.0-flash').trim()
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modelName)}:generateContent?key=${apiKey}`
+  // Desired model name (e.g. gemini-3.8-flash, gemini-2.0-flash, or gemini-1.5-flash)
+  let activeModel = (process.env.GEMINI_MODEL || 'gemini-3.8-flash').trim()
+  let endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(activeModel)}:generateContent?key=${apiKey}`
 
   const contents = buildGeminiContents(conversationHistory, prompt)
 
@@ -165,6 +170,15 @@ const generateGeminiResponse = async ({ prompt, conversationHistory = [] }) => {
       if (!response.ok) {
         const errorText = await response.text().catch(() => '')
         console.warn(`[Gemini Provider] API returned HTTP ${response.status} (attempt ${attempt}/${maxAttempts}): ${errorText.substring(0, 140)}`)
+
+        // If the specified model is not found on Google's v1beta endpoint (HTTP 404),
+        // gracefully fall back to the Generally Available workhorse (gemini-2.0-flash or gemini-1.5-flash)
+        if (response.status === 404 && activeModel !== 'gemini-2.0-flash' && activeModel !== 'gemini-1.5-flash') {
+          console.warn(`[Gemini Provider] Model '${activeModel}' not found (HTTP 404). Automatically falling back to 'gemini-2.0-flash'...`)
+          activeModel = 'gemini-2.0-flash'
+          endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(activeModel)}:generateContent?key=${apiKey}`
+          continue
+        }
 
         if (response.status === 429 && attempt < maxAttempts) {
           // Rate limited: backoff slightly and retry once
