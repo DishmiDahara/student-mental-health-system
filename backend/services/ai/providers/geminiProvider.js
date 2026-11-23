@@ -3,7 +3,7 @@
  * 
  * Server-side integration with the official Google Gemini API (REST endpoint).
  * Model: Generally Available (GA) flagship lightweight model: gemini-2.0-flash (default),
- * with support for gemini-1.5-flash via GEMINI_MODEL env var.
+ * with support for gemini-1.5-flash and gemini-3.8-flash via GEMINI_MODEL env var.
  * 
  * Core Principles:
  * - API key kept strictly server-side (GEMINI_API_KEY).
@@ -62,7 +62,6 @@ const buildGeminiContents = (conversationHistory, currentPrompt) => {
   const turns = []
 
   if (Array.isArray(conversationHistory) && conversationHistory.length > 0) {
-    // Only take the last 8-10 turns for context continuity without bloating token payload
     const recent = conversationHistory.slice(-10)
 
     for (const item of recent) {
@@ -70,11 +69,9 @@ const buildGeminiContents = (conversationHistory, currentPrompt) => {
       const text = item.message.trim()
       if (!text) continue
 
-      // Map roles: 'user' -> 'user', 'assistant'/'model' -> 'model'
       const role = item.role === 'user' ? 'user' : 'model'
 
       if (turns.length > 0 && turns[turns.length - 1].role === role) {
-        // Merge consecutive turns of the same role to satisfy Gemini's turn alternation rule
         turns[turns.length - 1].parts[0].text += `\n\n${text}`
       } else {
         turns.push({
@@ -85,12 +82,10 @@ const buildGeminiContents = (conversationHistory, currentPrompt) => {
     }
   }
 
-  // Ensure conversation starts with 'user'
   if (turns.length > 0 && turns[0].role === 'model') {
     turns.shift()
   }
 
-  // Ensure current prompt is the final 'user' turn
   const promptText = currentPrompt.trim()
   if (turns.length > 0 && turns[turns.length - 1].role === 'user') {
     turns[turns.length - 1].parts[0].text += `\n\n${promptText}`
@@ -105,6 +100,25 @@ const buildGeminiContents = (conversationHistory, currentPrompt) => {
 }
 
 /**
+ * Validates whether an API key is a genuine secret or a placeholder
+ */
+const isInvalidOrPlaceholderKey = (key) => {
+  if (!key || typeof key !== 'string') return true
+  const k = key.trim().toLowerCase()
+  return (
+    k === '' ||
+    k === 'undefined' ||
+    k === 'null' ||
+    k.includes('your_actual') ||
+    k.includes('the value in') ||
+    k.includes('for example') ||
+    k.includes('placeholder') ||
+    k.includes('your_google_gemini') ||
+    k.length < 15
+  )
+}
+
+/**
  * Calls Google Gemini API
  * @param {Object} params
  * @param {string} params.prompt - Current user prompt
@@ -112,20 +126,30 @@ const buildGeminiContents = (conversationHistory, currentPrompt) => {
  * @returns {Promise<{ reply: string, provider: string }>}
  */
 const generateGeminiResponse = async ({ prompt, conversationHistory = [] }) => {
-  const apiKey = process.env.GEMINI_API_KEY
-  if (
-    !apiKey ||
-    apiKey.trim() === '' ||
-    apiKey.trim() === 'your_actual_key' ||
-    apiKey.trim() === 'your_google_gemini_api_key_here'
-  ) {
-    const err = new Error('GEMINI_API_KEY is not configured with a valid key on the server.')
+  const rawKey = (process.env.GEMINI_API_KEY || '').trim()
+
+  if (isInvalidOrPlaceholderKey(rawKey)) {
+    const err = new Error(
+      "Aura needs a valid Google Gemini API Key. In your Vercel Project Settings > Environment Variables (or backend/.env), set GEMINI_API_KEY to your actual key from Google AI Studio (starts with 'AIzaSy...')."
+    )
     err.isConfigError = true
     throw err
   }
 
-  // Desired model name (e.g. gemini-3.8-flash, gemini-2.0-flash, or gemini-1.5-flash)
-  let activeModel = (process.env.GEMINI_MODEL || 'gemini-3.8-flash').trim()
+  const apiKey = rawKey
+
+  // Clean model name: default to gemini-2.0-flash if model contains placeholder text
+  let rawModel = (process.env.GEMINI_MODEL || 'gemini-2.0-flash').trim()
+  if (
+    rawModel.toLowerCase().includes('the value in') ||
+    rawModel.toLowerCase().includes('for example') ||
+    rawModel.toLowerCase().includes('placeholder') ||
+    rawModel === ''
+  ) {
+    rawModel = 'gemini-2.0-flash'
+  }
+
+  let activeModel = rawModel
   let endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(activeModel)}:generateContent?key=${apiKey}`
 
   const contents = buildGeminiContents(conversationHistory, prompt)
@@ -154,7 +178,6 @@ const generateGeminiResponse = async ({ prompt, conversationHistory = [] }) => {
   while (attempt < maxAttempts) {
     attempt++
     try {
-      // 18-second timeout using native AbortSignal
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), 18000)
 
@@ -171,17 +194,16 @@ const generateGeminiResponse = async ({ prompt, conversationHistory = [] }) => {
         const errorText = await response.text().catch(() => '')
         console.warn(`[Gemini Provider] API returned HTTP ${response.status} (attempt ${attempt}/${maxAttempts}): ${errorText.substring(0, 140)}`)
 
-        // If the specified model is not found on Google's v1beta endpoint (HTTP 404),
-        // gracefully fall back to the Generally Available workhorse (gemini-2.0-flash or gemini-1.5-flash)
+        // If requested model returns 404 (e.g. gemini-3.8-flash not found on public v1beta endpoint),
+        // automatically fallback to the Generally Available gemini-2.0-flash
         if (response.status === 404 && activeModel !== 'gemini-2.0-flash' && activeModel !== 'gemini-1.5-flash') {
-          console.warn(`[Gemini Provider] Model '${activeModel}' not found (HTTP 404). Automatically falling back to 'gemini-2.0-flash'...`)
+          console.warn(`[Gemini Provider] Model '${activeModel}' returned HTTP 404. Automatically falling back to 'gemini-2.0-flash'...`)
           activeModel = 'gemini-2.0-flash'
           endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(activeModel)}:generateContent?key=${apiKey}`
           continue
         }
 
         if (response.status === 429 && attempt < maxAttempts) {
-          // Rate limited: backoff slightly and retry once
           await new Promise(r => setTimeout(r, 1200))
           continue
         }
@@ -194,7 +216,6 @@ const generateGeminiResponse = async ({ prompt, conversationHistory = [] }) => {
       const data = await response.json()
       const candidate = data.candidates?.[0]
 
-      // Check if blocked by safety filter
       if (candidate?.finishReason === 'SAFETY') {
         return {
           reply: "I want to support you in a safe and healthy way, but I cannot discuss that particular topic. If you are experiencing high distress or need crisis care, please reach out to our emergency helplines like 1926 or a trusted professional.",

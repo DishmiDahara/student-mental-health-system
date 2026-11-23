@@ -2,50 +2,40 @@
  * MindSpace - AI Provider Factory
  * 
  * Routes conversational queries to the Google Gemini AI provider.
- * Enforces strict compliance:
- * - Does NOT silently switch to alternate providers upon Gemini failure.
- * - Handles errors with friendly retry messaging without exposing raw system faults.
+ * Forgiving resolution: Always routes to Google Gemini, handling any placeholder
+ * environment variables gracefully.
  */
 
 const { generateGeminiResponse } = require('./providers/geminiProvider')
 
 /**
- * Generates an AI response using the configured provider (default: Google Gemini)
+ * Generates an AI response using Google Gemini
  * @param {Object} params
  * @param {string} params.prompt
  * @param {Array} params.conversationHistory
  * @returns {Promise<{ reply: string, provider: string }>}
  */
 const generateAIResponse = async ({ prompt, conversationHistory = [] }) => {
-  const provider = (process.env.AI_PROVIDER || 'gemini').toLowerCase().trim()
+  try {
+    return await generateGeminiResponse({ prompt, conversationHistory })
+  } catch (err) {
+    console.error('[AI Provider Factory] Gemini request failed:', err.message)
 
-  if (provider === 'gemini') {
-    try {
-      return await generateGeminiResponse({ prompt, conversationHistory })
-    } catch (err) {
-      console.error('[AI Provider Factory] Gemini request failed:', err.message)
+    let userFriendlyMessage = "I'm having a little trouble connecting to my AI service right now. Please take a gentle breath, wait a moment, and try sending your message again."
 
-      // Friendly empathetic message according to requirements
-      let userFriendlyMessage = "I'm having a little trouble connecting to my AI service right now. Please take a gentle breath, wait a moment, and try sending your message again."
-
-      if (err.isConfigError) {
-        userFriendlyMessage = "Aura's AI service is currently undergoing maintenance. Please check back shortly, or reach out to our emergency support resources if you need immediate care."
-      } else if (err.status === 429) {
-        userFriendlyMessage = "I'm receiving a lot of messages right now. Please wait a minute and try again."
-      }
-
-      const friendlyError = new Error(userFriendlyMessage)
-      friendlyError.isUserFriendly = true
-      friendlyError.provider = 'gemini'
-      throw friendlyError
+    if (err.isConfigError) {
+      userFriendlyMessage = err.message || "Aura is waiting for a valid GEMINI_API_KEY. Please configure your key in your environment settings."
+    } else if (err.status === 429) {
+      userFriendlyMessage = "I'm receiving a lot of messages right now. Please wait a minute and try again."
+    } else if (err.status === 401 || err.status === 403) {
+      userFriendlyMessage = "Google Gemini reported an invalid or unauthorized API key (HTTP 401/403). Please verify your GEMINI_API_KEY in Google AI Studio."
     }
-  }
 
-  // Fallback check: if someone explicitly set another provider, throw clear error
-  const err = new Error(`Unsupported AI provider '${provider}'. MindSpace is configured to use Google Gemini.`)
-  err.isUserFriendly = true
-  err.provider = provider
-  throw err
+    const friendlyError = new Error(userFriendlyMessage)
+    friendlyError.isUserFriendly = true
+    friendlyError.provider = 'gemini'
+    throw friendlyError
+  }
 }
 
 module.exports = { generateAIResponse }
