@@ -125,7 +125,7 @@ const isInvalidOrPlaceholderKey = (key) => {
  * @returns {Promise<{ reply: string, provider: string, model: string }>}
  */
 const generateGeminiResponse = async ({ prompt, conversationHistory = [] }) => {
-  const rawKey = (
+  let rawKey = (
     process.env.GEMINI_API_KEY ||
     process.env.GEMINI_API_KEY6 ||
     process.env.GEMINI_KEY ||
@@ -133,9 +133,22 @@ const generateGeminiResponse = async ({ prompt, conversationHistory = [] }) => {
     ''
   ).trim()
 
+  // Clean any accidental quotes, formatting, or prefixes added when pasting into Vercel
+  rawKey = rawKey.replace(/^["'`]+|["'`]+$/g, '').trim()
+  rawKey = rawKey.replace(/^GEMINI_API_KEY\w*\s*[:=]\s*/i, '').trim()
+
   if (isInvalidOrPlaceholderKey(rawKey)) {
     const err = new Error(
       "Aura needs a valid Google Gemini API Key. In your Vercel Project Settings > Environment Variables (or backend/.env), set GEMINI_API_KEY to your actual key from Google AI Studio (starts with 'AIzaSy...')."
+    )
+    err.isConfigError = true
+    throw err
+  }
+
+  // Google AI Studio / Gemini keys always start with 'AIza' and are typically 39 characters
+  if (!rawKey.startsWith('AIza')) {
+    const err = new Error(
+      `The configured GEMINI_API_KEY appears incomplete (starts with '${rawKey.substring(0, 5)}...' instead of 'AIzaSy...'). In Google AI Studio, please click the Copy icon next to your key and paste the full key into Vercel.`
     )
     err.isConfigError = true
     throw err
