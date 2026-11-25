@@ -161,10 +161,6 @@ export default function Dashboard() {
     navigate('/mood', { state: { quickMood: moodValue } })
   }
 
-  const handleLaunch3D = (gameKey) => {
-    navigate('/mood', { state: { active3DGame: gameKey } })
-  }
-
   const handlePromptClick = (promptText) => {
     navigate('/chat', { state: { initialPrompt: promptText } })
   }
@@ -481,54 +477,6 @@ export default function Dashboard() {
             <span className="bento-action-text">Join Peer Space &rarr;</span>
           </div>
         </button>
-
-        {/* Card 6: 3D Sensory Grounding Sanctuary (Full-width 12 cols) */}
-        <div className="card bento-card b-12 bento-card-sensory">
-          <div className="row-between" style={{ alignItems: 'flex-start' }}>
-            <div>
-              <div className="row gap-8" style={{ alignItems: 'center', marginBottom: 6 }}>
-                <span className="tile tile-primary"><Icon name="compass" size={20} /></span>
-                <span className="chip chip-primary" style={{ fontWeight: 700 }}>Interactive WebGL</span>
-              </div>
-              <h3 className="card-title serif" style={{ fontSize: '20px', margin: '4px 0' }}>
-                3D Sensory Grounding &amp; Ambient Soundscapes
-              </h3>
-              <p className="card-sub" style={{ maxWidth: 680, margin: 0 }}>
-                Immerse yourself in hardware-accelerated 3D relaxation environments and synthesized sound loops for deep focus, sensory grounding, and de-escalation.
-              </p>
-            </div>
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              onClick={() => navigate('/mood')}
-            >
-              Open Full Sanctuary <Icon name="arrowRight" size={15} />
-            </button>
-          </div>
-
-          <div className="sensory-grid mt-16">
-            {[
-              { key: 'starfield', title: 'Cosmic Starfield', icon: '🌌', desc: 'Interactive 3D particle universe' },
-              { key: 'water', title: 'Kinetic Wave Pool', icon: '🌊', desc: 'Fluid liquid wave simulation' },
-              { key: 'sakura', title: 'Sakura Sanctuary', icon: '🌸', desc: 'Falling cherry blossom petals' },
-              { key: 'crystal', title: 'Breathing Crystal', icon: '🔮', desc: 'Pulsing glass orb meditation' }
-            ].map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                className="sensory-item"
-                onClick={() => handleLaunch3D(item.key)}
-              >
-                <span className="sensory-icon">{item.icon}</span>
-                <div className="sensory-meta">
-                  <strong>{item.title}</strong>
-                  <span>{item.desc}</span>
-                </div>
-                <span className="sensory-arrow"><Icon name="play" size={13} /></span>
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       {/* ----------------- Daily Mindful Reflection ----------------- */}
