@@ -277,8 +277,15 @@ export default function MoodGamesSection({ selectedMood, onPlay }) {
       `}</style>
 
       {/* ------------------------------------------------ Recommended */}
-      <section className="mg-panel" aria-labelledby="mg-rec-title" style={moodValue ? { borderColor: `${accent}40` } : undefined}>
-        <div className="row-between mb-8" style={{ alignItems: 'flex-start' }}>
+      <section
+        className="mg-panel mg-scroll-panel"
+        aria-labelledby="mg-rec-title"
+        style={{
+          maxHeight: '480px',
+          ...(moodValue ? { borderColor: `${accent}40` } : {})
+        }}
+      >
+        <div className="mg-scroll-header row-between" style={{ alignItems: 'flex-start' }}>
           <div>
             <h3 id="mg-rec-title" className="serif" style={{ color: 'var(--ink)', margin: '0 0 4px', fontSize: '19px' }}>
               Recommended Therapeutic Interventions
@@ -296,122 +303,133 @@ export default function MoodGamesSection({ selectedMood, onPlay }) {
           )}
         </div>
 
-        {moodValue ? (
-          <>
-            <div className="notice notice-primary mb-16" style={{ padding: '12px 16px', borderRadius: '14px', fontSize: '13px' }}>
-              <strong>Clinical Insight:</strong> {theme.headline} — {theme.blurb}
-            </div>
+        <div className="mg-scroll-body custom-scrollbar">
+          {moodValue ? (
+            <>
+              <div className="notice notice-primary mb-16" style={{ padding: '12px 16px', borderRadius: '14px', fontSize: '13px' }}>
+                <strong>Clinical Insight:</strong> {theme.headline} — {theme.blurb}
+              </div>
 
-            <div className="mg-rec-grid">
-              {recommended.map((game, idx) => {
-                const need = NEEDS[game.needs[0]]
-                return (
-                  <button
-                    key={game.id}
-                    type="button"
-                    className="mg-rec-card"
-                    onClick={() => onPlay(game)}
-                    aria-label={`Launch ${game.title}`}
-                  >
-                    <div className="mg-rec-art" style={{ background: `linear-gradient(135deg, ${need.color}, ${accent})` }}>
-                      <span className="mg-badge-top" style={{ color: need.color }}>Curated Exercise</span>
-                      <span className="mg-rank" aria-hidden="true">#{idx + 1}</span>
-                      <span className="mg-rec-icon" aria-hidden="true">{game.icon}</span>
-                    </div>
-                    <div className="mg-rec-body">
-                      <h4 className="mg-rec-title">{game.title}</h4>
-                      <div className="mg-tags">
-                        {game.needs.map(key => (
-                          <span key={key} className="mg-tag" style={{ background: NEEDS[key].tint, color: NEEDS[key].color }}>
-                            {NEEDS[key].short}
-                          </span>
-                        ))}
-                        {game.badge && <span className="mg-tag" style={{ background: 'var(--surface-3)', color: 'var(--ink-2)' }}>{game.badge}</span>}
+              <div className="mg-rec-grid">
+                {recommended.map((game, idx) => {
+                  const need = NEEDS[game.needs[0]]
+                  return (
+                    <button
+                      key={game.id}
+                      type="button"
+                      className="mg-rec-card"
+                      onClick={() => onPlay(game)}
+                      aria-label={`Launch ${game.title}`}
+                    >
+                      <div className="mg-rec-art" style={{ background: `linear-gradient(135deg, ${need.color}, ${accent})` }}>
+                        <span className="mg-badge-top" style={{ color: need.color }}>Curated Exercise</span>
+                        <span className="mg-rank" aria-hidden="true">#{idx + 1}</span>
+                        <span className="mg-rec-icon" aria-hidden="true">{game.icon}</span>
                       </div>
-                      <p className="mg-rec-desc">{game.desc}</p>
-                      <span className="mg-play" style={{ background: `linear-gradient(135deg, ${accent}, var(--primary-fill))` }}>
-                        Launch Exercise
-                      </span>
-                    </div>
-                  </button>
-                )
-              })}
+                      <div className="mg-rec-body">
+                        <h4 className="mg-rec-title">{game.title}</h4>
+                        <div className="mg-tags">
+                          {game.needs.map(key => (
+                            <span key={key} className="mg-tag" style={{ background: NEEDS[key].tint, color: NEEDS[key].color }}>
+                              {NEEDS[key].short}
+                            </span>
+                          ))}
+                          {game.badge && <span className="mg-tag" style={{ background: 'var(--surface-3)', color: 'var(--ink-2)' }}>{game.badge}</span>}
+                        </div>
+                        <p className="mg-rec-desc">{game.desc}</p>
+                        <span className="mg-play" style={{ background: `linear-gradient(135deg, ${accent}, var(--primary-fill))` }}>
+                          Launch Exercise
+                        </span>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          ) : (
+            <div className="mg-empty">
+              <Icon name="smile" size={24} style={{ display: 'block', margin: '0 auto 8px', color: 'var(--ink-4)' }} />
+              Please select your mood rating above to view your personalized coping exercises.
             </div>
-          </>
-        ) : (
-          <div className="mg-empty">
-            <Icon name="smile" size={24} style={{ display: 'block', margin: '0 auto 8px', color: 'var(--ink-4)' }} />
-            Please select your mood rating above to view your personalized coping exercises.
-          </div>
-        )}
+          )}
+        </div>
       </section>
 
       {/* ------------------------------------------------ Explore more */}
-      <section className="mg-panel" aria-labelledby="mg-explore-title">
-        <div className="row-between mb-8">
-          <div>
-            <h3 id="mg-explore-title" className="serif" style={{ color: 'var(--ink)', margin: '0 0 4px', fontSize: '19px' }}>
-              Therapeutic Exercise Library
-            </h3>
-            <p className="small muted" style={{ margin: 0 }}>
-              Explore our full collection of sensory grounding, breathing, and refocusing activities.
-            </p>
+      <section
+        className="mg-panel mg-scroll-panel"
+        aria-labelledby="mg-explore-title"
+        style={{ maxHeight: '560px' }}
+      >
+        <div className="mg-scroll-header">
+          <div className="row-between mb-8">
+            <div>
+              <h3 id="mg-explore-title" className="serif" style={{ color: 'var(--ink)', margin: '0 0 4px', fontSize: '19px' }}>
+                Therapeutic Exercise Library &amp; Games
+              </h3>
+              <p className="small muted" style={{ margin: 0 }}>
+                Explore our full collection of sensory grounding, breathing, and refocusing activities.
+              </p>
+            </div>
           </div>
-        </div>
 
-        <input
-          type="search"
-          className="mg-search"
-          placeholder="Search therapeutic exercises or keywords…"
-          aria-label="Search exercises"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-        />
+          <input
+            type="search"
+            className="mg-search"
+            placeholder="Search therapeutic exercises or keywords…"
+            aria-label="Search exercises"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            style={{ marginBottom: '10px' }}
+          />
 
-        <div className="mg-chips" role="group" aria-label="Filter exercises by therapeutic need">
-          {[{ key: 'all', label: 'All Interventions', icon: '✨', color: 'var(--primary-fill)' }, ...NEED_ORDER.map(key => ({ key, label: NEEDS[key].label, icon: NEEDS[key].icon, color: NEEDS[key].color }))].map(chip => (
-            <button
-              key={chip.key}
-              type="button"
-              className="mg-chip"
-              aria-pressed={filter === chip.key}
-              onClick={() => setFilter(chip.key)}
-              style={filter === chip.key ? { background: chip.color, color: 'white', borderColor: 'transparent' } : undefined}
-            >
-              {chip.icon} {chip.label} <span style={{ opacity: 0.8 }}>({countFor(chip.key)})</span>
-            </button>
-          ))}
-        </div>
-
-        {explore.length === 0 ? (
-          <div className="mg-empty">No exercises found matching your filter criteria.</div>
-        ) : (
-          <div className="mg-explore-grid">
-            {explore.map(game => (
+          <div className="mg-chips" role="group" aria-label="Filter exercises by therapeutic need" style={{ marginBottom: 0 }}>
+            {[{ key: 'all', label: 'All Interventions', icon: '✨', color: 'var(--primary-fill)' }, ...NEED_ORDER.map(key => ({ key, label: NEEDS[key].label, icon: NEEDS[key].icon, color: NEEDS[key].color }))].map(chip => (
               <button
-                key={game.id}
+                key={chip.key}
                 type="button"
-                className="mg-card"
-                onClick={() => onPlay(game)}
-                aria-label={`Open ${game.title}`}
+                className="mg-chip"
+                aria-pressed={filter === chip.key}
+                onClick={() => setFilter(chip.key)}
+                style={filter === chip.key ? { background: chip.color, color: 'white', borderColor: 'transparent' } : undefined}
               >
-                <div className="mg-card-top">
-                  <span className="mg-card-icon" aria-hidden="true">{game.icon}</span>
-                  <h4 className="mg-card-title">{game.title}</h4>
-                </div>
-                <p className="mg-card-desc">{game.desc}</p>
-                <div className="mg-tags">
-                  {game.needs.slice(0, 2).map(key => (
-                    <span key={key} className="mg-tag" style={{ background: NEEDS[key].tint, color: NEEDS[key].color }}>
-                      {NEEDS[key].short}
-                    </span>
-                  ))}
-                  {game.badge && <span className="mg-tag" style={{ background: 'var(--surface-3)', color: 'var(--ink-2)' }}>{game.badge}</span>}
-                </div>
+                {chip.icon} {chip.label} <span style={{ opacity: 0.8 }}>({countFor(chip.key)})</span>
               </button>
             ))}
           </div>
-        )}
+        </div>
+
+        <div className="mg-scroll-body custom-scrollbar">
+          {explore.length === 0 ? (
+            <div className="mg-empty">No exercises found matching your filter criteria.</div>
+          ) : (
+            <div className="mg-explore-grid">
+              {explore.map(game => (
+                <button
+                  key={game.id}
+                  type="button"
+                  className="mg-card"
+                  onClick={() => onPlay(game)}
+                  aria-label={`Open ${game.title}`}
+                >
+                  <div className="mg-card-top">
+                    <span className="mg-card-icon" aria-hidden="true">{game.icon}</span>
+                    <h4 className="mg-card-title">{game.title}</h4>
+                  </div>
+                  <p className="mg-card-desc">{game.desc}</p>
+                  <div className="mg-tags">
+                    {game.needs.slice(0, 2).map(key => (
+                      <span key={key} className="mg-tag" style={{ background: NEEDS[key].tint, color: NEEDS[key].color }}>
+                        {NEEDS[key].short}
+                      </span>
+                    ))}
+                    {game.badge && <span className="mg-tag" style={{ background: 'var(--surface-3)', color: 'var(--ink-2)' }}>{game.badge}</span>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </section>
     </div>
   )

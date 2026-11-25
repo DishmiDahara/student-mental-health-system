@@ -4074,16 +4074,19 @@ export default function MoodTracker() {
         {activeTab === 'log' && (
           <div className="mood-log-grid">
             {/* Column 1: Daily Assessment Form */}
-            <div style={{
+            <div className="card assessment-scroll-card" style={{
               background: 'var(--surface)',
-              padding: '32px',
+              padding: '28px',
               borderRadius: 'var(--r-card, 24px)',
               boxShadow: 'var(--shadow-sm)',
               border: '1px solid var(--line)'
             }}>
-              <h2 className="serif" style={{ color: 'var(--ink)', marginBottom: '6px', fontSize: '22px' }}>Daily Wellbeing Assessment</h2>
-              <p className="small muted" style={{ marginBottom: '20px' }}>Standardized student mental wellbeing metric for daily continuity and clinical insights.</p>
+              <div className="assessment-scroll-header">
+                <h2 className="serif" style={{ color: 'var(--ink)', margin: '0 0 6px', fontSize: '22px' }}>Daily Wellbeing Assessment</h2>
+                <p className="small muted" style={{ margin: 0 }}>Standardized student mental wellbeing metric for daily continuity and clinical insights.</p>
+              </div>
 
+              <div className="assessment-scroll-body custom-scrollbar">
               {/* AI Face Scanner Trigger Banner */}
               <div style={{
                 background: 'linear-gradient(135deg, var(--primary-fill) 0%, var(--primary-fill) 100%)',
@@ -4745,6 +4748,7 @@ export default function MoodTracker() {
               </button>
             
             </div>
+            </div>
 
             {/* Column 2: Interventions & 3D Sensory Grounding */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
@@ -4754,12 +4758,16 @@ export default function MoodTracker() {
               {/* 3D Sensory Grounding Environments Card */}
               <div style={{
                 background: 'var(--surface)',
-                padding: '28px',
+                padding: '24px 28px',
                 borderRadius: 'var(--r-card, 24px)',
                 border: '1px solid var(--line)',
-                boxShadow: 'var(--shadow-sm)'
+                boxShadow: 'var(--shadow-sm)',
+                display: 'flex',
+                flexDirection: 'column',
+                maxHeight: '440px',
+                overflow: 'hidden'
               }}>
-                <div className="row-between mb-8" style={{ alignItems: 'flex-start' }}>
+                <div className="row-between mb-8" style={{ alignItems: 'flex-start', flexShrink: 0, paddingBottom: '12px', borderBottom: '1px solid var(--line)' }}>
                   <div>
                     <h3 className="serif" style={{ color: 'var(--ink)', margin: '0 0 4px', fontSize: '19px' }}>
                       3D Sensory Grounding Environments
@@ -4771,12 +4779,18 @@ export default function MoodTracker() {
                   <span className="chip chip-primary" style={{ fontWeight: 700 }}>Interactive 3D</span>
                 </div>
 
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
-                  gap: '12px',
-                  marginTop: '16px'
+                <div className="custom-scrollbar" style={{
+                  flex: '1 1 auto',
+                  overflowY: 'auto',
+                  paddingRight: '6px',
+                  overscrollBehavior: 'contain',
+                  marginTop: '12px'
                 }}>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
+                    gap: '12px'
+                  }}>
                   {[
                     { key: 'starfield', title: 'Cosmic Starfield', desc: 'Interactive 3D particle universe', icon: '🌌' },
                     { key: 'water', title: 'Kinetic Wave Pool', desc: 'Liquid surface wave simulation', icon: '🌊' },
@@ -4811,6 +4825,7 @@ export default function MoodTracker() {
                     </button>
                   ))}
                 </div>
+              </div>
               </div>
             </div>
           </div>

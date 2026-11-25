@@ -650,10 +650,72 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   align-items: start;
 }
 
+/* MindSpace Independent Section Scrollbars & Containers */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--primary) 40%, var(--line-strong)) transparent;
+  overscroll-behavior: contain;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--primary) 35%, var(--line-strong));
+  border-radius: 999px;
+  transition: background .2s ease;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+.assessment-scroll-card {
+  display: flex;
+  flex-direction: column;
+  max-height: 760px;
+  overflow: hidden;
+}
+.assessment-scroll-header {
+  flex-shrink: 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 20px;
+}
+.assessment-scroll-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding-right: 12px;
+  margin-right: -4px;
+}
+
+.mg-scroll-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.mg-scroll-header {
+  flex-shrink: 0;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 14px;
+}
+.mg-scroll-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding-right: 10px;
+  margin-right: -4px;
+}
+
 @media (max-width: 1080px) {
   .mood-log-grid {
     grid-template-columns: 1fr;
     gap: 24px;
+  }
+  .assessment-scroll-card {
+    max-height: 640px;
   }
 }
 
