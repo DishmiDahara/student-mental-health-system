@@ -170,6 +170,21 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   .chat-foot { display: none; }
 }
 
+/* ---------- Mood Tracker Layout ---------- */
+.mood-log-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 480px) minmax(0, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1080px) {
+  .mood-log-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
 /* ---------- Resources ---------- */
 .coach {
   display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: center; gap: 24px;

@@ -4006,8 +4006,8 @@ export default function MoodTracker() {
   }
 
   return (
-    <div>
-      <div className="page">
+    <div style={{ paddingTop: '16px' }}>
+      <div className="page" style={{ paddingTop: '12px' }}>
 
         {/* Header */}
         <div className="page-head">
@@ -4069,12 +4069,17 @@ export default function MoodTracker() {
 
         {/* TAB 1: MOOD LOGGER */}
         {activeTab === 'log' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
-            
-            {/* Expanded Mood Questionnaire */}
-            <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', border: '1px solid var(--line)' }}>
-              <h2 style={{ color: 'var(--ink)', marginBottom: '8px', fontSize: '20px', fontWeight: 'bold' }}>✍️ Log Today's State</h2>
-              <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '18px' }}>Fill out your daily wellness criteria below to log stats and generate AI insights.</p>
+          <div className="mood-log-grid">
+            {/* Column 1: Daily Assessment Form */}
+            <div style={{
+              background: 'var(--surface)',
+              padding: '32px',
+              borderRadius: 'var(--r-card, 24px)',
+              boxShadow: 'var(--shadow-sm)',
+              border: '1px solid var(--line)'
+            }}>
+              <h2 className="serif" style={{ color: 'var(--ink)', marginBottom: '6px', fontSize: '22px' }}>Daily Wellbeing Assessment</h2>
+              <p className="small muted" style={{ marginBottom: '20px' }}>Standardized student mental wellbeing metric for daily continuity and clinical insights.</p>
 
               {/* AI Face Scanner Trigger Banner */}
               <div style={{
@@ -4299,7 +4304,7 @@ export default function MoodTracker() {
               )}
 
               {/* Step 1: Mood select */}
-              <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '700', marginBottom: '10px', fontSize: '13.5px' }}>1. How is your mood rating?</label>
+              <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '700', marginBottom: '10px', fontSize: '13.5px' }}>1. Emotional State Rating (1 to 5)</label>
               <div className="mood-picker" role="radiogroup" aria-label="Mood rating">
                 {moods.map((mood) => (
                   <button
@@ -4317,7 +4322,7 @@ export default function MoodTracker() {
               </div>
 
               {/* Step 2: Trigger Select */}
-              <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '700', marginBottom: '8px', fontSize: '13.5px' }}>2. What is the primary cause (Trigger) of your mood?</label>
+              <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '700', marginBottom: '8px', fontSize: '13.5px' }}>2. Primary Contributing Factors (Triggers)</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
                 {['Studies', 'Family', 'Friends', 'Relationship', 'Work', 'Health'].map(trig => (
                   <button 
@@ -4671,7 +4676,7 @@ export default function MoodTracker() {
                 </div>
               </div>
 
-              <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '700', marginBottom: '10px', fontSize: '13.5px' }}>6. Unique Factors & Integration</label>
+              <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '700', marginBottom: '10px', fontSize: '13.5px' }}>4. Lifestyle & Physiological Indicators</label>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
                 <div>
@@ -4726,203 +4731,81 @@ export default function MoodTracker() {
 
               {selected && (
                 <div style={{ background: 'var(--surface-2)', padding: '18px', borderRadius: '16px', borderLeft: `5px solid ${selectedColor}`, marginBottom: '20px', fontSize: '13px', color: 'var(--ink-2)', lineHeight: '1.5' }}>
-                  <strong style={{ color: selectedColor, display: 'block', marginBottom: '4px' }}>💡 Quick Advisor Tip</strong>
+                  <strong style={{ color: selectedColor, display: 'block', marginBottom: '4px' }}>Clinical Wellbeing Insight</strong>
                   {recommendations[selected.value].tip}
                 </div>
               )}
 
               <button onClick={handleSave} disabled={!selected || loading}
                 style={{ width: '100%', padding: '14px', marginTop: '16px', background: selected ? `linear-gradient(135deg, ${selectedColor}, var(--primary-fill))` : 'var(--line)', color: selected ? 'white' : 'var(--ink-4)', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 'bold', cursor: selected ? 'pointer' : 'not-allowed', boxShadow: selected ? `0 10px 15px -3px ${selectedColor}30` : 'none' }}>
-                {saved ? '✅ Mood Logged!' : loading ? '⏳ Saving...' : '💾 Save Advanced Mood Log'}
+                {saved ? '✓ Assessment Recorded' : loading ? 'Recording Assessment…' : 'Submit Today’s Wellbeing Log'}
               </button>
+            
             </div>
 
-            {/* Mood-based games: 5 recommended for the selected mood + Explore More Games */}
-            <div style={{ marginTop: '24px' }}>
+            {/* Column 2: Interventions & 3D Sensory Grounding */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+              {/* Evidence-Based Coping Recommendations & Full Library */}
               <MoodGamesSection selectedMood={selected} onPlay={handleCatalogLaunch} />
-            </div>
 
-            {/* Recommended games column */}
-            <div>
-              <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', border: '1px solid var(--line)', display: 'flex', flexDirection: 'column', marginBottom: '24px' }}>
-                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '18px', fontWeight: 'bold' }}>🎯 Recommended for Your Mood</h3>
-                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '24px' }}>{selected ? `Based on your mood score of ${selected.value}/5, we curated these 5 exercises:` : 'Select a mood rating to trigger personalized suggestions.'}</p>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {selected ? (
-                    recsLoading ? (
-                      Array(5).fill(0).map((_, idx) => (
-                        <div 
-                          key={idx}
-                          style={{ 
-                            display: 'flex', 
-                            gap: '14px', 
-                            alignItems: 'center', 
-                            padding: '14px', 
-                            background: 'var(--surface-2)', 
-                            borderRadius: '16px', 
-                            border: '1px solid var(--line)',
-                            opacity: 0.6,
-                            animation: 'pulse 1.5s infinite alternate' 
-                          }}
-                        >
-                          <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'var(--line-strong)' }} />
-                          <div style={{ flex: 1 }}>
-                            <div style={{ width: '100px', height: '12px', background: 'var(--line-strong)', borderRadius: '4px', marginBottom: '6px' }} />
-                            <div style={{ width: '160px', height: '8px', background: 'var(--line-strong)', borderRadius: '4px' }} />
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      dynamicRecs.map((gameConfig, idx) => {
-                        return (
-                          <div 
-                            key={idx}
-                            onClick={() => launchGame(gameConfig.subtype || gameConfig.key, gameConfig)}
-                            style={{ display: 'flex', gap: '14px', alignItems: 'center', padding: '14px', background: 'var(--surface-2)', borderRadius: '16px', border: '1px solid var(--line)', cursor: 'pointer', transition: 'all 0.2s' }}
-                            className="game-card"
-                          >
-                            <div style={{ fontSize: '24px', background: 'var(--surface)', width: '44px', height: '44px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--line)' }}>{gameConfig.icon}</div>
-                            <div style={{ flex: 1 }}>
-                              <h4 style={{ margin: '0 0 3px 0', color: 'var(--ink)', fontSize: '13px', fontWeight: 'bold' }}>{gameConfig.title}</h4>
-                              <p style={{ margin: 0, color: 'var(--ink-3)', fontSize: '11px', lineHeight: '1.3' }}>{gameConfig.desc}</p>
-                            </div>
-                            <span style={{ fontSize: '16px', color: 'var(--primary)' }}>▶️</span>
-                          </div>
-                        )
-                      })
-                    )
-                  ) : (
-                    <div style={{ border: '2px dashed var(--line)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-4)', fontStyle: 'italic', fontSize: '13px', padding: '30px' }}>
-                      Choose your mood rating first
-                    </div>
-                  )}
+              {/* 3D Sensory Grounding Environments Card */}
+              <div style={{
+                background: 'var(--surface)',
+                padding: '28px',
+                borderRadius: 'var(--r-card, 24px)',
+                border: '1px solid var(--line)',
+                boxShadow: 'var(--shadow-sm)'
+              }}>
+                <div className="row-between mb-8" style={{ alignItems: 'flex-start' }}>
+                  <div>
+                    <h3 className="serif" style={{ color: 'var(--ink)', margin: '0 0 4px', fontSize: '19px' }}>
+                      3D Sensory Grounding Environments
+                    </h3>
+                    <p className="small muted" style={{ margin: 0 }}>
+                      Hardware-accelerated WebGL environments for visual mindfulness, deep focus, and de-escalation.
+                    </p>
+                  </div>
+                  <span className="chip chip-primary" style={{ fontWeight: 700 }}>Interactive 3D</span>
                 </div>
-              </div>
 
-              {/* 🌌 ADVANCED 3D WEBGL RELAXATION ZONE */}
-              <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, var(--primary-fill) 100%)', padding: '24px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.15)', color: 'white', marginBottom: '24px', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
-                <h3 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  🌌 Advanced 3D Relaxation Zone 🎮
-                </h3>
-                <p style={{ margin: '0 0 16px 0', fontSize: '12.5px', color: 'var(--ink-4)' }}>
-                  Hardware-accelerated 3D WebGL environments for instant sensory grounding:
-                </p>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
+                  gap: '12px',
+                  marginTop: '16px'
+                }}>
                   {[
-                    { key: 'starfield', title: '🌌 Cosmic Starfield', desc: 'Interactive 3D particle universe', icon: '🌌' },
-                    { key: 'water', title: '🌊 Water Ripples', desc: '3D kinetic liquid wave pool', icon: '🌊' },
-                    { key: 'sakura', title: '🌸 Sakura Sanctuary', desc: '3D cherry tree in falling petals', icon: '🌸' },
-                    { key: 'crystal', title: '🔮 Breathing Crystal', desc: '4-7-8 pulsing 3D glass orb', icon: '🔮' },
-                    { key: 'saturn', title: '🪐 Saturn & Moons', desc: '3D planet & orbiting moon rings', icon: '🪐' },
-                    { key: 'autumn', title: '🍃 Autumn Forest', desc: '3D golden leaves drifting in breeze', icon: '🍃' },
-                    { key: 'prism', title: '💎 Prism Kaleidoscope', desc: '3D rainbow light beams', icon: '💎' },
-                    { key: 'warp', title: '🌌 Quantum Warp Tunnel', desc: '3D infinite spiral particle tunnel', icon: '🌌' }
+                    { key: 'starfield', title: 'Cosmic Starfield', desc: 'Interactive 3D particle universe', icon: '🌌' },
+                    { key: 'water', title: 'Kinetic Wave Pool', desc: 'Liquid surface wave simulation', icon: '🌊' },
+                    { key: 'sakura', title: 'Sakura Sanctuary', desc: 'Falling cherry blossom petals', icon: '🌸' },
+                    { key: 'crystal', title: '4-7-8 Breathing Crystal', desc: 'Rhythmic pulsing glass orb', icon: '🔮' },
+                    { key: 'saturn', title: 'Planetary Orbit', desc: 'Celestial gravitational perspective', icon: '🪐' },
+                    { key: 'autumn', title: 'Autumn Forest', desc: 'Drifting foliage in gentle breeze', icon: '🍃' },
+                    { key: 'prism', title: 'Prism Refraction', desc: 'Spectrophotometric light rays', icon: '💎' },
+                    { key: 'warp', title: 'Quantum Tunnel', desc: 'Hypnotic focal point meditation', icon: '🌀' }
                   ].map(g => (
-                    <div
+                    <button
                       key={g.key}
+                      type="button"
                       onClick={() => setActive3DGame(g.key)}
                       style={{
-                        background: 'rgba(255,255,255,0.08)',
-                        border: '1px solid rgba(255,255,255,0.12)',
-                        borderRadius: '14px',
-                        padding: '12px',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '4px',
-                        touchAction: 'manipulation'
-                      }}
-                    >
-                      <div style={{ fontSize: '22px' }}>{g.icon}</div>
-                      <div style={{ fontSize: '12.5px', fontWeight: '700', color: 'white' }}>{g.title}</div>
-                      <div style={{ fontSize: '10.5px', color: 'var(--ink-4)' }}>{g.desc}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* ⚡ 100% NATIVE PURE-REACT RELAXING ARCADE */}
-              <div style={{
-                background: 'linear-gradient(135deg, var(--primary-fill) 0%, var(--primary-fill) 50%, var(--primary-fill) 100%)',
-                padding: '24px',
-                borderRadius: '24px',
-                border: '1px solid rgba(255,255,255,0.15)',
-                color: 'white',
-                marginBottom: '24px',
-                boxShadow: '0 12px 32px color-mix(in srgb, var(--primary) 40%, transparent)', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
-                <div style={{ marginBottom: '16px' }}>
-                  <h3 style={{ margin: '0 0 4px 0', fontSize: '17px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    ⚡ Native Built-in Mind Relaxation Games 🎮
-                  </h3>
-                  <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--ink-4)' }}>
-                    100% Native WebGL & Canvas Games built directly inside MindSpace (Zero lag, zero iframe errors):
-                  </p>
-                </div>
-
-                {/* Pre-loaded 100% Native Games Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(135px, 1fr))', gap: '10px' }}>
-                  {[
-                    { id: 'merge', title: 'DesignVille Merge 🏡', desc: 'Merge & decorate dream room', icon: '🏡', action: () => setShowMergeModal(true) },
-                    { id: 'diff', title: 'Spot Differences 🔍', desc: 'Find 5 hidden differences', icon: '🔍', action: () => setShowDiffModal(true) },
-                    { id: 'mower', title: 'Stone Grass Mower 🚜', desc: 'Satisfying lawn grass cutting', icon: '🚜', action: () => setShowMowerModal(true) },
-                    { id: 'popit', title: 'Pop-It 3D Fidget 🧸', desc: 'Interactive popping bubbles', icon: '🧸', action: () => setShowPopItModal(true) },
-                    { id: 'watersort', title: 'Water Sort Liquid 🧪', desc: 'Color liquid sorting puzzle', icon: '🧪', action: () => setShowWaterSortModal(true) },
-                    { id: 'colortap', title: 'Color Tap Paint 🎨', desc: 'Mindful number color painting', icon: '🎨', action: () => setActiveGame('drawing') },
-                    { id: 'solitaire', title: 'Solitaire Story 🃏', desc: 'Classic relaxing solitaire cards', icon: '🃏', action: () => setActiveGame('memory') },
-                    { id: 'starfield', title: '3D Cosmic Space 🌌', desc: 'Interactive 3D particle universe', icon: '🌌', action: () => setActive3DGame('starfield') },
-                    { id: 'water', title: '3D Water Waves 🌊', desc: '3D kinetic liquid wave pool', icon: '🌊', action: () => setActive3DGame('water') },
-                    { id: 'sakura', title: '3D Sakura Sanctuary 🌸', desc: '3D cherry tree in falling petals', icon: '🌸', action: () => setActive3DGame('sakura') },
-                    { id: 'crystal', title: '3D Breathing Orb 🔮', desc: '4-7-8 pulsing 3D glass crystal', icon: '🔮', action: () => setActive3DGame('crystal') },
-                    { id: 'pet', title: 'Virtual Zen Pet 🐱', desc: 'Feed & pet your virtual cat', icon: '🐱', action: () => setActiveGame('pet') }
-                  ].map(gameObj => (
-                    <div
-                      key={gameObj.id}
-                      onClick={gameObj.action}
-                      style={{
-                        background: 'rgba(255,255,255,0.08)',
-                        border: '1px solid rgba(255,255,255,0.15)',
+                        background: 'var(--surface-2)',
+                        border: '1px solid var(--line)',
                         borderRadius: '16px',
-                        padding: '12px',
+                        padding: '14px',
                         cursor: 'pointer',
-                        transition: 'all 0.2s ease',
+                        transition: 'transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease',
                         display: 'flex',
                         flexDirection: 'column',
-                        alignItems: 'center',
-                        textAlign: 'center',
-                        touchAction: 'manipulation'
+                        textAlign: 'left',
+                        gap: '6px'
                       }}
+                      className="card-interactive"
                     >
-                      <div style={{ fontSize: '28px', marginBottom: '6px' }}>{gameObj.icon}</div>
-                      <div style={{ fontSize: '12px', fontWeight: '700', color: 'white', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {gameObj.title}
-                      </div>
-                      <div style={{ fontSize: '10.5px', color: 'var(--ink-4)', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
-                        {gameObj.desc}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* COMMON GAMES LIST */}
-              <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '24px', border: '1px solid var(--line)' }}>
-                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '16px', fontWeight: 'bold' }}>🌐 Common Relaxation Zone</h3>
-                <p style={{ color: 'var(--ink-3)', fontSize: '12.5px', marginBottom: '20px' }}>Take a break and play any of our 10 cognitive and breathing games:</p>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  {commonGamesList.slice(0, 6).map((g, idx) => (
-                    <div 
-                      key={idx}
-                      onClick={() => launchGame(g.key, g)}
-                      style={{ background: 'var(--surface-2)', padding: '14px', borderRadius: '14px', border: '1px solid var(--line)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'all 0.2s' }}
-                      className="game-card"
-                    >
-                      <div style={{ fontSize: '24px' }}>{g.icon}</div>
-                      <h4 style={{ margin: 0, color: 'var(--ink)', fontSize: '12.5px', fontWeight: 'bold' }}>{g.title.split(' ')[0]}</h4>
-                    </div>
+                      <div style={{ fontSize: '26px' }}>{g.icon}</div>
+                      <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--ink)' }}>{g.title}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--ink-3)', lineHeight: 1.35 }}>{g.desc}</div>
+                    </button>
                   ))}
                 </div>
               </div>
