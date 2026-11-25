@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import API_URL from '../config'
@@ -40,16 +40,12 @@ const REMINDERS = [
 ]
 
 const getGameLabel = (code) => {
-  if (code === 'bubbles') return 'Bubble Wrap Popper'
+  if (code === 'bubbles') return 'Zen Bubble Popper'
   if (code === 'memory') return 'Zen Memory Match'
   if (code === 'gratitude') return 'Gratitude Garden'
-  return ''
-}
-
-const getDailyReminder = () => {
-  const today = new Date()
-  const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000)
-  return REMINDERS[dayOfYear % REMINDERS.length]
+  if (code === 'whack') return 'Whack-A-Stress'
+  if (code === 'breathing') return 'Breathing Balloon'
+  return 'Calming Mindfulness Exercise'
 }
 
 const getFormattedDate = () =>
@@ -69,6 +65,17 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [supportMessage, setSupportMessage] = useState(null)
 
+  // Daily mindful reminder index
+  const today = new Date()
+  const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000)
+  const [reminderIdx, setReminderIdx] = useState(dayOfYear % REMINDERS.length)
+
+  // Interactive 4-7-8 Breathing Mini-Coach state
+  const [breathingActive, setBreathingActive] = useState(false)
+  const [breathingPhase, setBreathingPhase] = useState('Inhale') // 'Inhale', 'Hold', 'Exhale'
+  const [breathingSeconds, setBreathingSeconds] = useState(4)
+  const breathingTimerRef = useRef(null)
+
   const token = localStorage.getItem('token')
 
   useEffect(() => {
@@ -81,17 +88,48 @@ export default function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate])
 
+  // 4-7-8 Breathing Loop
+  useEffect(() => {
+    if (!breathingActive) {
+      clearInterval(breathingTimerRef.current)
+      setBreathingPhase('Inhale')
+      setBreathingSeconds(4)
+      return
+    }
+
+    breathingTimerRef.current = setInterval(() => {
+      setBreathingSeconds((prevSec) => {
+        if (prevSec > 1) return prevSec - 1
+
+        // Transition phases: Inhale (4s) -> Hold (7s) -> Exhale (8s) -> Inhale
+        setBreathingPhase((prevPhase) => {
+          if (prevPhase === 'Inhale') {
+            setBreathingSeconds(7)
+            return 'Hold'
+          } else if (prevPhase === 'Hold') {
+            setBreathingSeconds(8)
+            return 'Exhale'
+          } else {
+            setBreathingSeconds(4)
+            return 'Inhale'
+          }
+        })
+        return 4
+      })
+    }, 1000)
+
+    return () => clearInterval(breathingTimerRef.current)
+  }, [breathingActive])
+
   const fetchProfileAndData = async () => {
     try {
-      // Latest profile (includes recommendations & status updates)
       const profileRes = await axios.get(`${API_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setUser(profileRes.data)
       localStorage.setItem('user', JSON.stringify(profileRes.data))
     } catch (err) {
-      console.error(err)
-      // Deactivated account or invalid token → sign out
+      console.error('Error fetching profile:', err)
       handleLogout()
     } finally {
       setLoading(false)
@@ -103,7 +141,10 @@ export default function Dashboard() {
       const res = await axios.get(`${API_URL}/api/messages/admin-support`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      const latestSupportMsg = res.data.slice().reverse().find(msg => msg.sender?.role === 'counsellor' || msg.sender?.role === 'admin')
+      const latestSupportMsg = res.data
+        .slice()
+        .reverse()
+        .find(msg => msg.sender?.role === 'counsellor' || msg.sender?.role === 'admin')
       if (latestSupportMsg) setSupportMessage(latestSupportMsg)
     } catch (err) {
       console.error('Error checking support messages:', err)
@@ -116,47 +157,84 @@ export default function Dashboard() {
     navigate('/')
   }
 
+  const handleQuickMoodClick = (moodValue) => {
+    navigate('/mood', { state: { quickMood: moodValue } })
+  }
+
+  const handleLaunch3D = (gameKey) => {
+    navigate('/mood', { state: { active3DGame: gameKey } })
+  }
+
+  const handlePromptClick = (promptText) => {
+    navigate('/chat', { state: { initialPrompt: promptText } })
+  }
+
   const name = user ? user.name.split(' ')[0] : 'there'
   const customRec = user?.customRecommendation
 
   if (loading) {
     return (
       <div className="page">
-        <div className="skeleton" style={{ height: 260, borderRadius: 30 }} />
+        <div className="skeleton" style={{ height: 280, borderRadius: 28 }} />
         <div className="grid grid-3 mt-24">
-          <div className="skeleton" style={{ height: 180 }} /><div className="skeleton" style={{ height: 180 }} /><div className="skeleton" style={{ height: 180 }} />
+          <div className="skeleton" style={{ height: 180 }} />
+          <div className="skeleton" style={{ height: 180 }} />
+          <div className="skeleton" style={{ height: 180 }} />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="page">
-      {/* Urgent message from staff */}
+    <div className="page dashboard-page">
+      {/* ----------------- 24/7 Emergency Care Ribbon ----------------- */}
+      <div className="emergency-ribbon mb-20 rise">
+        <div className="emergency-ribbon-left">
+          <span className="emergency-badge"><Icon name="shield" size={15} /> 24/7 Crisis Support</span>
+          <span className="emergency-text">
+            Immediate mental health assistance is free and confidential across Sri Lanka.
+          </span>
+        </div>
+        <div className="emergency-ribbon-actions">
+          <a href="tel:1926" className="emergency-link">
+            <Icon name="phone" size={13} /> Call 1926 (NIMH)
+          </a>
+          <a href="tel:1990" className="emergency-link emergency-link-subtle">
+            Call 1990 (Ambulance)
+          </a>
+        </div>
+      </div>
+
+      {/* ----------------- Urgent Counselor Message ----------------- */}
       {supportMessage && (
         <button
-          className="notice notice-danger rise"
+          type="button"
+          className="notice notice-danger rise mb-20"
           onClick={() => navigate('/anonymous-chat', { state: { defaultTab: 'admin' } })}
         >
           <span className="tile tile-danger"><Icon name="message" size={22} /></span>
           <span className="notice-body">
-            <span className="chip chip-danger" style={{ marginBottom: 8 }}>Message from your counselor</span>
+            <span className="chip chip-danger" style={{ marginBottom: 6 }}>Message from University Counselor</span>
             <strong>Your counselor started a private support session</strong>
             <span className="notice-quote">&ldquo;{supportMessage.text}&rdquo;</span>
           </span>
-          <span className="btn btn-danger btn-sm">Reply now <Icon name="arrowRight" size={16} /></span>
+          <span className="btn btn-danger btn-sm">Reply in Chat <Icon name="arrowRight" size={16} /></span>
         </button>
       )}
 
-      {/* Counselor recommendation */}
+      {/* ----------------- Counselor Custom Activity Recommendation ----------------- */}
       {customRec && (customRec.game || customRec.activity) && (
-        <div className="notice notice-primary rise">
+        <div className="notice notice-primary rise mb-20">
           <span className="tile"><Icon name="heart" size={22} /></span>
           <span className="notice-body">
-            <span className="chip chip-primary" style={{ marginBottom: 8 }}>Suggested by your counselor</span>
-            <strong>A relaxation exercise, picked for you</strong>
-            <span className="notice-quote">&ldquo;{customRec.activity || 'Take some time out to pop bubbles and calm your thoughts.'}&rdquo;</span>
-            {customRec.game && <span className="small muted" style={{ marginTop: 6 }}>Recommended game: <strong style={{ color: 'var(--ink)' }}>{getGameLabel(customRec.game)}</strong></span>}
+            <span className="chip chip-primary" style={{ marginBottom: 6 }}>Recommended by Your Counselor</span>
+            <strong>A personalized coping exercise for your wellbeing</strong>
+            <span className="notice-quote">&ldquo;{customRec.activity || 'Take some quiet moments to reflect, breathe, and unwind.'}&rdquo;</span>
+            {customRec.game && (
+              <span className="small muted" style={{ marginTop: 6 }}>
+                Curated exercise: <strong style={{ color: 'var(--ink)' }}>{getGameLabel(customRec.game)}</strong>
+              </span>
+            )}
           </span>
           {customRec.game && (
             <button className="btn btn-primary btn-sm" onClick={() => navigate('/mood')}>
@@ -166,92 +244,364 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Hero */}
-      <section className="hero rise rise-1">
+      {/* ----------------- Hero Section ----------------- */}
+      <section className="hero hero-elevated rise rise-1">
         <div className="hero-art"><Horizon /></div>
         <div className="hero-body">
-          <span className="eyebrow">{getFormattedDate()}</span>
-          <h1 className="h-display">{getGreeting()},<br />{name}.</h1>
-          <p className="lead">How are you feeling right now? A quick check-in helps you notice what&rsquo;s going on.</p>
+          <div className="hero-date-chip">
+            <Icon name="calendar" size={14} />
+            <span>{getFormattedDate()}</span>
+          </div>
 
-          <div className="hero-moods" role="group" aria-label="Quick mood check-in">
-            {[5, 4, 3, 2, 1].map(v => (
-              <button key={v} className="hero-mood" onClick={() => navigate('/mood')} aria-label={MOOD_LABELS[v]}>
-                <MoodFace value={v} size={46} />
-                <span>{MOOD_LABELS[v]}</span>
-              </button>
-            ))}
+          <h1 className="h-display hero-title">
+            {getGreeting()},<br />
+            <span className="hero-name">{name}.</span>
+          </h1>
+
+          <p className="hero-lead">
+            Welcome to your personal sanctuary. How is your mind and body feeling right now? Taking a gentle moment to notice your state is the first step toward balance.
+          </p>
+
+          <div className="hero-checkin-wrapper">
+            <span className="hero-checkin-label">Quick Mood Check-in:</span>
+            <div className="hero-moods" role="group" aria-label="Quick mood check-in">
+              {[5, 4, 3, 2, 1].map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  className="hero-mood"
+                  onClick={() => handleQuickMoodClick(v)}
+                  aria-label={`Log feeling ${MOOD_LABELS[v]}`}
+                >
+                  <MoodFace value={v} size={44} />
+                  <span className="hero-mood-text">{MOOD_LABELS[v]}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="hero-trust-strip">
+            <span className="trust-pill"><Icon name="lock" size={13} /> 100% Student Confidential</span>
+            <span className="trust-pill"><Icon name="award" size={13} /> 65+ Coping Games &amp; 3D Grounding</span>
+            <span className="trust-pill"><Icon name="feather" size={13} /> 24/7 AI &amp; Counselor Care</span>
           </div>
         </div>
       </section>
 
-      {/* Toolkit */}
-      <div className="row-between mt-32 mb-16 rise rise-2">
-        <h2 className="h-section">Your toolkit</h2>
+      {/* ----------------- Section Header: Toolkit ----------------- */}
+      <div className="row-between mt-36 mb-16 rise rise-2">
+        <div>
+          <h2 className="h-section" style={{ margin: 0 }}>Your Wellbeing Toolkit</h2>
+          <p className="small muted" style={{ margin: '4px 0 0' }}>
+            Evidence-based tools to explore feelings, talk through challenges, and calm your senses.
+          </p>
+        </div>
       </div>
 
+      {/* ----------------- Bento Grid ----------------- */}
       <div className="bento rise rise-3">
-        <button className="card card-interactive bento-card b-7" onClick={() => navigate('/mood')}>
+        {/* Card 1: Mood Tracker & Coping Hub (7 cols) */}
+        <button
+          type="button"
+          className="card card-interactive bento-card b-7 bento-card-highlight"
+          onClick={() => navigate('/mood')}
+        >
           <div className="row-between">
-            <span className="tile tile-lg tile-sun"><Icon name="smile" size={26} /></span>
+            <div className="row gap-12" style={{ alignItems: 'center' }}>
+              <span className="tile tile-lg tile-sun"><Icon name="smile" size={26} /></span>
+              <span className="chip chip-primary" style={{ fontWeight: 700 }}>Daily Wellbeing Pulse</span>
+            </div>
             <span className="go"><Icon name="arrowRight" size={18} /></span>
           </div>
-          <h3 className="card-title serif">Mood Tracker</h3>
-          <p className="card-sub">Track your daily emotions, see your patterns and unwind with relaxation games.</p>
-          <div className="bento-visual">
-            {[5, 4, 3, 2, 1].map(v => <MoodFace key={v} value={v} size={34} muted={v !== 4} />)}
+
+          <h3 className="card-title serif mt-8">Daily Mood Tracker &amp; Coping Hub</h3>
+          <p className="card-sub">
+            Log how you feel, discover weekly emotional patterns, and unlock 65+ games &amp; therapeutic interventions tailored to your exact mood.
+          </p>
+
+          <div className="bento-visual-moods">
+            {[5, 4, 3, 2, 1].map((v) => (
+              <div key={v} className="bento-face-col">
+                <MoodFace value={v} size={36} muted={v !== 4} />
+                <span className="bento-face-label">{MOOD_LABELS[v]}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="bento-footer-strip">
+            <span className="bento-chip">65+ Zen Games</span>
+            <span className="bento-chip">Facial AI Scanner</span>
+            <span className="bento-chip">Audio Journal</span>
+            <span className="bento-action-text">Explore Tracker &rarr;</span>
           </div>
         </button>
 
-        <button className="card card-interactive bento-card b-5 bento-aura" onClick={() => navigate('/chat')}>
+        {/* Card 2: Talk to Aura AI (5 cols) */}
+        <button
+          type="button"
+          className="card card-interactive bento-card b-5 bento-aura"
+          onClick={() => navigate('/chat')}
+        >
           <div className="row-between">
-            <span className="tile tile-lg tile-dusk"><Icon name="feather" size={26} /></span>
+            <div className="row gap-12" style={{ alignItems: 'center' }}>
+              <span className="tile tile-lg tile-dusk"><Icon name="feather" size={26} /></span>
+              <span className="chip" style={{ background: 'rgba(127,121,209,0.18)', color: 'var(--dusk-ink)', fontWeight: 700 }}>
+                &bull; Active 24/7
+              </span>
+            </div>
             <span className="go"><Icon name="arrowRight" size={18} /></span>
           </div>
-          <h3 className="card-title serif">Talk to Aura</h3>
-          <p className="card-sub">An empathetic AI companion, available 24/7, in English and Sinhala.</p>
-          <div className="bento-visual col gap-8" style={{ alignItems: 'flex-start' }}>
-            <span className="bubble">I&rsquo;m here whenever you want to talk.</span>
-            <span className="bubble bubble-typing"><i /><i /><i /></span>
+
+          <h3 className="card-title serif mt-8">Talk to Aura AI Companion</h3>
+          <p className="card-sub">
+            Empathetic, 24/7 confidential listener powered by Google Gemini. Chat comfortably in <strong>English, සිංහල, or Singlish</strong>.
+          </p>
+
+          <div className="bento-prompts col gap-6" style={{ marginTop: 'auto' }}>
+            <span className="bento-prompt-label">Quick conversation starters:</span>
+            <div className="row flex-wrap gap-6">
+              {[
+                'Feeling overwhelmed by exams',
+                'Help me calm racing thoughts',
+                'Can’t sleep tonight'
+              ].map((p, idx) => (
+                <span
+                  key={idx}
+                  className="bento-prompt-chip"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handlePromptClick(p)
+                  }}
+                >
+                  &ldquo;{p}&rdquo;
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="bento-footer-strip mt-14">
+            <span className="bento-chip">Google Gemini AI</span>
+            <span className="bento-chip">Multilingual</span>
+            <span className="bento-action-text">Start Chat &rarr;</span>
           </div>
         </button>
 
-        <button className="card card-interactive bento-card b-4" onClick={() => navigate('/booking')}>
+        {/* Card 3: Live 1-Minute 4-7-8 Breathing Circle (4 cols) */}
+        <div className="card bento-card b-4 bento-breathing-card">
+          <div className="row-between">
+            <span className="tile tile-lg tile-success"><Icon name="wind" size={26} /></span>
+            <span className="chip chip-success" style={{ fontWeight: 700 }}>Micro-Relaxation</span>
+          </div>
+
+          <h3 className="card-title serif mt-8">1-Minute Calming Breath</h3>
+          <p className="card-sub">
+            Soothe your autonomic nervous system with the clinically proven 4-7-8 rhythmic breathing technique.
+          </p>
+
+          <div className="bento-breathing-interactive">
+            <div
+              className={`breathing-circle breathing-${breathingPhase.toLowerCase()} ${breathingActive ? 'active' : ''}`}
+            >
+              <span className="breathing-phase-text">{breathingActive ? breathingPhase : 'Relax'}</span>
+              <span className="breathing-seconds-text">{breathingActive ? `${breathingSeconds}s` : '4-7-8'}</span>
+            </div>
+
+            <button
+              type="button"
+              className={`btn btn-sm ${breathingActive ? 'btn-soft' : 'btn-primary'}`}
+              onClick={() => setBreathingActive(!breathingActive)}
+              style={{ marginTop: 12, width: '100%' }}
+            >
+              <Icon name={breathingActive ? 'pause' : 'play'} size={14} />
+              {breathingActive ? 'Pause Breath' : 'Start 1-Min Cycle'}
+            </button>
+          </div>
+
+          <button
+            type="button"
+            className="bento-subtle-link mt-8"
+            onClick={() => navigate('/resources')}
+          >
+            Explore all guided breathing techniques &rarr;
+          </button>
+        </div>
+
+        {/* Card 4: Book a Counseling Session (4 cols) */}
+        <button
+          type="button"
+          className="card card-interactive bento-card b-4"
+          onClick={() => navigate('/booking')}
+        >
           <div className="row-between">
             <span className="tile tile-lg tile-rose"><Icon name="calendar" size={26} /></span>
             <span className="go"><Icon name="arrowRight" size={18} /></span>
           </div>
-          <h3 className="card-title serif">Book a session</h3>
-          <p className="card-sub">Schedule a private counselling session with a professional.</p>
-        </button>
 
-        <button className="card card-interactive bento-card b-4" onClick={() => navigate('/resources')}>
-          <div className="row-between">
-            <span className="tile tile-lg tile-success"><Icon name="wind" size={26} /></span>
-            <span className="go"><Icon name="arrowRight" size={18} /></span>
+          <h3 className="card-title serif mt-8">Professional Counseling</h3>
+          <p className="card-sub">
+            Schedule private, 1-on-1 sessions with licensed university counselors and psychologists in person or virtually.
+          </p>
+
+          <div className="bento-features-list mt-auto">
+            <div className="bento-feat-item"><Icon name="check" size={14} /> 100% Confidential Care</div>
+            <div className="bento-feat-item"><Icon name="check" size={14} /> Zero Cost for Students</div>
+            <div className="bento-feat-item"><Icon name="check" size={14} /> Flexible Time Slots</div>
           </div>
-          <h3 className="card-title serif">Resources &amp; breathing</h3>
-          <p className="card-sub">Helpful articles and a guided breathing coach for calmer moments.</p>
+
+          <div className="bento-footer-strip mt-14">
+            <span className="bento-chip">Licensed Staff</span>
+            <span className="bento-action-text">Schedule Session &rarr;</span>
+          </div>
         </button>
 
-        <button className="card card-interactive bento-card b-4" onClick={() => navigate('/anonymous-chat')}>
+        {/* Card 5: Anonymous Peer Support (4 cols) */}
+        <button
+          type="button"
+          className="card card-interactive bento-card b-4"
+          onClick={() => navigate('/anonymous-chat')}
+        >
           <div className="row-between">
             <span className="tile tile-lg tile-sky"><Icon name="users" size={26} /></span>
             <span className="go"><Icon name="arrowRight" size={18} /></span>
           </div>
-          <h3 className="card-title serif">Peer support</h3>
-          <p className="card-sub">Chat anonymously with a supportive peer, or reach our staff.</p>
+
+          <h3 className="card-title serif mt-8">Anonymous Peer Space</h3>
+          <p className="card-sub">
+            Share what&rsquo;s on your mind safely with fellow students or reach staff privately under an encrypted alias.
+          </p>
+
+          <div className="bento-features-list mt-auto">
+            <div className="bento-feat-item"><Icon name="shield" size={14} /> Zero Identity Disclosed</div>
+            <div className="bento-feat-item"><Icon name="heart" size={14} /> Compassionate Community</div>
+            <div className="bento-feat-item"><Icon name="lock" size={14} /> Private Moderated Space</div>
+          </div>
+
+          <div className="bento-footer-strip mt-14">
+            <span className="bento-chip">Safe Alias</span>
+            <span className="bento-action-text">Join Peer Space &rarr;</span>
+          </div>
         </button>
+
+        {/* Card 6: 3D Sensory Grounding Sanctuary (Full-width 12 cols) */}
+        <div className="card bento-card b-12 bento-card-sensory">
+          <div className="row-between" style={{ alignItems: 'flex-start' }}>
+            <div>
+              <div className="row gap-8" style={{ alignItems: 'center', marginBottom: 6 }}>
+                <span className="tile tile-primary"><Icon name="compass" size={20} /></span>
+                <span className="chip chip-primary" style={{ fontWeight: 700 }}>Interactive WebGL</span>
+              </div>
+              <h3 className="card-title serif" style={{ fontSize: '20px', margin: '4px 0' }}>
+                3D Sensory Grounding &amp; Ambient Soundscapes
+              </h3>
+              <p className="card-sub" style={{ maxWidth: 680, margin: 0 }}>
+                Immerse yourself in hardware-accelerated 3D relaxation environments and synthesized sound loops for deep focus, sensory grounding, and de-escalation.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={() => navigate('/mood')}
+            >
+              Open Full Sanctuary <Icon name="arrowRight" size={15} />
+            </button>
+          </div>
+
+          <div className="sensory-grid mt-16">
+            {[
+              { key: 'starfield', title: 'Cosmic Starfield', icon: '🌌', desc: 'Interactive 3D particle universe' },
+              { key: 'water', title: 'Kinetic Wave Pool', icon: '🌊', desc: 'Fluid liquid wave simulation' },
+              { key: 'sakura', title: 'Sakura Sanctuary', icon: '🌸', desc: 'Falling cherry blossom petals' },
+              { key: 'crystal', title: 'Breathing Crystal', icon: '🔮', desc: 'Pulsing glass orb meditation' }
+            ].map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                className="sensory-item"
+                onClick={() => handleLaunch3D(item.key)}
+              >
+                <span className="sensory-icon">{item.icon}</span>
+                <div className="sensory-meta">
+                  <strong>{item.title}</strong>
+                  <span>{item.desc}</span>
+                </div>
+                <span className="sensory-arrow"><Icon name="play" size={13} /></span>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Daily reminder */}
-      <section className="reminder rise rise-4">
-        <Icon name="sunrise" size={26} />
-        <blockquote>{getDailyReminder()}</blockquote>
-        <cite>Today&rsquo;s reminder</cite>
-        <button className="btn btn-soft btn-sm" onClick={() => navigate('/resources')}>
-          <Icon name="wind" size={16} /> Take a mindful breath
-        </button>
+      {/* ----------------- Daily Mindful Reflection ----------------- */}
+      <section className="reminder rise rise-4 mt-36">
+        <div className="reminder-header">
+          <Icon name="sunrise" size={28} />
+          <cite>MindSpace Daily Reflection</cite>
+        </div>
+
+        <blockquote>&ldquo;{REMINDERS[reminderIdx]}&rdquo;</blockquote>
+
+        <div className="reminder-actions">
+          <button
+            type="button"
+            className="btn btn-soft btn-sm"
+            onClick={() => navigate('/resources')}
+          >
+            <Icon name="wind" size={15} /> Take a mindful breath
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={() => setReminderIdx((prev) => (prev + 1) % REMINDERS.length)}
+          >
+            <Icon name="refresh" size={14} /> Another thought
+          </button>
+        </div>
+      </section>
+
+      {/* ----------------- Emergency Helplines Safety Net ----------------- */}
+      <section className="helpline-section mt-36 rise rise-5">
+        <div className="helpline-header">
+          <Icon name="phone" size={20} />
+          <div>
+            <h4 className="helpline-title">Student Wellbeing &amp; Crisis Support Lines</h4>
+            <p className="small muted" style={{ margin: 0 }}>
+              Free, confidential help is available 24/7 if you or a friend are experiencing a crisis.
+            </p>
+          </div>
+        </div>
+
+        <div className="helpline-grid">
+          <div className="helpline-card">
+            <span className="helpline-num">1926</span>
+            <span className="helpline-name">NIMH Mental Health Hotline</span>
+            <span className="helpline-desc">24/7 Toll-Free National Mental Health Helpline</span>
+            <a href="tel:1926" className="helpline-dial-btn">
+              <Icon name="phone" size={14} /> Call 1926
+            </a>
+          </div>
+
+          <div className="helpline-card">
+            <span className="helpline-num">1990</span>
+            <span className="helpline-name">Suwaseriya Emergency Service</span>
+            <span className="helpline-desc">24/7 Emergency Ambulance Care</span>
+            <a href="tel:1990" className="helpline-dial-btn">
+              <Icon name="phone" size={14} /> Call 1990
+            </a>
+          </div>
+
+          <div className="helpline-card">
+            <span className="helpline-num">1333</span>
+            <span className="helpline-name">CCCline Sri Lanka</span>
+            <span className="helpline-desc">24/7 Toll-Free Crisis &amp; Emotional Counseling</span>
+            <a href="tel:1333" className="helpline-dial-btn">
+              <Icon name="phone" size={14} /> Call 1333
+            </a>
+          </div>
+        </div>
+
+        <p className="helpline-disclaimer">
+          MindSpace is designed for student wellbeing support, emotional reflection, and non-emergency care. In acute medical or psychiatric crises, please contact 1926 or visit your nearest hospital emergency unit.
+        </p>
       </section>
     </div>
   )

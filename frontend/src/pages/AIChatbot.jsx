@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
+import { useLocation } from 'react-router-dom'
 import axios from 'axios'
 import Icon from '../components/ui/Icon'
 import { Orb } from '../components/ui/Brand'
@@ -14,9 +15,10 @@ const CRISIS_HELPLINES = [
 ]
 
 export default function AIChatbot() {
+  const location = useLocation()
   const [lang, setLang] = useState('en') // 'en' or 'si'
   const [messages, setMessages] = useState([])
-  const [input, setInput] = useState('')
+  const [input, setInput] = useState(location.state?.initialPrompt || '')
   const [loading, setLoading] = useState(false)
   const [isListening, setIsListening] = useState(false)
   const [activeProvider, setActiveProvider] = useState('gemini')

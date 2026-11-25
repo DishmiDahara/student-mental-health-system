@@ -94,8 +94,473 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
 }
 .bento-card:hover .go { background: var(--primary-fill); color: #fff; transform: translateX(3px); }
 .bento-visual { margin-top: auto; padding-top: 14px; display: flex; gap: 8px; }
-.b-7 { grid-column: span 7; } .b-5 { grid-column: span 5; } .b-4 { grid-column: span 4; }
+.b-7 { grid-column: span 7; } .b-5 { grid-column: span 5; } .b-4 { grid-column: span 4; } .b-12 { grid-column: span 12; }
 .bento-aura { background: linear-gradient(160deg, var(--surface), var(--dusk-soft)); }
+
+/* ----------------- Emergency Ribbon ----------------- */
+.emergency-ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 18px;
+  background: color-mix(in srgb, var(--surface) 92%, var(--danger-soft));
+  border: 1px solid color-mix(in srgb, var(--line) 75%, var(--danger));
+  border-radius: var(--r-pill, 999px);
+  font-size: 13px;
+  box-shadow: var(--shadow-xs);
+  flex-wrap: wrap;
+}
+.emergency-ribbon-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.emergency-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: .02em;
+}
+.emergency-text {
+  color: var(--ink-2);
+  font-weight: 550;
+}
+.emergency-ribbon-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.emergency-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  color: var(--danger);
+  font-weight: 700;
+  font-size: 12px;
+  text-decoration: none;
+  transition: all .2s ease;
+}
+.emergency-link:hover {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+}
+.emergency-link-subtle {
+  color: var(--ink-2);
+}
+.emergency-link-subtle:hover {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+
+/* ----------------- Hero Redesign ----------------- */
+.hero-elevated {
+  position: relative;
+  min-height: 360px;
+  background: var(--scene-sky-1);
+}
+.hero-date-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  margin-bottom: 8px;
+}
+.hero-title {
+  margin: 6px 0 12px;
+  font-size: clamp(32px, 3.8vw, 44px);
+  line-height: 1.15;
+}
+.hero-name {
+  color: var(--primary);
+  font-style: italic;
+}
+.hero-lead {
+  font-size: clamp(14.5px, 1.25vw, 16px);
+  color: var(--ink-2);
+  line-height: 1.55;
+  max-width: 580px;
+  margin: 0 0 20px;
+}
+.hero-checkin-wrapper {
+  margin-top: 18px;
+}
+.hero-checkin-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--ink-3);
+  margin-bottom: 10px;
+}
+.hero-mood-text {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+.hero-trust-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+.trust-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+
+/* ----------------- Bento Cards & Visual Elements ----------------- */
+.bento-card-highlight {
+  border-color: color-mix(in srgb, var(--line) 60%, var(--primary));
+  box-shadow: 0 8px 24px -6px rgba(46,125,114,.08);
+}
+.bento-visual-moods {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: auto;
+  padding: 16px 0 12px;
+}
+.bento-face-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.bento-face-label {
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--ink-3);
+}
+.bento-footer-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  margin-top: auto;
+  width: 100%;
+}
+.bento-chip {
+  font-size: 11px;
+  font-weight: 650;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--ink-2);
+}
+.bento-action-text {
+  margin-left: auto;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: transform .2s ease;
+}
+.bento-card:hover .bento-action-text {
+  transform: translateX(3px);
+}
+
+/* Prompt chips in Aura Card */
+.bento-prompt-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.bento-prompt-chip {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.bento-prompt-chip:hover {
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+/* 4-7-8 Breathing Circle Mini-Widget */
+.bento-breathing-card {
+  align-items: center;
+  text-align: center;
+}
+.bento-breathing-interactive {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin: 12px 0;
+}
+.breathing-circle {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, var(--success-soft), color-mix(in srgb, var(--surface) 80%, var(--success)));
+  border: 2px solid var(--success);
+  box-shadow: 0 0 20px -4px rgba(46,125,114,.25);
+  transition: transform 4s cubic-bezier(0.4, 0, 0.2, 1), background-color 1s ease;
+}
+.breathing-circle.active.breathing-inhale {
+  transform: scale(1.28);
+}
+.breathing-circle.active.breathing-hold {
+  transform: scale(1.28);
+  border-color: var(--sun);
+  background: radial-gradient(circle, var(--sun-soft), color-mix(in srgb, var(--surface) 80%, var(--sun)));
+}
+.breathing-circle.active.breathing-exhale {
+  transform: scale(0.96);
+}
+.breathing-phase-text {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.breathing-seconds-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-3);
+}
+.bento-subtle-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--primary);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-family: inherit;
+}
+.bento-subtle-link:hover {
+  color: var(--primary-ink);
+}
+
+/* Bento Features List */
+.bento-features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.bento-feat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+  font-weight: 550;
+}
+.bento-feat-item svg {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* Sensory Grid */
+.bento-card-sensory {
+  background: linear-gradient(135deg, var(--surface), color-mix(in srgb, var(--surface-2) 90%, var(--primary-soft)));
+}
+.sensory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  width: 100%;
+}
+.sensory-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: all .2s ease;
+}
+.sensory-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-sm);
+}
+.sensory-icon {
+  font-size: 26px;
+  line-height: 1;
+}
+.sensory-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.sensory-meta strong {
+  font-size: 13px;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sensory-meta span {
+  font-size: 11px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sensory-arrow {
+  color: var(--ink-3);
+  opacity: 0.6;
+}
+.sensory-item:hover .sensory-arrow {
+  color: var(--primary);
+  opacity: 1;
+}
+
+/* Reminder Header & Actions */
+.reminder-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.reminder-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Helpline Section */
+.helpline-section {
+  padding: 32px 28px;
+  border-radius: var(--r-xl);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+.helpline-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.helpline-header svg {
+  color: var(--primary);
+  background: var(--primary-soft);
+  padding: 10px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+}
+.helpline-title {
+  margin: 0 0 4px;
+  font-size: 17px;
+  font-family: var(--font-display);
+  color: var(--ink);
+}
+.helpline-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.helpline-card {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-xs);
+}
+.helpline-num {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--primary);
+  font-family: var(--font-display);
+  letter-spacing: .02em;
+}
+.helpline-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 4px 0 2px;
+}
+.helpline-desc {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  margin-bottom: 14px;
+  min-height: 28px;
+}
+.helpline-dial-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all .2s ease;
+  margin-top: auto;
+}
+.helpline-dial-btn:hover {
+  background: var(--primary);
+  color: #fff;
+}
+.helpline-disclaimer {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  text-align: center;
+}
 
 .bubble {
   display: inline-block; padding: 10px 15px; border-radius: 18px 18px 18px 6px;
@@ -121,18 +586,25 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
 .reminder cite { font-style: normal; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
 
 @media (max-width: 1100px) {
-  .b-7, .b-5 { grid-column: span 6; }
+  .b-7, .b-5 { grid-column: span 12; }
   .b-4 { grid-column: span 6; }
   .b-4:last-child { grid-column: span 12; }
+  .sensory-grid { grid-template-columns: repeat(2, 1fr); }
+  .helpline-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 720px) {
-  .b-7, .b-5, .b-4 { grid-column: span 12; }
+  .b-7, .b-5, .b-4, .b-12 { grid-column: span 12; }
   .bento-card { min-height: 0; }
   .hero { min-height: 0; }
-  .hero-body { padding: 28px 22px; }
-  .hero-moods { gap: 8px; }
-  .hero-mood { min-width: 0; flex: 1 1 56px; padding: 9px 4px 8px; }
-  .hero-mood svg { width: 38px; height: 38px; }
+  .hero-body { padding: 24px 18px; }
+  .hero-moods { gap: 8px; justify-content: space-between; }
+  .hero-mood { min-width: 0; flex: 1 1 54px; padding: 8px 3px 7px; }
+  .hero-mood svg { width: 36px; height: 36px; }
+  .hero-trust-strip { flex-direction: column; gap: 8px; }
+  .emergency-ribbon { flex-direction: column; align-items: flex-start; }
+  .emergency-ribbon-actions { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
+  .sensory-grid { grid-template-columns: 1fr; }
+  .bento-visual-moods { flex-wrap: wrap; justify-content: center; }
   .notice { flex-wrap: wrap; }
 }
 .notice .chip{background:var(--surface);}

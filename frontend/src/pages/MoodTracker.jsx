@@ -3,7 +3,7 @@ import LocalGameModal from '../components/MoodGames/LocalGameModal'
 import { BackButton, FullscreenButton } from '../components/MoodGames/GameControls'
 import { buildGameData, getRecommendedGames, toSavedRecommendation } from '../data/moodGames'
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import * as THREE from 'three'
 import API_URL from '../config'
@@ -130,6 +130,7 @@ export default function MoodTracker() {
   }
 
   const navigate = useNavigate()
+  const location = useLocation()
   const token = localStorage.getItem('token')
 
   // UI Tabs Control
@@ -142,7 +143,9 @@ export default function MoodTracker() {
   const [loading, setLoading] = useState(false)
   
   // Mood Log Form parameters
-  const [selected, setSelected] = useState(null)
+  const [selected, setSelected] = useState(() => (
+    location.state?.quickMood ? moods.find(m => m.value === location.state.quickMood) || null : null
+  ))
   const [note, setNote] = useState('')
   const [saved, setSaved] = useState(false)
   const [showCrisisAlert, setShowCrisisAlert] = useState(false)
@@ -557,7 +560,7 @@ export default function MoodTracker() {
   }
 
   // --- THREE.JS 3D WEBGL RELAXATION GAMES ENGINE STATES ---
-  const [active3DGame, setActive3DGame] = useState(null)
+  const [active3DGame, setActive3DGame] = useState(() => location.state?.active3DGame || null)
   const [is3DAudioMuted, setIs3DAudioMuted] = useState(false)
   const threeContainerRef = useRef(null)
 

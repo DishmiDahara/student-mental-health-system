@@ -133,6 +133,16 @@ const generateGeminiResponse = async ({ prompt, conversationHistory = [] }) => {
     ''
   ).trim()
 
+  // Dynamically find any env var matching GEMINI and KEY (e.g., GEMINI_API_KEY6, GEMINI_API_KEY_NEW, etc.)
+  if (!rawKey) {
+    const candidateEnvKey = Object.keys(process.env).find(
+      k => k.toUpperCase().includes('GEMINI') && k.toUpperCase().includes('KEY') && process.env[k]
+    )
+    if (candidateEnvKey) {
+      rawKey = String(process.env[candidateEnvKey]).trim()
+    }
+  }
+
   // Clean any accidental quotes, formatting, or prefixes added when pasting into Vercel
   rawKey = rawKey.replace(/^["'`]+|["'`]+$/g, '').trim()
   rawKey = rawKey.replace(/^GEMINI_API_KEY\w*\s*[:=]\s*/i, '').trim()
