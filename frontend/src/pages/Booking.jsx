@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import io from 'socket.io-client'
 import API_URL from '../config'
-import Navbar from '../components/Navbar'
 
 const fallbackCounsellors = [
   { name: 'Dr. Sarah Jenkins', specialty: 'Clinical Psychologist', bio: 'Specializes in student anxiety, academic stress, and cognitive behavioral therapy.' },
@@ -530,48 +529,56 @@ export default function Booking() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', paddingBottom: '60px' }}>
-      
-      {/* Navbar */}
-      <Navbar />
+    <div className="page">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '24px', alignItems: 'start' }}>
 
-      <div style={{ maxWidth: '1320px', width: '100%', margin: '36px auto', padding: '0 24px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '32px', boxSizing: 'border-box' }}>
-        
+        <div className="page-head" style={{ gridColumn: '1 / -1', marginBottom: 4 }}>
+          <div>
+            <span className="eyebrow">Professional care</span>
+            <h1 className="h-display" style={{ fontSize: 'clamp(30px, 3.6vw, 42px)' }}>{currentUser?.role === 'counsellor' ? 'Your sessions' : 'Find the right support'}</h1>
+            <p className="muted mt-8" style={{ maxWidth: 560 }}>
+              {currentUser?.role === 'counsellor'
+                ? 'Manage appointment requests and hold secure sessions with students.'
+                : 'Match with a counsellor, book a private session and keep track of your appointments, all in one place.'}
+            </p>
+          </div>
+        </div>
+
         {/* Booking Form or Counselor Portal */}
         {currentUser?.role === 'counsellor' ? (
-          <div style={{ background: 'white', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', gap: '20px', height: 'fit-content' }}>
-            <h2 style={{ color: '#1f2937', marginBottom: '4px' }}>Counselor Portal</h2>
-            <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '16px' }}>Manage student appointment bookings and conduct secure chat sessions.</p>
+          <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', gap: '20px', height: 'fit-content' }}>
+            <h2 style={{ color: 'var(--ink)', marginBottom: '4px' }}>Counselor Portal</h2>
+            <p style={{ color: 'var(--ink-3)', fontSize: '14px', marginBottom: '16px' }}>Manage student appointment bookings and conduct secure chat sessions.</p>
 
-            <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ background: 'var(--surface-2)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 {currentUser.profilePhoto ? (
-                  <img src={currentUser.profilePhoto} alt={currentUser.name} style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #6366f1' }} />
+                  <img src={currentUser.profilePhoto} alt={currentUser.name} style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary)' }} />
                 ) : (
-                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '24px' }}>
+                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '24px', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
                     {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'C'}
                   </div>
                 )}
                 <div>
-                  <h4 style={{ margin: 0, color: '#1e293b', fontSize: '16px', fontWeight: 'bold' }}>{currentUser.name}</h4>
-                  <span style={{ fontSize: '11px', background: '#e0e7ff', color: '#4f46e5', padding: '2px 8px', borderRadius: '8px', fontWeight: 'bold', textTransform: 'uppercase', display: 'inline-block', marginTop: '4px' }}>
+                  <h4 style={{ margin: 0, color: 'var(--ink)', fontSize: '16px', fontWeight: 'bold' }}>{currentUser.name}</h4>
+                  <span style={{ fontSize: '11px', background: 'var(--primary-soft)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '8px', fontWeight: 'bold', textTransform: 'uppercase', display: 'inline-block', marginTop: '4px' }}>
                     Verified Counselor
                   </span>
                 </div>
               </div>
               
-              <div style={{ width: '100%', height: '1px', background: '#e2e8f0', margin: '8px 0' }} />
+              <div style={{ width: '100%', height: '1px', background: 'var(--line)', margin: '8px 0' }} />
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div style={{ background: '#fffbeb', padding: '12px', borderRadius: '12px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '11px', color: '#b45309', fontWeight: 'bold' }}>PENDING</div>
-                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#d97706', marginTop: '4px' }}>
+                <div style={{ background: 'var(--warn-soft)', padding: '12px', borderRadius: '12px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--sun-ink)', fontWeight: 'bold' }}>PENDING</div>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--warn-ink)', marginTop: '4px' }}>
                     {bookings.filter(b => b.status === 'pending').length}
                   </div>
                 </div>
-                <div style={{ background: '#ecfdf5', padding: '12px', borderRadius: '12px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '11px', color: '#047857', fontWeight: 'bold' }}>APPROVED</div>
-                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#10b981', marginTop: '4px' }}>
+                <div style={{ background: 'var(--success-soft)', padding: '12px', borderRadius: '12px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--success-ink)', fontWeight: 'bold' }}>APPROVED</div>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--success-ink)', marginTop: '4px' }}>
                     {bookings.filter(b => b.status === 'approved').length}
                   </div>
                 </div>
@@ -579,12 +586,12 @@ export default function Booking() {
             </div>
           </div>
         ) : (
-          <div style={{ background: 'white', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+          <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
             {matchStep === 0 ? (
               /* --- LANDING STATE --- */
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
-                <h2 style={{ color: '#1f2937', marginBottom: '8px', fontSize: '24px', fontWeight: 'bold' }}>Find Your Perfect Advisor Match</h2>
-                <p style={{ color: '#6b7280', fontSize: '15px', lineHeight: '1.6', marginBottom: '28px', maxWidth: '480px', margin: '0 auto 28px' }}>
+                <h2 style={{ color: 'var(--ink)', marginBottom: '8px', fontSize: '24px', fontWeight: 'bold' }}>Find Your Perfect Advisor Match</h2>
+                <p style={{ color: 'var(--ink-3)', fontSize: '15px', lineHeight: '1.6', marginBottom: '28px', maxWidth: '480px', margin: '0 auto 28px' }}>
                   Answer a few simple questions about your needs and preferences. We will match you with the counselor best suited for you.
                 </p>
                 
@@ -592,18 +599,17 @@ export default function Booking() {
                   onClick={() => setMatchStep(1)}
                   style={{
                     padding: '14px 28px',
-                    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                    background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))',
                     color: 'white',
                     border: 'none',
                     borderRadius: '12px',
                     fontSize: '16px',
                     fontWeight: 'bold',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.25)',
+                    boxShadow: '0 4px 15px color-mix(in srgb, var(--primary) 25%, transparent)',
                     transition: 'all 0.2s',
                     width: '100%',
-                    maxWidth: '280px'
-                  }}
+                    maxWidth: '280px', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
                 >
                   Find My Advisor
                 </button>
@@ -617,7 +623,7 @@ export default function Booking() {
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#4f46e5',
+                      color: 'var(--primary)',
                       fontSize: '13.5px',
                       fontWeight: '600',
                       cursor: 'pointer',
@@ -638,7 +644,7 @@ export default function Booking() {
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#4f46e5',
+                      color: 'var(--primary)',
                       fontSize: '14px',
                       fontWeight: 'bold',
                       cursor: 'pointer',
@@ -649,24 +655,24 @@ export default function Booking() {
                   >
                     ◀ Previous
                   </button>
-                  <span style={{ fontSize: '13px', color: '#9ca3af', fontWeight: 'bold' }}>Progress</span>
+                  <span style={{ fontSize: '13px', color: 'var(--ink-4)', fontWeight: 'bold' }}>Progress</span>
                 </div>
                 
-                <div style={{ height: '6px', background: '#f3f4f6', borderRadius: '3px', marginBottom: '28px', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', background: '#10b981', width: getProgressBarWidth(), transition: 'width 0.3s ease' }} />
+                <div style={{ height: '6px', background: 'var(--surface-3)', borderRadius: '3px', marginBottom: '28px', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', background: 'var(--success-fill)', width: getProgressBarWidth(), transition: 'width 0.3s ease' }} />
                 </div>
 
                 {matchStep === 1 && (
                   /* STEP 1: Country */
                   <div>
-                    <h3 style={{ fontSize: '20px', color: '#1f2937', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
+                    <h3 style={{ fontSize: '20px', color: 'var(--ink)', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
                       Which country are you in?
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <select
                         value={matchingAnswers.country}
                         onChange={e => setMatchingAnswers(prev => ({ ...prev, country: e.target.value }))}
-                        style={{ width: '100%', padding: '14px', border: '2px solid #a7f3d0', borderRadius: '16px', outline: 'none', fontSize: '15px', background: '#ecfdf5', color: '#065f46', fontWeight: '600' }}
+                        style={{ width: '100%', padding: '14px', border: '2px solid var(--success)', borderRadius: '16px', outline: 'none', fontSize: '15px', background: 'var(--success-soft)', color: 'var(--success-ink)', fontWeight: '600' }}
                       >
                         {['Sri Lanka', 'India', 'United Kingdom', 'United States', 'Canada', 'Australia', 'Other'].map(country => (
                           <option key={country} value={country}>{country}</option>
@@ -677,7 +683,7 @@ export default function Booking() {
                         onClick={() => nextStep()}
                         style={{
                           padding: '14px',
-                          background: '#10b981',
+                          background: 'var(--success-fill)',
                           color: 'white',
                           border: 'none',
                           borderRadius: '16px',
@@ -696,7 +702,7 @@ export default function Booking() {
                 {matchStep === 2 && (
                   /* STEP 2: Gender Identity */
                   <div>
-                    <h3 style={{ fontSize: '20px', color: '#1f2937', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
+                    <h3 style={{ fontSize: '20px', color: 'var(--ink)', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
                       What is your gender identity?
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -710,10 +716,10 @@ export default function Booking() {
                           }}
                           style={{
                             padding: '16px 20px',
-                            background: '#ecfdf5',
-                            border: '1px solid #a7f3d0',
+                            background: 'var(--success-soft)',
+                            border: '1px solid var(--success)',
                             borderRadius: '16px',
-                            color: '#065f46',
+                            color: 'var(--success-ink)',
                             textAlign: 'left',
                             fontSize: '14.5px',
                             fontWeight: '600',
@@ -733,7 +739,7 @@ export default function Booking() {
                 {matchStep === 3 && (
                   /* STEP 3: How do you identify */
                   <div>
-                    <h3 style={{ fontSize: '20px', color: '#1f2937', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
+                    <h3 style={{ fontSize: '20px', color: 'var(--ink)', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
                       How do you identify?
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -747,10 +753,10 @@ export default function Booking() {
                           }}
                           style={{
                             padding: '16px 20px',
-                            background: '#ecfdf5',
-                            border: '1px solid #a7f3d0',
+                            background: 'var(--success-soft)',
+                            border: '1px solid var(--success)',
                             borderRadius: '16px',
-                            color: '#065f46',
+                            color: 'var(--success-ink)',
                             textAlign: 'left',
                             fontSize: '14.5px',
                             fontWeight: '600',
@@ -770,14 +776,14 @@ export default function Booking() {
                 {matchStep === 4 && (
                   /* STEP 4: Age Dropdown */
                   <div>
-                    <h3 style={{ fontSize: '20px', color: '#1f2937', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
+                    <h3 style={{ fontSize: '20px', color: 'var(--ink)', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
                       How old are you?
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       <select
                         value={matchingAnswers.age}
                         onChange={e => setMatchingAnswers(prev => ({ ...prev, age: e.target.value }))}
-                        style={{ width: '100%', padding: '14px', border: '2px solid #a7f3d0', borderRadius: '16px', outline: 'none', fontSize: '15px', background: '#ecfdf5', color: '#065f46', fontWeight: '600' }}
+                        style={{ width: '100%', padding: '14px', border: '2px solid var(--success)', borderRadius: '16px', outline: 'none', fontSize: '15px', background: 'var(--success-soft)', color: 'var(--success-ink)', fontWeight: '600' }}
                       >
                         {Array.from({ length: 73 }, (_, i) => i + 18).map(ageVal => (
                           <option key={ageVal} value={ageVal}>{ageVal} years old</option>
@@ -788,7 +794,7 @@ export default function Booking() {
                         onClick={() => nextStep()}
                         style={{
                           padding: '14px',
-                          background: '#10b981',
+                          background: 'var(--success-fill)',
                           color: 'white',
                           border: 'none',
                           borderRadius: '16px',
@@ -807,7 +813,7 @@ export default function Booking() {
                 {matchStep === 5 && (
                   /* STEP 5: Relationship Status */
                   <div>
-                    <h3 style={{ fontSize: '20px', color: '#1f2937', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
+                    <h3 style={{ fontSize: '20px', color: 'var(--ink)', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
                       What is your relationship status?
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -821,10 +827,10 @@ export default function Booking() {
                           }}
                           style={{
                             padding: '16px 20px',
-                            background: '#ecfdf5',
-                            border: '1px solid #a7f3d0',
+                            background: 'var(--success-soft)',
+                            border: '1px solid var(--success)',
                             borderRadius: '16px',
-                            color: '#065f46',
+                            color: 'var(--success-ink)',
                             textAlign: 'left',
                             fontSize: '14.5px',
                             fontWeight: '600',
@@ -844,7 +850,7 @@ export default function Booking() {
                 {matchStep === 6 && (
                   /* STEP 6: Spiritual */
                   <div>
-                    <h3 style={{ fontSize: '20px', color: '#1f2937', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
+                    <h3 style={{ fontSize: '20px', color: 'var(--ink)', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
                       Do you consider yourself to be spiritual?
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -858,10 +864,10 @@ export default function Booking() {
                           }}
                           style={{
                             padding: '16px 20px',
-                            background: '#ecfdf5',
-                            border: '1px solid #a7f3d0',
+                            background: 'var(--success-soft)',
+                            border: '1px solid var(--success)',
                             borderRadius: '16px',
-                            color: '#065f46',
+                            color: 'var(--success-ink)',
                             textAlign: 'left',
                             fontSize: '14.5px',
                             fontWeight: '600',
@@ -881,7 +887,7 @@ export default function Booking() {
                 {matchStep === 7 && (
                   /* STEP 7: Importance of Religion */
                   <div>
-                    <h3 style={{ fontSize: '20px', color: '#1f2937', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
+                    <h3 style={{ fontSize: '20px', color: 'var(--ink)', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
                       How important is religion in your life?
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -895,10 +901,10 @@ export default function Booking() {
                           }}
                           style={{
                             padding: '16px 20px',
-                            background: '#ecfdf5',
-                            border: '1px solid #a7f3d0',
+                            background: 'var(--success-soft)',
+                            border: '1px solid var(--success)',
                             borderRadius: '16px',
-                            color: '#065f46',
+                            color: 'var(--success-ink)',
                             textAlign: 'left',
                             fontSize: '14.5px',
                             fontWeight: '600',
@@ -918,7 +924,7 @@ export default function Booking() {
                 {matchStep === 8 && (
                   /* STEP 8: Which Religion */
                   <div>
-                    <h3 style={{ fontSize: '20px', color: '#1f2937', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
+                    <h3 style={{ fontSize: '20px', color: 'var(--ink)', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
                       Which religion do you identify with?
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -932,10 +938,10 @@ export default function Booking() {
                           }}
                           style={{
                             padding: '16px 20px',
-                            background: '#ecfdf5',
-                            border: '1px solid #a7f3d0',
+                            background: 'var(--success-soft)',
+                            border: '1px solid var(--success)',
                             borderRadius: '16px',
-                            color: '#065f46',
+                            color: 'var(--success-ink)',
                             textAlign: 'left',
                             fontSize: '14.5px',
                             fontWeight: '600',
@@ -955,7 +961,7 @@ export default function Booking() {
                 {matchStep === 9 && (
                   /* STEP 9: Previous Therapy */
                   <div>
-                    <h3 style={{ fontSize: '20px', color: '#1f2937', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
+                    <h3 style={{ fontSize: '20px', color: 'var(--ink)', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
                       Have you ever been in therapy before?
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -969,10 +975,10 @@ export default function Booking() {
                           }}
                           style={{
                             padding: '16px 20px',
-                            background: '#ecfdf5',
-                            border: '1px solid #a7f3d0',
+                            background: 'var(--success-soft)',
+                            border: '1px solid var(--success)',
                             borderRadius: '16px',
-                            color: '#065f46',
+                            color: 'var(--success-ink)',
                             textAlign: 'left',
                             fontSize: '14.5px',
                             fontWeight: '600',
@@ -992,7 +998,7 @@ export default function Booking() {
                 {matchStep === 10 && (
                   /* STEP 10: Therapy Through BetterHelp */
                   <div>
-                    <h3 style={{ fontSize: '20px', color: '#1f2937', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
+                    <h3 style={{ fontSize: '20px', color: 'var(--ink)', fontWeight: '800', marginBottom: '20px', textAlign: 'center' }}>
                       Was your previous therapy through Betterhelp?
                     </h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -1006,10 +1012,10 @@ export default function Booking() {
                           }}
                           style={{
                             padding: '16px 20px',
-                            background: '#ecfdf5',
-                            border: '1px solid #a7f3d0',
+                            background: 'var(--success-soft)',
+                            border: '1px solid var(--success)',
                             borderRadius: '16px',
-                            color: '#065f46',
+                            color: 'var(--success-ink)',
                             textAlign: 'left',
                             fontSize: '14.5px',
                             fontWeight: '600',
@@ -1030,7 +1036,7 @@ export default function Booking() {
               /* --- MATCH RESULTS STATE --- */
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h3 style={{ fontSize: '18px', color: '#1f2937', fontWeight: 'bold', margin: 0 }}>
+                  <h3 style={{ fontSize: '18px', color: 'var(--ink)', fontWeight: 'bold', margin: 0 }}>
                     🎯 Your Recommended Advisor Matches
                   </h3>
                   <button
@@ -1038,7 +1044,7 @@ export default function Booking() {
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#4f46e5',
+                      color: 'var(--primary)',
                       fontSize: '13px',
                       fontWeight: 'bold',
                       cursor: 'pointer'
@@ -1047,7 +1053,7 @@ export default function Booking() {
                     ◀ Back to questions
                   </button>
                 </div>
-                <p style={{ color: '#6b7280', fontSize: '13.5px', marginBottom: '24px' }}>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13.5px', marginBottom: '24px' }}>
                   Based on your questionnaire details, we've computed compatibility ratings for our campus counselors.
                 </p>
 
@@ -1058,10 +1064,10 @@ export default function Booking() {
                       <div 
                         key={c.name}
                         style={{
-                          background: '#f8fafc',
+                          background: 'var(--surface-2)',
                           padding: '20px',
                           borderRadius: '20px',
-                          border: '2px solid #e2e8f0',
+                          border: '2px solid var(--line)',
                           display: 'flex',
                           flexDirection: 'column',
                           gap: '16px'
@@ -1069,18 +1075,18 @@ export default function Booking() {
                       >
                         <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
                           {c.profilePhoto ? (
-                            <img src={c.profilePhoto} alt={c.name} style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #6366f1' }} />
+                            <img src={c.profilePhoto} alt={c.name} style={{ width: '64px', height: '64px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary)' }} />
                           ) : (
-                            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '24px' }}>
+                            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '24px', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
                               {initial}
                             </div>
                           )}
                           <div style={{ flex: 1, minWidth: '200px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                              <h4 style={{ margin: 0, color: '#1e293b', fontSize: '16px', fontWeight: 'bold' }}>{c.name}</h4>
+                              <h4 style={{ margin: 0, color: 'var(--ink)', fontSize: '16px', fontWeight: 'bold' }}>{c.name}</h4>
                               <span style={{
-                                background: '#d1fae5',
-                                color: '#065f46',
+                                background: 'var(--success-soft)',
+                                color: 'var(--success-ink)',
                                 fontSize: '12px',
                                 padding: '4px 10px',
                                 borderRadius: '20px',
@@ -1090,13 +1096,13 @@ export default function Booking() {
                                 {c.matchScore}% Match
                               </span>
                             </div>
-                            <span style={{ fontSize: '11px', background: '#e0e7ff', color: '#4f46e5', padding: '2px 8px', borderRadius: '8px', fontWeight: 'bold', textTransform: 'uppercase', display: 'inline-block', marginTop: '4px' }}>
+                            <span style={{ fontSize: '11px', background: 'var(--primary-soft)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '8px', fontWeight: 'bold', textTransform: 'uppercase', display: 'inline-block', marginTop: '4px' }}>
                               {c.specialty}
                             </span>
                           </div>
                         </div>
 
-                        <p style={{ margin: 0, fontSize: '13px', color: '#475569', lineHeight: '1.5', fontStyle: 'italic' }}>
+                        <p style={{ margin: 0, fontSize: '13px', color: 'var(--ink-2)', lineHeight: '1.5', fontStyle: 'italic' }}>
                           "{c.bio || 'Campus verified advisor dedicated to providing student mental wellbeing and adjustment counseling.'}"
                         </p>
 
@@ -1108,7 +1114,7 @@ export default function Booking() {
                           style={{
                             width: '100%',
                             padding: '12px',
-                            background: '#10b981',
+                            background: 'var(--success-fill)',
                             color: 'white',
                             border: 'none',
                             borderRadius: '12px',
@@ -1116,7 +1122,7 @@ export default function Booking() {
                             fontSize: '14px',
                             cursor: 'pointer',
                             transition: 'all 0.2s',
-                            boxShadow: '0 2px 6px rgba(16, 185, 129, 0.15)'
+                            boxShadow: '0 2px 6px color-mix(in srgb, var(--success) 15%, transparent)'
                           }}
                           className="matching-select-btn"
                         >
@@ -1131,7 +1137,7 @@ export default function Booking() {
               /* --- SCHEDULING FORM STATE (STEP 12) --- */
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h2 style={{ color: '#1f2937', fontSize: '20px', fontWeight: 'bold', margin: 0 }}>
+                  <h2 style={{ color: 'var(--ink)', fontSize: '20px', fontWeight: 'bold', margin: 0 }}>
                     📅 Schedule Appointment details
                   </h2>
                   <button
@@ -1139,7 +1145,7 @@ export default function Booking() {
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#4f46e5',
+                      color: 'var(--primary)',
                       fontSize: '13px',
                       fontWeight: 'bold',
                       cursor: 'pointer'
@@ -1148,14 +1154,14 @@ export default function Booking() {
                     ◀ Back
                   </button>
                 </div>
-                <p style={{ color: '#6b7280', fontSize: '13.5px', marginBottom: '24px' }}>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13.5px', marginBottom: '24px' }}>
                   Select your convenient date, time slot, and provide a short note to finalize booking.
                 </p>
 
                 {message.text && (
                   <div style={{
-                    background: message.type === 'success' ? '#ecfdf5' : '#fef2f2',
-                    color: message.type === 'success' ? '#047857' : '#b91c1c',
+                    background: message.type === 'success' ? 'var(--success-soft)' : 'var(--danger-soft)',
+                    color: message.type === 'success' ? 'var(--success-ink)' : 'var(--danger-ink)',
                     padding: '12px 16px',
                     borderRadius: '12px',
                     marginBottom: '20px',
@@ -1168,13 +1174,13 @@ export default function Booking() {
 
                 <form onSubmit={handleBooking} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   <div>
-                    <label style={{ display: 'block', color: '#374151', fontWeight: '600', marginBottom: '6px', fontSize: '14px' }}>
+                    <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '600', marginBottom: '6px', fontSize: '14px' }}>
                       Counselor:
                     </label>
                     <select 
                       value={selectedCounsellor} 
                       onChange={e => setSelectedCounsellor(e.target.value)}
-                      style={{ width: '100%', padding: '12px', border: '2px solid #e5e7eb', borderRadius: '10px', outline: 'none', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '12px', border: '2px solid var(--line)', borderRadius: '10px', outline: 'none', fontSize: '14px' }}
                       required
                     >
                       <option value="">-- Choose a Counselor --</option>
@@ -1189,20 +1195,20 @@ export default function Booking() {
                     if (!selectedObj) return null;
                     const initial = selectedObj.name ? selectedObj.name.charAt(0).toUpperCase() : 'C';
                     return (
-                      <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0', display: 'flex', gap: '16px', alignItems: 'center', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
+                      <div style={{ background: 'var(--surface-2)', padding: '16px', borderRadius: '16px', border: '1px solid var(--line)', display: 'flex', gap: '16px', alignItems: 'center', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
                         {selectedObj.profilePhoto ? (
-                          <img src={selectedObj.profilePhoto} alt={selectedObj.name} style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #6366f1' }} />
+                          <img src={selectedObj.profilePhoto} alt={selectedObj.name} style={{ width: '56px', height: '56px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary)' }} />
                         ) : (
-                          <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '20px' }}>
+                          <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '20px', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
                             {initial}
                           </div>
                         )}
                         <div style={{ flex: 1 }}>
-                          <h4 style={{ margin: '0 0 2px 0', color: '#1e293b', fontSize: '14px', fontWeight: 'bold' }}>{selectedObj.name}</h4>
-                          <span style={{ fontSize: '10px', background: '#e0e7ff', color: '#4f46e5', padding: '1px 6px', borderRadius: '8px', fontWeight: 'bold', textTransform: 'uppercase', display: 'inline-block', marginBottom: '4px' }}>
+                          <h4 style={{ margin: '0 0 2px 0', color: 'var(--ink)', fontSize: '14px', fontWeight: 'bold' }}>{selectedObj.name}</h4>
+                          <span style={{ fontSize: '10px', background: 'var(--primary-soft)', color: 'var(--primary)', padding: '1px 6px', borderRadius: '8px', fontWeight: 'bold', textTransform: 'uppercase', display: 'inline-block', marginBottom: '4px' }}>
                             {selectedObj.specialty}
                           </span>
-                          <p style={{ margin: 0, fontSize: '12px', color: '#475569', lineHeight: '1.4', fontStyle: 'italic' }}>
+                          <p style={{ margin: 0, fontSize: '12px', color: 'var(--ink-2)', lineHeight: '1.4', fontStyle: 'italic' }}>
                             {selectedObj.bio}
                           </p>
                         </div>
@@ -1211,7 +1217,7 @@ export default function Booking() {
                   })()}
 
                   <div>
-                    <label style={{ display: 'block', color: '#374151', fontWeight: '600', marginBottom: '6px', fontSize: '14px' }}>
+                    <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '600', marginBottom: '6px', fontSize: '14px' }}>
                       Preferred Date:
                     </label>
                     <input 
@@ -1219,13 +1225,13 @@ export default function Booking() {
                       value={selectedDate}
                       onChange={e => setSelectedDate(e.target.value)}
                       min={new Date().toISOString().split('T')[0]}
-                      style={{ width: '100%', padding: '12px', border: '2px solid #e5e7eb', borderRadius: '10px', outline: 'none', fontSize: '14px', boxSizing: 'border-box' }}
+                      style={{ width: '100%', padding: '12px', border: '2px solid var(--line)', borderRadius: '10px', outline: 'none', fontSize: '14px', boxSizing: 'border-box' }}
                       required
                     />
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', color: '#374151', fontWeight: '600', marginBottom: '6px', fontSize: '14px' }}>
+                    <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '600', marginBottom: '6px', fontSize: '14px' }}>
                       Preferred Time Slot:
                     </label>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
@@ -1236,8 +1242,8 @@ export default function Booking() {
                           onClick={() => setSelectedSlot(slot)}
                           style={{
                             padding: '10px 8px',
-                            background: selectedSlot === slot ? '#4f46e5' : 'white',
-                            color: selectedSlot === slot ? 'white' : '#4b5563',
+                            background: selectedSlot === slot ? 'var(--primary-fill)' : 'var(--surface)',
+                            color: selectedSlot === slot ? 'white' : 'var(--ink-2)',
                             border: `2px solid ${selectedSlot === slot ? '#4f46e5' : '#e5e7eb'}`,
                             borderRadius: '8px',
                             cursor: 'pointer',
@@ -1253,14 +1259,14 @@ export default function Booking() {
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', color: '#374151', fontWeight: '600', marginBottom: '6px', fontSize: '14px' }}>
+                    <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '600', marginBottom: '6px', fontSize: '14px' }}>
                       Reason / Notes (Optional):
                     </label>
                     <textarea 
                       value={note}
                       onChange={e => setNote(e.target.value)}
                       placeholder="Let the counselor know how they can help you..."
-                      style={{ width: '100%', padding: '12px', border: '2px solid #e5e7eb', borderRadius: '10px', outline: 'none', fontSize: '14px', resize: 'none', height: '80px', boxSizing: 'border-box' }}
+                      style={{ width: '100%', padding: '12px', border: '2px solid var(--line)', borderRadius: '10px', outline: 'none', fontSize: '14px', resize: 'none', height: '80px', boxSizing: 'border-box' }}
                     />
                   </div>
 
@@ -1270,15 +1276,14 @@ export default function Booking() {
                     style={{
                       width: '100%',
                       padding: '14px',
-                      background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                      background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))',
                       color: 'white',
                       border: 'none',
                       borderRadius: '12px',
                       fontSize: '16px',
                       fontWeight: '600',
                       cursor: 'pointer',
-                      marginTop: '10px'
-                    }}
+                      marginTop: '10px', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
                   >
                     {loading ? '⏳ Requesting...' : '🤝 Schedule Appointment'}
                   </button>
@@ -1291,33 +1296,33 @@ export default function Booking() {
                 transition: all 0.2s ease !important;
               }
               .matching-option-btn:hover {
-                background-color: #a7f3d0 !important;
+                background-color:var(--success-fill) !important;
                 transform: translateY(-2px);
-                box-shadow: 0 4px 10px rgba(16, 185, 129, 0.1);
+                box-shadow:0 4px 10px color-mix(in srgb, var(--success) 10%, transparent);
               }
               .matching-select-btn:hover {
-                background-color: #059669 !important;
-                box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25) !important;
+                background-color:var(--success-fill) !important;
+                box-shadow:0 4px 12px color-mix(in srgb, var(--success) 25%, transparent) !important;
               }
               @keyframes pulseMatch {
-                0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-                70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-                100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+                0% { box-shadow:0 0 0 0 color-mix(in srgb, var(--success) 40%, transparent); }
+                70% { box-shadow:0 0 0 6px color-mix(in srgb, var(--success) 0%, transparent); }
+                100% { box-shadow:0 0 0 0 color-mix(in srgb, var(--success) 0%, transparent); }
               }
             `}</style>
           </div>
         )}
 
         {/* Bookings List */}
-        <div style={{ background: 'white', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
-          <h2 style={{ color: '#1f2937', marginBottom: '8px' }}>📋 Your Sessions</h2>
-          <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '24px' }}>Current list of scheduled sessions and appointment requests.</p>
+        <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
+          <h2 style={{ color: 'var(--ink)', marginBottom: '8px' }}>📋 Your Sessions</h2>
+          <p style={{ color: 'var(--ink-3)', fontSize: '14px', marginBottom: '24px' }}>Current list of scheduled sessions and appointment requests.</p>
 
           <div style={{ flex: 1, overflowY: 'auto', maxHeight: '450px', paddingRight: '4px' }}>
             {fetching ? (
-              <p style={{ color: '#9ca3af', textAlign: 'center', padding: '20px' }}>Loading sessions...</p>
+              <p style={{ color: 'var(--ink-4)', textAlign: 'center', padding: '20px' }}>Loading sessions...</p>
             ) : bookings.length === 0 ? (
-              <div style={{ textAlign: 'center', color: '#9ca3af', padding: '40px 20px', border: '2px dashed #e5e7eb', borderRadius: '16px' }}>
+              <div style={{ textAlign: 'center', color: 'var(--ink-4)', padding: '40px 20px', border: '2px dashed var(--line)', borderRadius: '16px' }}>
                 <div style={{ fontSize: '32px', marginBottom: '10px' }}>📅</div>
                 <p>No appointment requests yet. Book a session using the form.</p>
               </div>
@@ -1330,13 +1335,13 @@ export default function Booking() {
                     : `Counselor: ${book.counsellorName}`
 
                   return (
-                    <div key={book._id} style={{ border: '1px solid #e5e7eb', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div key={book._id} style={{ border: '1px solid var(--line)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h4 style={{ margin: 0, color: '#1f2937', fontSize: '15px', fontWeight: 'bold' }}>{displayTitle}</h4>
+                        <h4 style={{ margin: 0, color: 'var(--ink)', fontSize: '15px', fontWeight: 'bold' }}>{displayTitle}</h4>
                         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                           <span style={{
-                            background: book.paymentStatus === 'paid' ? '#e0e7ff' : '#fee2e2',
-                            color: book.paymentStatus === 'paid' ? '#4f46e5' : '#ef4444',
+                            background: book.paymentStatus === 'paid' ? 'var(--primary-soft)' : 'var(--danger-soft)',
+                            color: book.paymentStatus === 'paid' ? 'var(--primary)' : 'var(--danger)',
                             padding: '4px 10px',
                             borderRadius: '20px',
                             fontSize: '11px',
@@ -1357,19 +1362,19 @@ export default function Booking() {
                         </div>
                       </div>
                       
-                      <div style={{ fontSize: '13px', color: '#6b7280' }}>
+                      <div style={{ fontSize: '13px', color: 'var(--ink-3)' }}>
                         <div>📅 {book.date}</div>
                         <div style={{ marginTop: '4px' }}>⏰ {book.timeSlot}</div>
                       </div>
 
                       {book.note && (
-                        <div style={{ background: '#f9fafb', padding: '10px', borderRadius: '8px', fontSize: '12px', color: '#4b5563', fontStyle: 'italic', marginTop: '4px' }}>
+                        <div style={{ background: 'var(--surface-2)', padding: '10px', borderRadius: '8px', fontSize: '12px', color: 'var(--ink-2)', fontStyle: 'italic', marginTop: '4px' }}>
                           " {book.note} "
                         </div>
                       )}
 
                       {book.status === 'rejected' && book.rejectionReason && (
-                        <div style={{ background: '#fef2f2', borderLeft: '4px solid #ef4444', padding: '10px', borderRadius: '8px', fontSize: '12px', color: '#991b1b', marginTop: '4px', fontWeight: '500' }}>
+                        <div style={{ background: 'var(--danger-soft)', borderLeft: '4px solid var(--danger)', padding: '10px', borderRadius: '8px', fontSize: '12px', color: 'var(--danger-ink)', marginTop: '4px', fontWeight: '500' }}>
                           <strong>Rejection Reason:</strong> {book.rejectionReason}
                         </div>
                       )}
@@ -1379,13 +1384,13 @@ export default function Booking() {
                         <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
                           <button 
                             onClick={() => handleBookingAction(book._id, 'approved')}
-                            style={{ padding: '8px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', transition: 'background 0.2s' }}
+                            style={{ padding: '8px 16px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', transition: 'background 0.2s' }}
                           >
                             Approve
                           </button>
                           <button 
                             onClick={() => setRejectBookingId(book._id)}
-                            style={{ padding: '8px 16px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', transition: 'background 0.2s' }}
+                            style={{ padding: '8px 16px', background: 'var(--danger-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px', transition: 'background 0.2s' }}
                           >
                             Reject
                           </button>
@@ -1399,7 +1404,7 @@ export default function Booking() {
                             style={{
                               flex: 1,
                               padding: '8px 12px',
-                              background: 'linear-gradient(135deg, #4facfe, #00f2fe)',
+                              background: 'linear-gradient(135deg, var(--sky-fill), var(--primary-fill))',
                               color: 'white',
                               border: 'none',
                               borderRadius: '8px',
@@ -1411,8 +1416,7 @@ export default function Booking() {
                               justifyContent: 'center',
                               gap: '6px',
                               transition: 'all 0.2s',
-                              boxShadow: '0 2px 6px rgba(79, 172, 254, 0.2)'
-                            }}
+                              boxShadow: '0 2px 6px color-mix(in srgb, var(--sky) 20%, transparent)', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
                           >
                             💬 Chat
                           </button>
@@ -1424,7 +1428,7 @@ export default function Booking() {
                             style={{
                               flex: 1,
                               padding: '8px 12px',
-                              background: 'linear-gradient(135deg, #10b981, #059669)',
+                              background: 'linear-gradient(135deg, var(--success-fill), var(--success-fill))',
                               color: 'white',
                               border: 'none',
                               borderRadius: '8px',
@@ -1436,8 +1440,7 @@ export default function Booking() {
                               justifyContent: 'center',
                               gap: '6px',
                               transition: 'all 0.2s',
-                              boxShadow: '0 2px 6px rgba(16, 185, 129, 0.2)'
-                            }}
+                              boxShadow: '0 2px 6px color-mix(in srgb, var(--success) 20%, transparent)', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
                           >
                             🎥 Video Call
                           </button>
@@ -1445,7 +1448,7 @@ export default function Booking() {
                       )}
 
                       {currentUser?.role === 'counsellor' && book.status === 'approved' && book.paymentStatus === 'unpaid' && (
-                        <div style={{ fontSize: '12.5px', color: '#d97706', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', background: '#fffbeb', border: '1px solid #fde68a', padding: '8px 12px', borderRadius: '8px' }}>
+                        <div style={{ fontSize: '12.5px', color: 'var(--warn-ink)', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', background: 'var(--warn-soft)', border: '1px solid var(--warn)', padding: '8px 12px', borderRadius: '8px' }}>
                           <span>⏳</span> Awaiting Student Session Payment
                         </div>
                       )}
@@ -1470,7 +1473,7 @@ export default function Booking() {
                           style={{
                             marginTop: '8px',
                             padding: '8px 12px',
-                            background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                            background: 'linear-gradient(135deg, var(--warn-fill), var(--warn-fill))',
                             color: 'white',
                             border: 'none',
                             borderRadius: '8px',
@@ -1482,15 +1485,14 @@ export default function Booking() {
                             justifyContent: 'center',
                             gap: '6px',
                             transition: 'all 0.2s',
-                            boxShadow: '0 2px 6px rgba(245, 158, 11, 0.2)'
-                          }}
+                            boxShadow: '0 2px 6px color-mix(in srgb, var(--warn) 20%, transparent)', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
                         >
                           💳 Pay LKR 1,500 & Start Session
                         </button>
                       )}
 
                       {currentUser?.role !== 'counsellor' && book.status === 'pending' && book.paymentStatus === 'unpaid' && (
-                        <div style={{ fontSize: '12.5px', color: '#4b5563', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', background: '#f3f4f6', border: '1px solid #e5e7eb', padding: '8px 12px', borderRadius: '8px' }}>
+                        <div style={{ fontSize: '12.5px', color: 'var(--ink-2)', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '6px', background: 'var(--surface-3)', border: '1px solid var(--line)', padding: '8px 12px', borderRadius: '8px' }}>
                           <span>⏳</span> Counselor review pending. Payment available after approval.
                         </div>
                       )}
@@ -1502,7 +1504,7 @@ export default function Booking() {
                             style={{
                               flex: 1,
                               padding: '8px 12px',
-                              background: 'linear-gradient(135deg, #4facfe, #00f2fe)',
+                              background: 'linear-gradient(135deg, var(--sky-fill), var(--primary-fill))',
                               color: 'white',
                               border: 'none',
                               borderRadius: '8px',
@@ -1514,8 +1516,7 @@ export default function Booking() {
                               justifyContent: 'center',
                               gap: '6px',
                               transition: 'all 0.2s',
-                              boxShadow: '0 2px 6px rgba(79, 172, 254, 0.2)'
-                            }}
+                              boxShadow: '0 2px 6px color-mix(in srgb, var(--sky) 20%, transparent)', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
                           >
                             💬 Chat
                           </button>
@@ -1527,7 +1528,7 @@ export default function Booking() {
                             style={{
                               flex: 1,
                               padding: '8px 12px',
-                              background: 'linear-gradient(135deg, #10b981, #059669)',
+                              background: 'linear-gradient(135deg, var(--success-fill), var(--success-fill))',
                               color: 'white',
                               border: 'none',
                               borderRadius: '8px',
@@ -1539,8 +1540,7 @@ export default function Booking() {
                               justifyContent: 'center',
                               gap: '6px',
                               transition: 'all 0.2s',
-                              boxShadow: '0 2px 6px rgba(16, 185, 129, 0.2)'
-                            }}
+                              boxShadow: '0 2px 6px color-mix(in srgb, var(--success) 20%, transparent)', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
                           >
                             🎥 Video Call
                           </button>
@@ -1558,14 +1558,14 @@ export default function Booking() {
 
       {/* --- STUDENT FEEDBACK & COMPLAINTS SECTION --- */}
       <div style={{ maxWidth: '900px', margin: '32px auto 0', padding: '0 20px' }}>
-        <div style={{ background: 'white', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-          <h2 style={{ color: '#1f2937', marginBottom: '8px' }}>📋 Submit System Feedback / Complaints</h2>
-          <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '24px' }}>Do you have any suggestions, complaints, or feedback? Send it to MindSpace Administrators.</p>
+        <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+          <h2 style={{ color: 'var(--ink)', marginBottom: '8px' }}>📋 Submit System Feedback / Complaints</h2>
+          <p style={{ color: 'var(--ink-3)', fontSize: '14px', marginBottom: '24px' }}>Do you have any suggestions, complaints, or feedback? Send it to MindSpace Administrators.</p>
           
           {feedbackStatusMsg && (
             <div style={{
-              background: feedbackStatusMsg.startsWith('✅') ? '#ecfdf5' : '#fef2f2',
-              color: feedbackStatusMsg.startsWith('✅') ? '#047857' : '#b91c1c',
+              background: feedbackStatusMsg.startsWith('✅') ? 'var(--success-soft)' : 'var(--danger-soft)',
+              color: feedbackStatusMsg.startsWith('✅') ? 'var(--success-ink)' : 'var(--danger-ink)',
               padding: '12px 16px',
               borderRadius: '12px',
               marginBottom: '20px',
@@ -1578,24 +1578,24 @@ export default function Booking() {
 
           <form onSubmit={handleFeedbackSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div>
-              <label style={{ display: 'block', color: '#374151', fontWeight: '600', marginBottom: '6px', fontSize: '14px' }}>Feedback Subject:</label>
+              <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '600', marginBottom: '6px', fontSize: '14px' }}>Feedback Subject:</label>
               <input 
                 type="text" 
                 value={feedbackSubject}
                 onChange={e => setFeedbackSubject(e.target.value)}
                 placeholder="e.g. Chatbot connection speed, Booking Slot timings"
-                style={{ width: '100%', padding: '12px', border: '2px solid #e5e7eb', borderRadius: '10px', outline: 'none', fontSize: '14px', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '12px', border: '2px solid var(--line)', borderRadius: '10px', outline: 'none', fontSize: '14px', boxSizing: 'border-box' }}
                 required
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', color: '#374151', fontWeight: '600', marginBottom: '6px', fontSize: '14px' }}>Description / Message:</label>
+              <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '600', marginBottom: '6px', fontSize: '14px' }}>Description / Message:</label>
               <textarea 
                 value={feedbackMsg}
                 onChange={e => setFeedbackMsg(e.target.value)}
                 placeholder="Write your feedback details here..."
-                style={{ width: '100%', padding: '12px', border: '2px solid #e5e7eb', borderRadius: '10px', outline: 'none', fontSize: '14px', resize: 'none', height: '100px', boxSizing: 'border-box' }}
+                style={{ width: '100%', padding: '12px', border: '2px solid var(--line)', borderRadius: '10px', outline: 'none', fontSize: '14px', resize: 'none', height: '100px', boxSizing: 'border-box' }}
                 required
               />
             </div>
@@ -1605,14 +1605,13 @@ export default function Booking() {
               disabled={feedbackLoading}
               style={{
                 padding: '14px',
-                background: 'linear-gradient(135deg, #10b981, #059669)',
+                background: 'linear-gradient(135deg, var(--success-fill), var(--success-fill))',
                 color: 'white',
                 border: 'none',
                 borderRadius: '12px',
                 fontSize: '15px',
                 fontWeight: '600',
-                cursor: 'pointer'
-              }}
+                cursor: 'pointer', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
             >
               {feedbackLoading ? '⏳ Submitting...' : '✉️ Submit Feedback'}
             </button>
@@ -1622,16 +1621,16 @@ export default function Booking() {
 
       {/* Rejection Reason Modal */}
       {rejectBookingId && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: 'white', borderRadius: '24px', width: '400px', padding: '32px', border: '1px solid #e2e8f0', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.2)' }}>
-            <h3 style={{ color: '#1f2937', marginTop: 0, marginBottom: '8px' }}>❌ Reject Appointment Booking</h3>
-            <p style={{ color: '#6b7280', fontSize: '13px', marginBottom: '20px' }}>Please specify a reason for rejecting this student request.</p>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ background: 'var(--surface)', borderRadius: '24px', width: '400px', padding: '32px', border: '1px solid var(--line)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ color: 'var(--ink)', marginTop: 0, marginBottom: '8px' }}>❌ Reject Appointment Booking</h3>
+            <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Please specify a reason for rejecting this student request.</p>
             
             <textarea 
               value={rejectReasonInput}
               onChange={e => setRejectReasonInput(e.target.value)}
               placeholder="Enter reason for rejection..."
-              style={{ width: '100%', padding: '12px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '12px', color: '#1f2937', outline: 'none', height: '100px', resize: 'none', boxSizing: 'border-box', marginBottom: '20px', fontSize: '13.5px' }}
+              style={{ width: '100%', padding: '12px', background: 'var(--surface-2)', border: '1px solid var(--line-strong)', borderRadius: '12px', color: 'var(--ink)', outline: 'none', height: '100px', resize: 'none', boxSizing: 'border-box', marginBottom: '20px', fontSize: '13.5px' }}
               required
             />
 
@@ -1641,7 +1640,7 @@ export default function Booking() {
                   setRejectBookingId(null)
                   setRejectReasonInput('')
                 }}
-                style={{ padding: '10px 18px', background: '#f3f4f6', color: '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
+                style={{ padding: '10px 18px', background: 'var(--surface-3)', color: 'var(--ink-2)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
               >
                 Cancel
               </button>
@@ -1652,7 +1651,7 @@ export default function Booking() {
                   setRejectReasonInput('')
                 }}
                 disabled={!rejectReasonInput.trim()}
-                style={{ padding: '10px 18px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
+                style={{ padding: '10px 18px', background: 'var(--danger-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
               >
                 Submit Rejection
               </button>
@@ -1666,7 +1665,7 @@ export default function Booking() {
         <div style={{
           position: 'fixed',
           top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(15, 23, 42, 0.75)',
+          background: 'var(--overlay)',
           backdropFilter: 'blur(8px)',
           display: 'flex',
           alignItems: 'center',
@@ -1674,13 +1673,13 @@ export default function Booking() {
           zIndex: 10000
         }}>
           <div style={{
-            background: 'white',
+            background: 'var(--surface)',
             borderRadius: '28px',
             width: '420px',
             padding: '40px 32px',
             textAlign: 'center',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            border: '1px solid rgba(226, 232, 240, 0.8)',
+            border: '1px solid color-mix(in srgb, var(--sky) 80%, transparent)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -1691,21 +1690,20 @@ export default function Booking() {
               width: '80px',
               height: '80px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #10b981, #059669)',
+              background: 'linear-gradient(135deg, var(--success-fill), var(--success-fill))',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 10px 20px rgba(16, 185, 129, 0.3)',
+              boxShadow: '0 10px 20px color-mix(in srgb, var(--success) 30%, transparent)',
               fontSize: '40px',
               color: 'white',
-              fontWeight: 'bold'
-            }}>
+              fontWeight: 'bold', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
               ✓
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <h3 style={{
-                color: '#047857',
+                color: 'var(--success-ink)',
                 fontSize: '24px',
                 fontWeight: '800',
                 margin: 0,
@@ -1714,7 +1712,7 @@ export default function Booking() {
                 Thank You!
               </h3>
               <p style={{
-                color: '#10b981',
+                color: 'var(--success-ink)',
                 fontSize: '16px',
                 fontWeight: '700',
                 lineHeight: '1.5',
@@ -1723,7 +1721,7 @@ export default function Booking() {
                 Thank you for your feedback
               </p>
               <p style={{
-                color: '#64748b',
+                color: 'var(--ink-3)',
                 fontSize: '13.5px',
                 lineHeight: '1.5',
                 margin: 0,
@@ -1738,17 +1736,16 @@ export default function Booking() {
               style={{
                 width: '100%',
                 padding: '14px',
-                background: 'linear-gradient(135deg, #10b981, #059669)',
+                background: 'linear-gradient(135deg, var(--success-fill), var(--success-fill))',
                 color: 'white',
                 border: 'none',
                 borderRadius: '14px',
                 fontSize: '15px',
                 fontWeight: '700',
                 cursor: 'pointer',
-                boxShadow: '0 8px 16px rgba(16, 185, 129, 0.2)',
+                boxShadow: '0 8px 16px color-mix(in srgb, var(--success) 20%, transparent)',
                 transition: 'all 0.2s ease',
-                outline: 'none'
-              }}
+                outline: 'none', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
             >
               Okay
             </button>
@@ -1757,11 +1754,11 @@ export default function Booking() {
       )}
 
       {activeChatBooking && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: 'white', borderRadius: '24px', width: '450px', height: '550px', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', border: '1px solid #e2e8f0' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ background: 'var(--surface)', borderRadius: '24px', width: '450px', height: '550px', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', border: '1px solid var(--line)' }}>
             
             {/* Header */}
-            <div style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', padding: '20px 24px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', padding: '20px 24px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>
                   {currentUser?.role === 'counsellor' ? '💬 Chat with Student' : '💬 Chat with Counselor'}
@@ -1797,9 +1794,9 @@ export default function Booking() {
             </div>
 
             {/* Message List */}
-            <div style={{ flex: 1, padding: '20px', overflowY: 'auto', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ flex: 1, padding: '20px', overflowY: 'auto', background: 'var(--surface-2)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {chatMessages.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#94a3b8', margin: 'auto' }}>
+                <div style={{ textAlign: 'center', color: 'var(--ink-4)', margin: 'auto' }}>
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>💬</div>
                   <p style={{ margin: 0, fontSize: '13.5px' }}>Start the conversation.</p>
                 </div>
@@ -1821,8 +1818,8 @@ export default function Booking() {
                       }}
                     >
                       <div style={{
-                        background: isOwn ? '#4f46e5' : '#e2e8f0',
-                        color: isOwn ? 'white' : '#1f2937',
+                        background: isOwn ? 'var(--primary-fill)' : 'var(--line)',
+                        color: isOwn ? 'white' : 'var(--ink)',
                         padding: '10px 14px',
                         borderRadius: isOwn ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                         fontSize: '13.5px',
@@ -1832,7 +1829,7 @@ export default function Booking() {
                       }}>
                         {msg.text}
                       </div>
-                      <span style={{ fontSize: '10px', color: '#94a3b8', marginTop: '4px', paddingLeft: isOwn ? 0 : '4px', paddingRight: isOwn ? '4px' : 0 }}>
+                      <span style={{ fontSize: '10px', color: 'var(--ink-4)', marginTop: '4px', paddingLeft: isOwn ? 0 : '4px', paddingRight: isOwn ? '4px' : 0 }}>
                         {isOwn ? 'You' : msg.senderName || (currentUser?.role === 'counsellor' ? 'Student' : 'Counselor')}
                       </span>
                     </div>
@@ -1843,17 +1840,17 @@ export default function Booking() {
             </div>
 
             {/* Input Area */}
-            <form onSubmit={handleSendBookingMessage} style={{ display: 'flex', padding: '16px', gap: '10px', borderTop: '1px solid #e2e8f0', background: 'white' }}>
+            <form onSubmit={handleSendBookingMessage} style={{ display: 'flex', padding: '16px', gap: '10px', borderTop: '1px solid var(--line)', background: 'var(--surface)' }}>
               <input 
                 type="text" 
                 value={chatInputText} 
                 onChange={e => setChatInputText(e.target.value)} 
                 placeholder="Type your message..." 
-                style={{ flex: 1, padding: '12px 16px', border: '1px solid #cbd5e1', borderRadius: '12px', fontSize: '13.5px', outline: 'none' }}
+                style={{ flex: 1, padding: '12px 16px', border: '1px solid var(--line-strong)', borderRadius: '12px', fontSize: '13.5px', outline: 'none' }}
               />
               <button 
                 type="submit" 
-                style={{ padding: '0 20px', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', border: 'none', borderRadius: '12px', fontSize: '13.5px', fontWeight: 'bold', cursor: 'pointer' }}
+                style={{ padding: '0 20px', background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', color: 'white', border: 'none', borderRadius: '12px', fontSize: '13.5px', fontWeight: 'bold', cursor: 'pointer', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
               >
                 Send
               </button>
@@ -1862,43 +1859,43 @@ export default function Booking() {
         </div>
       )}
       {showPaymentModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
-          <div style={{ background: 'white', borderRadius: '24px', width: '100%', maxWidth: '450px', padding: '32px', border: '1px solid #e2e8f0', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', animation: 'fadeIn 0.3s ease-out' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: '24px', width: '100%', maxWidth: '450px', padding: '32px', border: '1px solid var(--line)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', animation: 'fadeIn 0.3s ease-out' }}>
             
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <div>
-                <h3 style={{ margin: 0, color: '#1f2937', fontSize: '18px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 style={{ margin: 0, color: 'var(--ink)', fontSize: '18px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span>💳</span> Secure Session Checkout
                 </h3>
-                <span style={{ fontSize: '12px', color: '#6b7280' }}>Provided by MindSpace Secure Payments</span>
+                <span style={{ fontSize: '12px', color: 'var(--ink-3)' }}>Provided by MindSpace Secure Payments</span>
               </div>
               <button 
                 onClick={() => setShowPaymentModal(false)}
                 disabled={paymentProcessing}
-                style={{ background: '#f3f4f6', border: 'none', color: '#4b5563', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ background: 'var(--surface-3)', border: 'none', color: 'var(--ink-2)', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 ✕
               </button>
             </div>
 
             {/* Transaction Summary */}
-            <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '16px', marginBottom: '24px' }}>
-              <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Appointment Details</div>
-              <div style={{ color: '#1e293b', fontWeight: 'bold', fontSize: '14px', marginTop: '6px' }}>{bookingTempData?.counsellorName}</div>
-              <div style={{ fontSize: '13px', color: '#4b5563', marginTop: '2px' }}>📅 {bookingTempData?.date} | ⏰ {bookingTempData?.timeSlot}</div>
+            <div style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: '16px', padding: '16px', marginBottom: '24px' }}>
+              <div style={{ fontSize: '11px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Appointment Details</div>
+              <div style={{ color: 'var(--ink)', fontWeight: 'bold', fontSize: '14px', marginTop: '6px' }}>{bookingTempData?.counsellorName}</div>
+              <div style={{ fontSize: '13px', color: 'var(--ink-2)', marginTop: '2px' }}>📅 {bookingTempData?.date} | ⏰ {bookingTempData?.timeSlot}</div>
               
-              <div style={{ width: '100%', height: '1px', background: '#e2e8f0', margin: '12px 0' }} />
+              <div style={{ width: '100%', height: '1px', background: 'var(--line)', margin: '12px 0' }} />
               
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#4b5563' }}>Session Booking Fee:</span>
-                <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#4f46e5' }}>LKR 1,500.00</span>
+                <span style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--ink-2)' }}>Session Booking Fee:</span>
+                <span style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--primary)' }}>LKR 1,500.00</span>
               </div>
             </div>
 
             {/* Error Message */}
             {paymentError && (
-              <div style={{ background: '#fef2f2', borderLeft: '4px solid #ef4444', padding: '12px', borderRadius: '8px', color: '#991b1b', fontSize: '13px', marginBottom: '18px', fontWeight: '500' }}>
+              <div style={{ background: 'var(--danger-soft)', borderLeft: '4px solid var(--danger)', padding: '12px', borderRadius: '8px', color: 'var(--danger-ink)', fontSize: '13px', marginBottom: '18px', fontWeight: '500' }}>
                 ⚠️ {paymentError}
               </div>
             )}
@@ -1906,27 +1903,27 @@ export default function Booking() {
             {/* Mock Card Form */}
             <form onSubmit={handleCompletePaymentAndBook} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label style={{ display: 'block', color: '#374151', fontWeight: '600', marginBottom: '6px', fontSize: '13px' }}>Cardholder Name:</label>
+                <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '600', marginBottom: '6px', fontSize: '13px' }}>Cardholder Name:</label>
                 <input 
                   type="text"
                   value={paymentCardName}
                   onChange={e => setPaymentCardName(e.target.value)}
                   placeholder="e.g. John Doe"
-                  style={{ width: '100%', padding: '12px', border: '2px solid #e5e7eb', borderRadius: '10px', outline: 'none', fontSize: '13.5px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '12px', border: '2px solid var(--line)', borderRadius: '10px', outline: 'none', fontSize: '13.5px', boxSizing: 'border-box' }}
                   required
                   disabled={paymentProcessing}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', color: '#374151', fontWeight: '600', marginBottom: '6px', fontSize: '13px' }}>Card Number:</label>
+                <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '600', marginBottom: '6px', fontSize: '13px' }}>Card Number:</label>
                 <div style={{ position: 'relative' }}>
                   <input 
                     type="text"
                     value={paymentCardNum}
                     onChange={handleCardNumberChange}
                     placeholder="4111 2222 3333 4444"
-                    style={{ width: '100%', padding: '12px 40px 12px 12px', border: '2px solid #e5e7eb', borderRadius: '10px', outline: 'none', fontSize: '13.5px', boxSizing: 'border-box', letterSpacing: '1px' }}
+                    style={{ width: '100%', padding: '12px 40px 12px 12px', border: '2px solid var(--line)', borderRadius: '10px', outline: 'none', fontSize: '13.5px', boxSizing: 'border-box', letterSpacing: '1px' }}
                     required
                     disabled={paymentProcessing}
                   />
@@ -1936,25 +1933,25 @@ export default function Booking() {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', color: '#374151', fontWeight: '600', marginBottom: '6px', fontSize: '13px' }}>Expiration Date:</label>
+                  <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '600', marginBottom: '6px', fontSize: '13px' }}>Expiration Date:</label>
                   <input 
                     type="text"
                     value={paymentCardExpiry}
                     onChange={handleExpiryChange}
                     placeholder="MM/YY"
-                    style={{ width: '100%', padding: '12px', border: '2px solid #e5e7eb', borderRadius: '10px', outline: 'none', fontSize: '13.5px', boxSizing: 'border-box', textAlign: 'center' }}
+                    style={{ width: '100%', padding: '12px', border: '2px solid var(--line)', borderRadius: '10px', outline: 'none', fontSize: '13.5px', boxSizing: 'border-box', textAlign: 'center' }}
                     required
                     disabled={paymentProcessing}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', color: '#374151', fontWeight: '600', marginBottom: '6px', fontSize: '13px' }}>Security Code (CVC):</label>
+                  <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '600', marginBottom: '6px', fontSize: '13px' }}>Security Code (CVC):</label>
                   <input 
                     type="password"
                     value={paymentCardCvc}
                     onChange={handleCvcChange}
                     placeholder="•••"
-                    style={{ width: '100%', padding: '12px', border: '2px solid #e5e7eb', borderRadius: '10px', outline: 'none', fontSize: '13.5px', boxSizing: 'border-box', textAlign: 'center' }}
+                    style={{ width: '100%', padding: '12px', border: '2px solid var(--line)', borderRadius: '10px', outline: 'none', fontSize: '13.5px', boxSizing: 'border-box', textAlign: 'center' }}
                     required
                     disabled={paymentProcessing}
                   />
@@ -1967,7 +1964,7 @@ export default function Booking() {
                 style={{
                   width: '100%',
                   padding: '14px',
-                  background: paymentProcessing ? '#9ca3af' : 'linear-gradient(135deg, #6366f1, #4f46e5)',
+                  background: paymentProcessing ? 'var(--ink-4)' : 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))',
                   color: 'white',
                   border: 'none',
                   borderRadius: '12px',
@@ -1979,7 +1976,7 @@ export default function Booking() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)',
+                  boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 20%, transparent)',
                   transition: 'background 0.2s'
                 }}
               >
@@ -2000,14 +1997,14 @@ export default function Booking() {
 
       {/* Video Call Modal */}
       {showVideoModal && activeVideoBooking && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', zIndex: 99999 }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', zIndex: 99999 }}>
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1e293b', padding: '16px 24px', borderBottom: '1px solid #334155', color: 'white' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1e293b', padding: '16px 24px', borderBottom: '1px solid #334155', color: 'white', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
             <div>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span>🎥</span> MindSpace Video Counseling
               </h3>
-              <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+              <span style={{ fontSize: '12px', color: 'var(--ink-4)' }}>
                 Session with {currentUser?.role === 'counsellor' ? `Student: ${activeVideoBooking.student?.name || 'Anonymous'}` : `Counselor: ${activeVideoBooking.counsellorName}`}
               </span>
             </div>
@@ -2017,7 +2014,7 @@ export default function Booking() {
                 setActiveVideoBooking(null)
               }}
               style={{
-                background: '#ef4444',
+                background: 'var(--danger-fill)',
                 color: 'white',
                 border: 'none',
                 padding: '10px 20px',
@@ -2025,7 +2022,7 @@ export default function Booking() {
                 fontWeight: 'bold',
                 cursor: 'pointer',
                 fontSize: '14px',
-                boxShadow: '0 4px 12px rgba(239, 68, 68, 0.25)',
+                boxShadow: '0 4px 12px color-mix(in srgb, var(--danger) 25%, transparent)',
                 transition: 'background 0.2s'
               }}
               onMouseEnter={e => e.currentTarget.style.background = '#dc2626'}

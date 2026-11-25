@@ -1,13 +1,14 @@
+import MoodGamesSection from '../components/MoodGames/MoodGamesSection'
+import LocalGameModal from '../components/MoodGames/LocalGameModal'
+import { BackButton, FullscreenButton } from '../components/MoodGames/GameControls'
+import { buildGameData, getRecommendedGames, toSavedRecommendation } from '../data/moodGames'
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import * as THREE from 'three'
 import API_URL from '../config'
-import Navbar from '../components/Navbar'
-import MoodGamesSection from '../components/MoodGames/MoodGamesSection'
-import LocalGameModal from '../components/MoodGames/LocalGameModal'
-import { BackButton, FullscreenButton } from '../components/MoodGames/GameControls'
-import { buildGameData, getRecommendedGames, toSavedRecommendation } from '../data/moodGames'
+import Icon from '../components/ui/Icon'
+import { MoodFace } from '../components/ui/Brand'
 import { 
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
   Tooltip, Legend, ResponsiveContainer 
@@ -118,6 +119,16 @@ const colorPalette = [
 ]
 
 export default function MoodTracker() {
+  const [localGame, setLocalGame] = useState(null)
+
+  const handleCatalogLaunch = (game) => {
+    if (game.type === 'local') {
+      setLocalGame(game)
+    } else if (game.url) {
+      window.open(game.url, '_blank')
+    }
+  }
+
   const navigate = useNavigate()
   const token = localStorage.getItem('token')
 
@@ -990,6 +1001,57 @@ export default function MoodTracker() {
     }
   }, [active3DGame, is3DAudioMuted])
 
+  // --- CRAZYGAMES UNLIMITED ARCADE PORTAL STATES ---
+  const [crazySearchInput, setCrazySearchInput] = useState('')
+  const [selectedCrazyCategory, setSelectedCrazyCategory] = useState('All')
+  const [activeCrazyGameModal, setActiveCrazyGameModal] = useState(null)
+
+  const defaultCrazyGamesList = [
+    { title: 'Pop It Master 3D 🧸', category: 'Antistress', type: 'native-popit', icon: '🧸', desc: 'Native 3D Fidget popping antistress toy' },
+    { title: 'Fluid & Water Sort 🧪', category: 'Fluids', type: 'native-watersort', icon: '🧪', desc: 'Native liquid color sorting puzzle' },
+    { title: 'Zen Coloring Book 🎨', category: 'Coloring', embedUrl: 'https://html5.gamedistribution.com/b28fa5d2024b4fba8c9c0c80d46efad2/', icon: '🎨', desc: 'Mindful 3D color shading' },
+    { title: 'Antistress Toy Box 3D 🎯', category: 'Antistress', embedUrl: 'https://html5.gamedistribution.com/4f728c70757d42cf956b69b8bd591d37/', icon: '🎯', desc: 'Collection of 30+ 3D fidget toys' },
+    { title: 'Slime Simulator 3D 🧪', category: 'Antistress', embedUrl: 'https://html5.gamedistribution.com/5c9d57a912bb4cb8b5321f855fb603f0/', icon: '🧪', desc: 'Tactile slime squeezing soundscape' },
+    { title: 'Bubble Shooter Zen 🫧', category: 'Puzzle', embedUrl: 'https://html5.gamedistribution.com/c98918237937400d9841f39185a9bcbc/', icon: '🫧', desc: 'Classic relaxing bubble popping' },
+    { title: 'Mahjong Solitaire 🀄', category: 'Logic', embedUrl: 'https://html5.gamedistribution.com/978ed5df64be4c1fb3a12ebf9ffb6255/', icon: '🀄', desc: 'Traditional zen tile matching' },
+    { title: 'Jigsaw Nature Puzzles 🧩', category: 'Puzzle', embedUrl: 'https://html5.gamedistribution.com/a42dfc685bfd4c5bb9c1a5b8a531cf6c/', icon: '🧩', desc: 'Beautiful nature landscape puzzles' },
+    { title: 'Magic Piano Tiles 🎹', category: 'Music', embedUrl: 'https://html5.gamedistribution.com/396656715f5d4705a61e793910c0e5a6/', icon: '🎹', desc: 'Play soothing melodies on key taps' }
+  ]
+
+  const getCrazyEmbedUrl = (rawInput) => {
+    if (!rawInput) return 'https://html5.gamedistribution.com/rvvASAiD-1.0/'
+    const str = rawInput.trim()
+    if (str.startsWith('http://') || str.startsWith('https://')) {
+      return str
+    }
+    return `https://html5.gamedistribution.com/rvvASAiD-1.0/`
+  }
+
+  const launchCrazyGame = (gameObj) => {
+    if (gameObj.type === 'native-popit') {
+      setShowPopItModal(true)
+      return
+    }
+    if (gameObj.type === 'native-watersort') {
+      setShowWaterSortModal(true)
+      return
+    }
+    const embedUrl = gameObj.embedUrl || getCrazyEmbedUrl(gameObj.slug || gameObj.url)
+    setActiveCrazyGameModal({
+      title: gameObj.title || 'Relaxing Web Game',
+      embedUrl
+    })
+  }
+
+  const handleCustomCrazySubmit = (e) => {
+    e.preventDefault()
+    if (!crazySearchInput.trim()) return
+    const embedUrl = getCrazyEmbedUrl(crazySearchInput)
+    setActiveCrazyGameModal({
+      title: `Relaxing Game: ${crazySearchInput.trim()}`,
+      embedUrl
+    })
+  }
 
   // --- NATIVE POP-IT FIDGET TOY STATES ---
   const [popItState, setPopItState] = useState(Array(36).fill(false))
@@ -2530,8 +2592,7 @@ export default function MoodTracker() {
         isExamPeriod,
         color: selectedColor,
         whatHelped,
-        // Save the 5 games that were actually recommended on screen for this mood
-        recommendations: getRecommendedGames(selected.value).map(toSavedRecommendation)
+        recommendations: dynamicRecs
       }
 
       await axios.post(`${API_URL}/api/mood`, payload, {
@@ -2623,7 +2684,7 @@ export default function MoodTracker() {
     if (sub === 'bubbles' || sub === 'balloon') {
       setBubbles(Array(12).fill(false))
       setPopCount(0)
-    } else if (sub === 'memory' || sub === 'memorycard' || sub === 'emotions' || sub === 'emotionmatch') {
+    } else if (sub === 'memorycard' || sub === 'emotions' || sub === 'emotionmatch') {
       initMemoryGame(finalConfig)
     } else if (sub === 'garden' || sub === 'gratitudequest' || sub === 'gratitude' || sub === 'pet') {
       setGardenPlants([])
@@ -2751,60 +2812,6 @@ export default function MoodTracker() {
     } else if (sub === 'calmgenerator') {
       setCalmGeneratorDone(false)
     }
-  }
-
-  // --- MOOD-BASED GAMES: unified launcher used by the Recommended / Explore sections ---
-  const [localGame, setLocalGame] = useState(null) // open-source HTML5 games hosted in /public/games
-
-  const handleCatalogLaunch = (game) => {
-    const l = game.launch
-    if (l.type === 'game') {
-      let data = null
-      if (l.needsData) {
-        // Prefer fresh data from the backend recommendation response, else local puzzle data
-        const live = dynamicRecs.find(r => r.subtype === l.subtype && r.data)
-        data = live ? live.data : buildGameData(l.subtype)
-      }
-      launchGame(l.subtype, {
-        key: 'game',
-        title: `${game.title} ${game.icon}`,
-        icon: game.icon,
-        desc: game.desc,
-        subtype: l.subtype,
-        data
-      })
-    } else if (l.type === '3d') {
-      setActive3DGame(l.key)
-    } else if (l.type === 'modal') {
-      if (l.modal === 'merge') setShowMergeModal(true)
-      else if (l.modal === 'diff') setShowDiffModal(true)
-      else if (l.modal === 'mower') setShowMowerModal(true)
-      else if (l.modal === 'popit') setShowPopItModal(true)
-      else if (l.modal === 'watersort') setShowWaterSortModal(true)
-    } else if (l.type === 'local' || l.type === 'embed') {
-      setLocalGame(game)
-    }
-  }
-
-  // Closes the standard game modal and stops any ambient audio it started
-  const closeActiveGame = () => {
-    playTickSound()
-    if (playingRain || playingWaves || playingTone || playingWind || playingCampfire) {
-      try { soundNodes.rain?.stop() } catch(e) {}
-      try { soundNodes.wavesSource?.stop() } catch(e) {}
-      try { soundNodes.toneOsc?.stop() } catch(e) {}
-      try { soundNodes.windSource?.stop() } catch(e) {}
-      try { soundNodes.campfireOsc?.stop() } catch(e) {}
-      clearInterval(soundNodes.wavesInterval)
-      clearInterval(soundNodes.windInterval)
-      clearInterval(soundNodes.campfireInterval)
-      setPlayingRain(false)
-      setPlayingWaves(false)
-      setPlayingTone(false)
-      setPlayingWind(false)
-      setPlayingCampfire(false)
-    }
-    setActiveGame(null)
   }
 
   const triggerBeep = (freq, duration, type = 'sine') => {
@@ -3954,11 +3961,11 @@ export default function MoodTracker() {
     const monthName = new Date().toLocaleString('en-US', { month: 'long' })
     
     return (
-      <div style={{ background: 'white', padding: '24px', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-        <h4 style={{ textAlign: 'center', margin: '0 0 16px 0', color: '#1e293b', fontWeight: 'bold' }}>📅 {monthName} Heatmap</h4>
+      <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '20px', border: '1px solid var(--line)', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+        <h4 style={{ textAlign: 'center', margin: '0 0 16px 0', color: 'var(--ink)', fontWeight: 'bold' }}>📅 {monthName} Heatmap</h4>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', maxWidth: '280px', margin: '0 auto' }}>
           {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
-            <div key={d} style={{ textAlign: 'center', fontSize: '11px', fontWeight: 'bold', color: '#64748b' }}>{d}</div>
+            <div key={d} style={{ textAlign: 'center', fontSize: '11px', fontWeight: 'bold', color: 'var(--ink-3)' }}>{d}</div>
           ))}
           {Array(new Date(year, month, 1).getDay()).fill(null).map((_, idx) => (
             <div key={`empty-${idx}`} />
@@ -3969,8 +3976,8 @@ export default function MoodTracker() {
               title={log ? `Day ${day}: Mood Rating ${log.value}/5` : `Day ${day}: No Entry`}
               style={{
                 height: '32px',
-                background: log ? log.color || '#3b82f6' : '#f1f5f9',
-                color: log ? 'white' : '#64748b',
+                background: log ? log.color || 'var(--sky-fill)' : 'var(--surface-3)',
+                color: log ? 'white' : 'var(--ink-3)',
                 borderRadius: '8px',
                 display: 'flex',
                 alignItems: 'center',
@@ -3979,7 +3986,7 @@ export default function MoodTracker() {
                 fontWeight: 'bold',
                 cursor: log ? 'pointer' : 'default',
                 boxShadow: log ? '0 2px 5px rgba(0,0,0,0.05)' : 'none',
-                border: log ? '1px solid rgba(255,255,255,0.2)' : '1px solid #e2e8f0'
+                border: log ? '1px solid rgba(255,255,255,0.2)' : '1px solid var(--line)'
               }}
             >
               {day}
@@ -3999,86 +4006,65 @@ export default function MoodTracker() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', paddingBottom: '80px', fontFamily: '"Outfit", "Inter", sans-serif' }}>
-      <Navbar />
+    <div>
+      <div className="page">
 
-      <div style={{ padding: '36px 24px', maxWidth: '1320px', width: '100%', margin: '0 auto', boxSizing: 'border-box' }}>
-        
-        {/* Top Header & Streak Banner */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', marginBottom: '32px' }}>
+        {/* Header */}
+        <div className="page-head">
           <div>
-            <h1 style={{ color: '#1e293b', margin: 0, fontSize: '32px', fontWeight: '800' }}>😊 Mood Tracker & Analytics</h1>
-            <p style={{ color: '#64748b', margin: '4px 0 0', fontSize: '15px' }}>Log your lifestyle and metrics to generate AI insights and chart comparisons.</p>
+            <span className="eyebrow">Daily check-in</span>
+            <h1 className="h-display" style={{ fontSize: 'clamp(30px, 3.6vw, 42px)' }}>How are you, really?</h1>
+            <p className="muted mt-8" style={{ maxWidth: 560 }}>Log how you feel and what shaped your day. Over time, your patterns turn into gentle insights.</p>
           </div>
-          
+
           {userProfile && (
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', background: 'white', padding: '10px 20px', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '28px' }}>🔥</span>
-                <div>
-                  <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold' }}>Logging Streak</div>
-                  <strong style={{ fontSize: '16px', color: '#f97316' }}>{userProfile.streakCount || 0} Days</strong>
+            <div className="card card-pad-sm row gap-16" style={{ padding: '14px 20px' }}>
+              <div className="row gap-8">
+                <span className="tile tile-sm tile-sun"><Icon name="zap" size={18} /></span>
+                <div className="stat">
+                  <span className="stat-label" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Streak</span>
+                  <strong className="serif" style={{ fontSize: 20, lineHeight: 1.1 }}>{userProfile.streakCount || 0} days</strong>
                 </div>
               </div>
-              
-              <div style={{ width: '1px', height: '30px', background: '#e2e8f0', margin: '0 8px' }} />
-              
-              <div>
-                <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold' }}>Monthly Goal</div>
-                <strong style={{ fontSize: '15px', color: '#6366f1' }}>{userProfile.monthlyGoalLogs || 0} / 15 Logs</strong>
+              <div style={{ width: 1, alignSelf: 'stretch', background: 'var(--line)' }} />
+              <div style={{ minWidth: 120 }}>
+                <div className="row-between" style={{ marginBottom: 6 }}>
+                  <span className="stat-label" style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Monthly goal</span>
+                  <strong className="small">{userProfile.monthlyGoalLogs || 0}/15</strong>
+                </div>
+                <div className="progress"><span style={{ width: `${Math.min(100, ((userProfile.monthlyGoalLogs || 0) / 15) * 100)}%` }} /></div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Smart Low-Mood Alert Warning */}
+        {/* Smart low-mood alert */}
         {isAvgMoodLow() && (
-          <div style={{ background: '#fef2f2', border: '1px solid #fee2e2', borderLeft: '6px solid #ef4444', padding: '16px 20px', borderRadius: '16px', marginBottom: '24px', display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <span style={{ fontSize: '30px' }}>💙</span>
-            <div style={{ flex: 1 }}>
-              <strong style={{ color: '#b91c1c', display: 'block', fontSize: '14.5px' }}>Support Alert: You've been feeling low lately</strong>
-              <p style={{ margin: '3px 0 0', fontSize: '13px', color: '#7f1d1d', lineHeight: '1.4' }}>
-                Our system noticed that your logged mood scores have been consistently low. Please know that you are not alone. Consider scheduling a private counseling talk with our campus counselors, or chatting with our chatbot companion Aura.
-              </p>
+          <div className="alert alert-primary mb-24" style={{ alignItems: 'center', flexWrap: 'wrap' }}>
+            <Icon name="heart" size={24} />
+            <div className="grow" style={{ minWidth: 220 }}>
+              <span className="alert-title">You&rsquo;ve been feeling low lately, and that&rsquo;s okay</span>
+              Our system noticed your recent mood scores have been low. You are not alone. Consider a private chat with one of our counsellors, or talk with Aura.
             </div>
-            <button onClick={() => navigate('/booking')} style={{ padding: '8px 16px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>
-              Book Counselor 📅
+            <button onClick={() => navigate('/booking')} className="btn btn-primary btn-sm">
+              <Icon name="calendar" size={16} /> Book a counsellor
             </button>
           </div>
         )}
 
-        {/* Tab Links Navigation */}
-        <div style={{ display: 'flex', gap: '8px', borderBottom: '2px solid #e2e8f0', paddingBottom: '12px', marginBottom: '32px', overflowX: 'auto' }}>
-          <button 
-            onClick={() => setActiveTab('log')}
-            style={{ padding: '10px 20px', background: activeTab === 'log' ? '#6366f1' : 'transparent', color: activeTab === 'log' ? 'white' : '#64748b', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s', touchAction: 'manipulation' }}
-          >
-            ✍️ Log Daily Vibe
-          </button>
-          <button 
-            onClick={() => setActiveTab('music')}
-            style={{ padding: '10px 20px', background: activeTab === 'music' ? '#6366f1' : 'transparent', color: activeTab === 'music' ? 'white' : '#64748b', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s', touchAction: 'manipulation' }}
-          >
-            🎧 Soothing Music Hub {isMusicPlaying && '🎵'}
-          </button>
-          <button 
-            onClick={() => setActiveTab('analytics')}
-            style={{ padding: '10px 20px', background: activeTab === 'analytics' ? '#6366f1' : 'transparent', color: activeTab === 'analytics' ? 'white' : '#64748b', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s', touchAction: 'manipulation' }}
-          >
-            📊 Personal Insights & AI
-          </button>
-          <button 
-            onClick={() => setActiveTab('gamification')}
-            style={{ padding: '10px 20px', background: activeTab === 'gamification' ? '#6366f1' : 'transparent', color: activeTab === 'gamification' ? 'white' : '#64748b', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s', touchAction: 'manipulation' }}
-          >
-            🏆 Badges & Heatmap
-          </button>
-          <button 
-            onClick={() => setActiveTab('history')}
-            style={{ padding: '10px 20px', background: activeTab === 'history' ? '#6366f1' : 'transparent', color: activeTab === 'history' ? 'white' : '#64748b', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', transition: 'all 0.2s', touchAction: 'manipulation' }}
-          >
-            📅 Mood Journal History
-          </button>
+        {/* Tabs */}
+        <div className="tabs-scroll" role="tablist">
+          {[
+            { id: 'log', icon: 'edit', label: 'Log today' },
+            { id: 'music', icon: 'headphones', label: isMusicPlaying ? 'Music hub · playing' : 'Music hub' },
+            { id: 'analytics', icon: 'bars', label: 'Insights & AI' },
+            { id: 'gamification', icon: 'award', label: 'Badges & heatmap' },
+            { id: 'history', icon: 'book', label: 'Journal' }
+          ].map(t => (
+            <button key={t.id} role="tab" aria-selected={activeTab === t.id} className={`tab ${activeTab === t.id ? 'is-active' : ''}`} onClick={() => setActiveTab(t.id)}>
+              <Icon name={t.icon} size={17} /> {t.label}
+            </button>
+          ))}
         </div>
 
         {/* TAB 1: MOOD LOGGER */}
@@ -4086,13 +4072,13 @@ export default function MoodTracker() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
             
             {/* Expanded Mood Questionnaire */}
-            <div style={{ background: 'white', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', border: '1px solid #e2e8f0' }}>
-              <h2 style={{ color: '#1e293b', marginBottom: '8px', fontSize: '20px', fontWeight: 'bold' }}>✍️ Log Today's State</h2>
-              <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '18px' }}>Fill out your daily wellness criteria below to log stats and generate AI insights.</p>
+            <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', border: '1px solid var(--line)' }}>
+              <h2 style={{ color: 'var(--ink)', marginBottom: '8px', fontSize: '20px', fontWeight: 'bold' }}>✍️ Log Today's State</h2>
+              <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '18px' }}>Fill out your daily wellness criteria below to log stats and generate AI insights.</p>
 
               {/* AI Face Scanner Trigger Banner */}
               <div style={{
-                background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                background: 'linear-gradient(135deg, var(--primary-fill) 0%, var(--primary-fill) 100%)',
                 borderRadius: '16px',
                 padding: '16px 20px',
                 color: 'white',
@@ -4102,10 +4088,9 @@ export default function MoodTracker() {
                 justifyContent: 'space-between',
                 flexWrap: 'wrap',
                 gap: '12px',
-                boxShadow: '0 8px 24px rgba(124, 58, 237, 0.25)',
+                boxShadow: '0 8px 24px color-mix(in srgb, var(--primary) 25%, transparent)',
                 boxSizing: 'border-box',
-                width: '100%'
-              }}>
+                width: '100%', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
                 <div style={{ flex: '1 1 200px', minWidth: '170px' }}>
                   <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     📷 AI Facial Emotion Scanner 🤖
@@ -4120,8 +4105,8 @@ export default function MoodTracker() {
                   style={{
                     padding: '12px 18px',
                     borderRadius: '12px',
-                    background: 'white',
-                    color: '#6d28d9',
+                    background: '#ffffff',
+                    color: '#1b554d',
                     border: 'none',
                     fontWeight: '800',
                     fontSize: '13.5px',
@@ -4144,7 +4129,7 @@ export default function MoodTracker() {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  background: 'rgba(15, 23, 42, 0.85)',
+                  background: 'var(--overlay)',
                   backdropFilter: 'blur(8px)',
                   zIndex: 99999,
                   display: 'flex',
@@ -4162,8 +4147,7 @@ export default function MoodTracker() {
                     border: '1px solid rgba(255, 255, 255, 0.15)',
                     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
                     position: 'relative',
-                    textAlign: 'center'
-                  }}>
+                    textAlign: 'center', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
                     <button
                       type="button"
                       onClick={stopFaceCamera}
@@ -4187,7 +4171,7 @@ export default function MoodTracker() {
                     <h3 style={{ margin: '0 0 6px 0', fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                       📷 AI Facial Emotion Scanner 🤖
                     </h3>
-                    <p style={{ margin: '0 0 20px 0', fontSize: '12.5px', color: '#94a3b8' }}>
+                    <p style={{ margin: '0 0 20px 0', fontSize: '12.5px', color: 'var(--ink-4)' }}>
                       {scanStatusText}
                     </p>
 
@@ -4199,8 +4183,8 @@ export default function MoodTracker() {
                       margin: '0 auto 20px',
                       borderRadius: '50%',
                       overflow: 'hidden',
-                      border: '3px solid #818cf8',
-                      boxShadow: '0 0 30px rgba(129, 140, 248, 0.5)',
+                      border: '3px solid var(--primary)',
+                      boxShadow: '0 0 30px color-mix(in srgb, var(--primary) 50%, transparent)',
                       animation: isAnalyzingFace ? 'facePulse 1.5s infinite' : 'none'
                     }}>
                       <video 
@@ -4217,7 +4201,7 @@ export default function MoodTracker() {
                           left: 0,
                           right: 0,
                           height: '4px',
-                          background: 'linear-gradient(90deg, transparent, #818cf8, #a855f7, transparent)',
+                          background: 'linear-gradient(90deg, transparent, var(--primary-fill), var(--primary-fill), transparent)',
                           boxShadow: '0 0 15px #818cf8',
                           animation: 'scanLaser 2s infinite ease-in-out'
                         }} />
@@ -4239,7 +4223,7 @@ export default function MoodTracker() {
                     {/* Progress Bar */}
                     {isAnalyzingFace && (
                       <div style={{ width: '100%', background: '#1e293b', borderRadius: '10px', height: '8px', overflow: 'hidden', marginBottom: '20px' }}>
-                        <div style={{ width: `${scanProgress}%`, background: 'linear-gradient(90deg, #6366f1, #a855f7)', height: '100%', transition: 'width 0.3s' }} />
+                        <div style={{ width: `${scanProgress}%`, background: 'linear-gradient(90deg, var(--primary-fill), var(--primary-fill))', height: '100%', transition: 'width 0.3s' }} />
                       </div>
                     )}
 
@@ -4278,15 +4262,14 @@ export default function MoodTracker() {
                             flex: 1,
                             height: '46px',
                             borderRadius: '12px',
-                            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                            background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))',
                             color: 'white',
                             border: 'none',
                             fontWeight: '800',
                             fontSize: '14.5px',
                             cursor: 'pointer',
-                            boxShadow: '0 4px 14px rgba(99, 102, 241, 0.4)',
-                            touchAction: 'manipulation'
-                          }}
+                            boxShadow: '0 4px 14px color-mix(in srgb, var(--primary) 40%, transparent)',
+                            touchAction: 'manipulation', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
                         >
                           {isAnalyzingFace ? 'Scanning Facial Features...' : '🔍 Scan Facial Emotion'}
                         </button>
@@ -4298,15 +4281,14 @@ export default function MoodTracker() {
                             flex: 1,
                             height: '46px',
                             borderRadius: '12px',
-                            background: 'linear-gradient(135deg, #10b981, #059669)',
+                            background: 'linear-gradient(135deg, var(--success-fill), var(--success-fill))',
                             color: 'white',
                             border: 'none',
                             fontWeight: '800',
                             fontSize: '14.5px',
                             cursor: 'pointer',
-                            boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
-                            touchAction: 'manipulation'
-                          }}
+                            boxShadow: '0 4px 14px color-mix(in srgb, var(--success) 40%, transparent)',
+                            touchAction: 'manipulation', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
                         >
                           ✨ Apply Mood Rating to Log
                         </button>
@@ -4316,29 +4298,26 @@ export default function MoodTracker() {
                 </div>
               )}
 
-              {/* Step 1: Emoji Select */}
-              <label style={{ display: 'block', color: '#475569', fontWeight: '700', marginBottom: '10px', fontSize: '13.5px' }}>1. How is your mood rating?</label>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+              {/* Step 1: Mood select */}
+              <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '700', marginBottom: '10px', fontSize: '13.5px' }}>1. How is your mood rating?</label>
+              <div className="mood-picker" role="radiogroup" aria-label="Mood rating">
                 {moods.map((mood) => (
-                  <div key={mood.value} onClick={() => handleMoodSelect(mood)}
-                    style={{ 
-                      flex: 1, 
-                      textAlign: 'center', 
-                      padding: '12px 6px', 
-                      borderRadius: '16px', 
-                      cursor: 'pointer', 
-                      border: `3px solid ${selected?.value === mood.value ? selectedColor : '#f1f5f9'}`, 
-                      background: selected?.value === mood.value ? selectedColor + '10' : 'white', 
-                      transition: 'all 0.2s'
-                    }}>
-                    <div style={{ fontSize: '28px', marginBottom: '6px' }}>{mood.emoji}</div>
-                    <div style={{ fontSize: '11px', color: '#475569', fontWeight: 'bold' }}>{mood.label}</div>
-                  </div>
+                  <button
+                    type="button"
+                    key={mood.value}
+                    role="radio"
+                    aria-checked={selected?.value === mood.value}
+                    onClick={() => handleMoodSelect(mood)}
+                    className={`mood-opt ${selected?.value === mood.value ? 'is-on' : ''}`}
+                  >
+                    <MoodFace value={mood.value} size={44} />
+                    <span>{mood.label}</span>
+                  </button>
                 ))}
               </div>
 
               {/* Step 2: Trigger Select */}
-              <label style={{ display: 'block', color: '#475569', fontWeight: '700', marginBottom: '8px', fontSize: '13.5px' }}>2. What is the primary cause (Trigger) of your mood?</label>
+              <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '700', marginBottom: '8px', fontSize: '13.5px' }}>2. What is the primary cause (Trigger) of your mood?</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
                 {['Studies', 'Family', 'Friends', 'Relationship', 'Work', 'Health'].map(trig => (
                   <button 
@@ -4347,8 +4326,8 @@ export default function MoodTracker() {
                     onClick={() => { setTrigger(trig); setShowCustomTriggerBox(false); }}
                     style={{
                       padding: '8px 14px',
-                      background: trigger === trig && !showCustomTriggerBox ? '#6366f1' : '#f1f5f9',
-                      color: trigger === trig && !showCustomTriggerBox ? 'white' : '#475569',
+                      background: trigger === trig && !showCustomTriggerBox ? 'var(--primary-fill)' : 'var(--surface-3)',
+                      color: trigger === trig && !showCustomTriggerBox ? 'white' : 'var(--ink-2)',
                       border: 'none',
                       borderRadius: '10px',
                       fontSize: '12.5px',
@@ -4364,8 +4343,8 @@ export default function MoodTracker() {
                   onClick={() => setShowCustomTriggerBox(true)}
                   style={{
                     padding: '8px 14px',
-                    background: showCustomTriggerBox ? '#6366f1' : '#f1f5f9',
-                    color: showCustomTriggerBox ? 'white' : '#475569',
+                    background: showCustomTriggerBox ? 'var(--primary-fill)' : 'var(--surface-3)',
+                    color: showCustomTriggerBox ? 'white' : 'var(--ink-2)',
                     border: 'none',
                     borderRadius: '10px',
                     fontSize: '12.5px',
@@ -4383,12 +4362,12 @@ export default function MoodTracker() {
                   value={customTrigger}
                   onChange={(e) => setCustomTrigger(e.target.value)}
                   placeholder="Type your trigger here..."
-                  style={{ width: '100%', padding: '10px', border: '1.5px solid #cbd5e1', borderRadius: '8px', fontSize: '13px', outline: 'none', marginBottom: '20px', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '10px', border: '1.5px solid var(--line-strong)', borderRadius: '8px', fontSize: '13px', outline: 'none', marginBottom: '20px', boxSizing: 'border-box' }}
                 />
               )}
 
               {/* Step 3: Activity Tracking */}
-              <label style={{ display: 'block', color: '#475569', fontWeight: '700', marginBottom: '10px', fontSize: '13.5px' }}>3. What activities did you complete today?</label>
+              <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '700', marginBottom: '10px', fontSize: '13.5px' }}>3. What activities did you complete today?</label>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '24px' }}>
                 {['Exercise 🏃', 'Gaming 🎮', 'Reading 📚', 'Meditation 🧘', 'Music 🎵', 'Socializing 👥'].map(act => {
                   const isChecked = checkedActivities.includes(act)
@@ -4398,7 +4377,7 @@ export default function MoodTracker() {
                       onClick={() => handleActivityToggle(act)}
                       style={{
                         padding: '10px',
-                        background: isChecked ? '#e0e7ff' : '#f8fafc',
+                        background: isChecked ? 'var(--primary-soft)' : 'var(--surface-2)',
                         border: `1.5px solid ${isChecked ? '#818cf8' : '#e2e8f0'}`,
                         borderRadius: '10px',
                         cursor: 'pointer',
@@ -4416,13 +4395,13 @@ export default function MoodTracker() {
               </div>
 
               {/* Step 4: Lifestyle Factors */}
-              <label style={{ display: 'block', color: '#475569', fontWeight: '700', marginBottom: '14px', fontSize: '13.5px' }}>4. Lifestyle and Sleep parameters</label>
+              <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '700', marginBottom: '14px', fontSize: '13.5px' }}>4. Lifestyle and Sleep parameters</label>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
                 
                 {/* Sleep slider */}
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#475569', fontWeight: 'bold', marginBottom: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--ink-2)', fontWeight: 'bold', marginBottom: '4px' }}>
                     <span>Sleep Hours:</span>
                     <span>{sleepHours} hrs</span>
                   </div>
@@ -4431,7 +4410,7 @@ export default function MoodTracker() {
 
                 {/* Water input */}
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#475569', fontWeight: 'bold', marginBottom: '6px', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--ink-2)', fontWeight: 'bold', marginBottom: '6px', alignItems: 'center' }}>
                     <span>Water Intake:</span>
                     <span>{waterIntake} ml</span>
                   </div>
@@ -4442,10 +4421,10 @@ export default function MoodTracker() {
                       style={{ 
                         flex: 1, 
                         padding: '10px 14px', 
-                        border: '1px solid #bae6fd', 
+                        border: '1px solid var(--sky-soft)', 
                         borderRadius: '10px', 
-                        background: '#f0f9ff', 
-                        color: '#0369a1', 
+                        background: 'var(--sky-soft)', 
+                        color: 'var(--sky-ink)', 
                         fontWeight: 'bold', 
                         fontSize: '13px',
                         cursor: 'pointer',
@@ -4472,9 +4451,9 @@ export default function MoodTracker() {
                       style={{ 
                         flex: 1, 
                         padding: '10px 14px', 
-                        border: '1px solid #bae6fd', 
+                        border: '1px solid var(--sky-soft)', 
                         borderRadius: '10px', 
-                        background: '#0284c7', 
+                        background: 'var(--sky-fill)', 
                         color: 'white', 
                         fontWeight: 'bold', 
                         fontSize: '13px',
@@ -4484,7 +4463,7 @@ export default function MoodTracker() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '6px',
-                        boxShadow: '0 4px 10px rgba(2, 132, 199, 0.15)'
+                        boxShadow: '0 4px 10px color-mix(in srgb, var(--sky) 15%, transparent)'
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.background = '#0369a1'
@@ -4503,7 +4482,7 @@ export default function MoodTracker() {
 
                 {/* Screen Time slider */}
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#475569', fontWeight: 'bold', marginBottom: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--ink-2)', fontWeight: 'bold', marginBottom: '4px' }}>
                     <span>Screen Time:</span>
                     <span>{screenTime} hrs</span>
                   </div>
@@ -4512,7 +4491,7 @@ export default function MoodTracker() {
 
                 {/* Exercise duration slider */}
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#475569', fontWeight: 'bold', marginBottom: '4px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--ink-2)', fontWeight: 'bold', marginBottom: '4px' }}>
                     <span>Exercise duration:</span>
                     <span>{exerciseDuration} mins</span>
                   </div>
@@ -4521,7 +4500,7 @@ export default function MoodTracker() {
 
                 {/* Energy Level buttons */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#475569', fontWeight: 'bold', marginBottom: '6px' }}>Energy level (1-5):</label>
+                  <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-2)', fontWeight: 'bold', marginBottom: '6px' }}>Energy level (1-5):</label>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     {[1, 2, 3, 4, 5].map(lvl => (
                       <button 
@@ -4533,8 +4512,8 @@ export default function MoodTracker() {
                           padding: '10px',
                           borderRadius: '8px',
                           border: `1.5px solid ${energyLevel === lvl ? '#6366f1' : '#e2e8f0'}`,
-                          background: energyLevel === lvl ? '#6366f1' : 'white',
-                          color: energyLevel === lvl ? 'white' : '#475569',
+                          background: energyLevel === lvl ? 'var(--primary-fill)' : 'var(--surface)',
+                          color: energyLevel === lvl ? 'white' : 'var(--ink-2)',
                           fontWeight: 'bold',
                           cursor: 'pointer'
                         }}
@@ -4546,27 +4525,27 @@ export default function MoodTracker() {
                 </div>
 
                 {/* Exam Stress toggle */}
-                <label style={{ display: 'flex', gap: '8px', alignItems: 'center', cursor: 'pointer', fontSize: '13px', color: '#475569', fontWeight: '600' }}>
+                <label style={{ display: 'flex', gap: '8px', alignItems: 'center', cursor: 'pointer', fontSize: '13px', color: 'var(--ink-2)', fontWeight: '600' }}>
                   <input type="checkbox" checked={isExamPeriod} onChange={(e) => setIsExamPeriod(e.target.checked)} />
                   <span>I am preparing for an exam/assessment period 📝</span>
                 </label>
               </div>
 
               {/* Step 5: Notes & Media uploads */}
-              <label style={{ display: 'block', color: '#475569', fontWeight: '700', marginBottom: '8px', fontSize: '13.5px' }}>5. Journal details & attachments</label>
+              <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '700', marginBottom: '8px', fontSize: '13.5px' }}>5. Journal details & attachments</label>
               
               <textarea value={note} onChange={(e) => setNote(e.target.value)}
                 placeholder="Vibe check... what is on your mind today?"
-                style={{ width: '100%', padding: '14px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', outline: 'none', minHeight: '100px', boxSizing: 'border-box', fontFamily: 'inherit', marginBottom: '16px' }} />
+                style={{ width: '100%', padding: '14px', border: '2px solid var(--line-strong)', borderRadius: '12px', fontSize: '16px', outline: 'none', minHeight: '100px', boxSizing: 'border-box', fontFamily: 'inherit', marginBottom: '16px' }} />
 
               {/* Photo Upload widget */}
               <div style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 'bold', marginBottom: '6px' }}>Attach Photo Memory:</label>
+                <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', fontWeight: 'bold', marginBottom: '6px' }}>Attach Photo Memory:</label>
                 <input type="file" accept="image/*" onChange={handlePhotoChange} style={{ fontSize: '12px' }} />
                 {photoBase64 && (
                   <div style={{ marginTop: '8px', position: 'relative', width: 'fit-content' }}>
-                    <img src={photoBase64} alt="Thumbnail preview" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                    <button type="button" onClick={() => setPhotoBase64('')} style={{ position: 'absolute', top: '-6px', right: '-6px', border: 'none', background: '#ef4444', color: 'white', width: '18px', height: '18px', borderRadius: '50%', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                    <img src={photoBase64} alt="Thumbnail preview" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--line-strong)' }} />
+                    <button type="button" onClick={() => setPhotoBase64('')} style={{ position: 'absolute', top: '-6px', right: '-6px', border: 'none', background: 'var(--danger-fill)', color: 'white', width: '18px', height: '18px', borderRadius: '50%', fontSize: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
                   </div>
                 )}
               </div>
@@ -4574,12 +4553,12 @@ export default function MoodTracker() {
               {/* Voice Note recorder */}
               <div style={{ 
                 marginBottom: '24px', 
-                background: '#f8fafc', 
+                background: 'var(--surface-2)', 
                 padding: '16px', 
                 borderRadius: '12px', 
-                border: '1px solid #cbd5e1' 
+                border: '1px solid var(--line-strong)' 
               }}>
-                <label style={{ display: 'block', fontSize: '13px', color: '#475569', fontWeight: '700', marginBottom: '8px' }}>
+                <label style={{ display: 'block', fontSize: '13px', color: 'var(--ink-2)', fontWeight: '700', marginBottom: '8px' }}>
                   🎙️ Voice Journal Note
                 </label>
                 
@@ -4591,7 +4570,7 @@ export default function MoodTracker() {
                         onClick={stopAudioRecording} 
                         style={{ 
                           padding: '10px 20px', 
-                          background: '#ef4444', 
+                          background: 'var(--danger-fill)', 
                           color: 'white', 
                           border: 'none', 
                           borderRadius: '10px', 
@@ -4601,14 +4580,14 @@ export default function MoodTracker() {
                           display: 'flex',
                           alignItems: 'center',
                           gap: '8px',
-                          boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)',
+                          boxShadow: '0 4px 12px color-mix(in srgb, var(--danger) 20%, transparent)',
                           transition: 'all 0.2s'
                         }}
                       >
                         <span style={{ 
                           width: '10px', 
                           height: '10px', 
-                          background: 'white', 
+                          background: 'var(--surface)', 
                           borderRadius: '50%', 
                           display: 'inline-block',
                           animation: 'pulse 1s infinite alternate' 
@@ -4621,7 +4600,7 @@ export default function MoodTracker() {
                         onClick={startAudioRecording} 
                         style={{ 
                           padding: '10px 20px', 
-                          background: '#3b82f6', 
+                          background: 'var(--sky-fill)', 
                           color: 'white', 
                           border: 'none', 
                           borderRadius: '10px', 
@@ -4631,7 +4610,7 @@ export default function MoodTracker() {
                           display: 'flex',
                           alignItems: 'center',
                           gap: '8px',
-                          boxShadow: '0 4px 12px rgba(59, 130, 246, 0.2)',
+                          boxShadow: '0 4px 12px color-mix(in srgb, var(--sky) 20%, transparent)',
                           transition: 'all 0.2s'
                         }}
                       >
@@ -4640,7 +4619,7 @@ export default function MoodTracker() {
                     )}
                     
                     {isRecording && (
-                      <span style={{ fontSize: '12.5px', color: '#ef4444', fontWeight: '600' }}>
+                      <span style={{ fontSize: '12.5px', color: 'var(--danger)', fontWeight: '600' }}>
                         Recording in progress...
                       </span>
                     )}
@@ -4651,10 +4630,10 @@ export default function MoodTracker() {
                       display: 'flex', 
                       alignItems: 'center', 
                       gap: '12px', 
-                      background: 'white', 
+                      background: 'var(--surface)', 
                       padding: '12px', 
                       borderRadius: '10px', 
-                      border: '1px solid #cbd5e1',
+                      border: '1px solid var(--line-strong)',
                       boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
                       flexWrap: 'wrap'
                     }}>
@@ -4664,9 +4643,9 @@ export default function MoodTracker() {
                         onClick={() => { setAudioBlobUrl(''); setAudioBase64(''); }} 
                         style={{ 
                           padding: '8px 16px', 
-                          background: '#fee2e2', 
-                          color: '#ef4444', 
-                          border: '1px solid #fca5a5', 
+                          background: 'var(--danger-soft)', 
+                          color: 'var(--danger)', 
+                          border: '1px solid var(--danger)', 
                           borderRadius: '8px', 
                           cursor: 'pointer', 
                           fontSize: '12.5px', 
@@ -4692,12 +4671,12 @@ export default function MoodTracker() {
                 </div>
               </div>
 
-              <label style={{ display: 'block', color: '#475569', fontWeight: '700', marginBottom: '10px', fontSize: '13.5px' }}>6. Unique Factors & Integration</label>
+              <label style={{ display: 'block', color: 'var(--ink-2)', fontWeight: '700', marginBottom: '10px', fontSize: '13.5px' }}>6. Unique Factors & Integration</label>
               
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Weather:</label>
-                  <select value={weather} onChange={(e) => setWeather(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12.5px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '4px' }}>Weather:</label>
+                  <select value={weather} onChange={(e) => setWeather(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid var(--line-strong)', borderRadius: '6px', fontSize: '12.5px' }}>
                     <option value="Sunny">☀️ Sunny</option>
                     <option value="Rainy">🌧️ Rainy</option>
                     <option value="Cloudy">☁️ Cloudy</option>
@@ -4707,8 +4686,8 @@ export default function MoodTracker() {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px' }}>Music genre:</label>
-                  <select value={music} onChange={(e) => setMusic(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12.5px' }}>
+                  <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '4px' }}>Music genre:</label>
+                  <select value={music} onChange={(e) => setMusic(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid var(--line-strong)', borderRadius: '6px', fontSize: '12.5px' }}>
                     <option value="None">None</option>
                     <option value="Pop">🎵 Pop</option>
                     <option value="Classical">🎻 Classical</option>
@@ -4719,7 +4698,7 @@ export default function MoodTracker() {
                 </div>
               </div>
 
-              <label style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 'bold', marginBottom: '8px' }}>What helped me feel better today?</label>
+              <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', fontWeight: 'bold', marginBottom: '8px' }}>What helped me feel better today?</label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '24px' }}>
                 {['Exercise walk 🚶', 'Talking to friends 👥', 'Rest/Nap 💤', 'Gratitude writing ✍️', 'Playing zen games 🎮', 'Box-Breathing 🎈'].map(item => {
                   const isChecked = whatHelped.includes(item)
@@ -4730,8 +4709,8 @@ export default function MoodTracker() {
                       onClick={() => handleWhatHelpedToggle(item)}
                       style={{
                         padding: '6px 12px',
-                        background: isChecked ? '#10b981' : '#f1f5f9',
-                        color: isChecked ? 'white' : '#475569',
+                        background: isChecked ? 'var(--success-fill)' : 'var(--surface-3)',
+                        color: isChecked ? 'white' : 'var(--ink-2)',
                         border: 'none',
                         borderRadius: '20px',
                         fontSize: '11.5px',
@@ -4746,21 +4725,207 @@ export default function MoodTracker() {
               </div>
 
               {selected && (
-                <div style={{ background: '#f8fafc', padding: '18px', borderRadius: '16px', borderLeft: `5px solid ${selectedColor}`, marginBottom: '20px', fontSize: '13px', color: '#334155', lineHeight: '1.5' }}>
+                <div style={{ background: 'var(--surface-2)', padding: '18px', borderRadius: '16px', borderLeft: `5px solid ${selectedColor}`, marginBottom: '20px', fontSize: '13px', color: 'var(--ink-2)', lineHeight: '1.5' }}>
                   <strong style={{ color: selectedColor, display: 'block', marginBottom: '4px' }}>💡 Quick Advisor Tip</strong>
                   {recommendations[selected.value].tip}
                 </div>
               )}
 
               <button onClick={handleSave} disabled={!selected || loading}
-                style={{ width: '100%', padding: '14px', marginTop: '16px', background: selected ? `linear-gradient(135deg, ${selectedColor}, #764ba2)` : '#e2e8f0', color: selected ? 'white' : '#94a3b8', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 'bold', cursor: selected ? 'pointer' : 'not-allowed', boxShadow: selected ? `0 10px 15px -3px ${selectedColor}30` : 'none' }}>
+                style={{ width: '100%', padding: '14px', marginTop: '16px', background: selected ? `linear-gradient(135deg, ${selectedColor}, var(--primary-fill))` : 'var(--line)', color: selected ? 'white' : 'var(--ink-4)', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 'bold', cursor: selected ? 'pointer' : 'not-allowed', boxShadow: selected ? `0 10px 15px -3px ${selectedColor}30` : 'none' }}>
                 {saved ? '✅ Mood Logged!' : loading ? '⏳ Saving...' : '💾 Save Advanced Mood Log'}
               </button>
             </div>
 
             {/* Mood-based games: 5 recommended for the selected mood + Explore More Games */}
-            <div>
+            <div style={{ marginTop: '24px' }}>
               <MoodGamesSection selectedMood={selected} onPlay={handleCatalogLaunch} />
+            </div>
+
+            {/* Recommended games column */}
+            <div>
+              <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)', border: '1px solid var(--line)', display: 'flex', flexDirection: 'column', marginBottom: '24px' }}>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '18px', fontWeight: 'bold' }}>🎯 Recommended for Your Mood</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '24px' }}>{selected ? `Based on your mood score of ${selected.value}/5, we curated these 5 exercises:` : 'Select a mood rating to trigger personalized suggestions.'}</p>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {selected ? (
+                    recsLoading ? (
+                      Array(5).fill(0).map((_, idx) => (
+                        <div 
+                          key={idx}
+                          style={{ 
+                            display: 'flex', 
+                            gap: '14px', 
+                            alignItems: 'center', 
+                            padding: '14px', 
+                            background: 'var(--surface-2)', 
+                            borderRadius: '16px', 
+                            border: '1px solid var(--line)',
+                            opacity: 0.6,
+                            animation: 'pulse 1.5s infinite alternate' 
+                          }}
+                        >
+                          <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'var(--line-strong)' }} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ width: '100px', height: '12px', background: 'var(--line-strong)', borderRadius: '4px', marginBottom: '6px' }} />
+                            <div style={{ width: '160px', height: '8px', background: 'var(--line-strong)', borderRadius: '4px' }} />
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      dynamicRecs.map((gameConfig, idx) => {
+                        return (
+                          <div 
+                            key={idx}
+                            onClick={() => launchGame(gameConfig.subtype || gameConfig.key, gameConfig)}
+                            style={{ display: 'flex', gap: '14px', alignItems: 'center', padding: '14px', background: 'var(--surface-2)', borderRadius: '16px', border: '1px solid var(--line)', cursor: 'pointer', transition: 'all 0.2s' }}
+                            className="game-card"
+                          >
+                            <div style={{ fontSize: '24px', background: 'var(--surface)', width: '44px', height: '44px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--line)' }}>{gameConfig.icon}</div>
+                            <div style={{ flex: 1 }}>
+                              <h4 style={{ margin: '0 0 3px 0', color: 'var(--ink)', fontSize: '13px', fontWeight: 'bold' }}>{gameConfig.title}</h4>
+                              <p style={{ margin: 0, color: 'var(--ink-3)', fontSize: '11px', lineHeight: '1.3' }}>{gameConfig.desc}</p>
+                            </div>
+                            <span style={{ fontSize: '16px', color: 'var(--primary)' }}>▶️</span>
+                          </div>
+                        )
+                      })
+                    )
+                  ) : (
+                    <div style={{ border: '2px dashed var(--line)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-4)', fontStyle: 'italic', fontSize: '13px', padding: '30px' }}>
+                      Choose your mood rating first
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 🌌 ADVANCED 3D WEBGL RELAXATION ZONE */}
+              <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, var(--primary-fill) 100%)', padding: '24px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.15)', color: 'white', marginBottom: '24px', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
+                <h3 style={{ margin: '0 0 6px 0', fontSize: '17px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  🌌 Advanced 3D Relaxation Zone 🎮
+                </h3>
+                <p style={{ margin: '0 0 16px 0', fontSize: '12.5px', color: 'var(--ink-4)' }}>
+                  Hardware-accelerated 3D WebGL environments for instant sensory grounding:
+                </p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  {[
+                    { key: 'starfield', title: '🌌 Cosmic Starfield', desc: 'Interactive 3D particle universe', icon: '🌌' },
+                    { key: 'water', title: '🌊 Water Ripples', desc: '3D kinetic liquid wave pool', icon: '🌊' },
+                    { key: 'sakura', title: '🌸 Sakura Sanctuary', desc: '3D cherry tree in falling petals', icon: '🌸' },
+                    { key: 'crystal', title: '🔮 Breathing Crystal', desc: '4-7-8 pulsing 3D glass orb', icon: '🔮' },
+                    { key: 'saturn', title: '🪐 Saturn & Moons', desc: '3D planet & orbiting moon rings', icon: '🪐' },
+                    { key: 'autumn', title: '🍃 Autumn Forest', desc: '3D golden leaves drifting in breeze', icon: '🍃' },
+                    { key: 'prism', title: '💎 Prism Kaleidoscope', desc: '3D rainbow light beams', icon: '💎' },
+                    { key: 'warp', title: '🌌 Quantum Warp Tunnel', desc: '3D infinite spiral particle tunnel', icon: '🌌' }
+                  ].map(g => (
+                    <div
+                      key={g.key}
+                      onClick={() => setActive3DGame(g.key)}
+                      style={{
+                        background: 'rgba(255,255,255,0.08)',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        borderRadius: '14px',
+                        padding: '12px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '4px',
+                        touchAction: 'manipulation'
+                      }}
+                    >
+                      <div style={{ fontSize: '22px' }}>{g.icon}</div>
+                      <div style={{ fontSize: '12.5px', fontWeight: '700', color: 'white' }}>{g.title}</div>
+                      <div style={{ fontSize: '10.5px', color: 'var(--ink-4)' }}>{g.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ⚡ 100% NATIVE PURE-REACT RELAXING ARCADE */}
+              <div style={{
+                background: 'linear-gradient(135deg, var(--primary-fill) 0%, var(--primary-fill) 50%, var(--primary-fill) 100%)',
+                padding: '24px',
+                borderRadius: '24px',
+                border: '1px solid rgba(255,255,255,0.15)',
+                color: 'white',
+                marginBottom: '24px',
+                boxShadow: '0 12px 32px color-mix(in srgb, var(--primary) 40%, transparent)', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
+                <div style={{ marginBottom: '16px' }}>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '17px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    ⚡ Native Built-in Mind Relaxation Games 🎮
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--ink-4)' }}>
+                    100% Native WebGL & Canvas Games built directly inside MindSpace (Zero lag, zero iframe errors):
+                  </p>
+                </div>
+
+                {/* Pre-loaded 100% Native Games Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(135px, 1fr))', gap: '10px' }}>
+                  {[
+                    { id: 'merge', title: 'DesignVille Merge 🏡', desc: 'Merge & decorate dream room', icon: '🏡', action: () => setShowMergeModal(true) },
+                    { id: 'diff', title: 'Spot Differences 🔍', desc: 'Find 5 hidden differences', icon: '🔍', action: () => setShowDiffModal(true) },
+                    { id: 'mower', title: 'Stone Grass Mower 🚜', desc: 'Satisfying lawn grass cutting', icon: '🚜', action: () => setShowMowerModal(true) },
+                    { id: 'popit', title: 'Pop-It 3D Fidget 🧸', desc: 'Interactive popping bubbles', icon: '🧸', action: () => setShowPopItModal(true) },
+                    { id: 'watersort', title: 'Water Sort Liquid 🧪', desc: 'Color liquid sorting puzzle', icon: '🧪', action: () => setShowWaterSortModal(true) },
+                    { id: 'colortap', title: 'Color Tap Paint 🎨', desc: 'Mindful number color painting', icon: '🎨', action: () => setActiveGame('drawing') },
+                    { id: 'solitaire', title: 'Solitaire Story 🃏', desc: 'Classic relaxing solitaire cards', icon: '🃏', action: () => setActiveGame('memory') },
+                    { id: 'starfield', title: '3D Cosmic Space 🌌', desc: 'Interactive 3D particle universe', icon: '🌌', action: () => setActive3DGame('starfield') },
+                    { id: 'water', title: '3D Water Waves 🌊', desc: '3D kinetic liquid wave pool', icon: '🌊', action: () => setActive3DGame('water') },
+                    { id: 'sakura', title: '3D Sakura Sanctuary 🌸', desc: '3D cherry tree in falling petals', icon: '🌸', action: () => setActive3DGame('sakura') },
+                    { id: 'crystal', title: '3D Breathing Orb 🔮', desc: '4-7-8 pulsing 3D glass crystal', icon: '🔮', action: () => setActive3DGame('crystal') },
+                    { id: 'pet', title: 'Virtual Zen Pet 🐱', desc: 'Feed & pet your virtual cat', icon: '🐱', action: () => setActiveGame('pet') }
+                  ].map(gameObj => (
+                    <div
+                      key={gameObj.id}
+                      onClick={gameObj.action}
+                      style={{
+                        background: 'rgba(255,255,255,0.08)',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        borderRadius: '16px',
+                        padding: '12px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        textAlign: 'center',
+                        touchAction: 'manipulation'
+                      }}
+                    >
+                      <div style={{ fontSize: '28px', marginBottom: '6px' }}>{gameObj.icon}</div>
+                      <div style={{ fontSize: '12px', fontWeight: '700', color: 'white', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {gameObj.title}
+                      </div>
+                      <div style={{ fontSize: '10.5px', color: 'var(--ink-4)', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
+                        {gameObj.desc}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* COMMON GAMES LIST */}
+              <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '24px', border: '1px solid var(--line)' }}>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '16px', fontWeight: 'bold' }}>🌐 Common Relaxation Zone</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '12.5px', marginBottom: '20px' }}>Take a break and play any of our 10 cognitive and breathing games:</p>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  {commonGamesList.slice(0, 6).map((g, idx) => (
+                    <div 
+                      key={idx}
+                      onClick={() => launchGame(g.key, g)}
+                      style={{ background: 'var(--surface-2)', padding: '14px', borderRadius: '14px', border: '1px solid var(--line)', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '8px', transition: 'all 0.2s' }}
+                      className="game-card"
+                    >
+                      <div style={{ fontSize: '24px' }}>{g.icon}</div>
+                      <h4 style={{ margin: 0, color: 'var(--ink)', fontSize: '12.5px', fontWeight: 'bold' }}>{g.title.split(' ')[0]}</h4>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -4769,18 +4934,17 @@ export default function MoodTracker() {
         {activeTab === 'music' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <div style={{
-              background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%)',
+              background: 'linear-gradient(135deg, #0f172a 0%, var(--primary-fill) 50%, var(--primary-fill) 100%)',
               borderRadius: '24px',
               padding: '28px',
               color: 'white',
-              boxShadow: '0 12px 32px rgba(15, 23, 42, 0.35)',
-              border: '1px solid rgba(255, 255, 255, 0.15)'
-            }}>
+              boxShadow: '0 12px 32px color-mix(in srgb, var(--sky) 35%, transparent)',
+              border: '1px solid rgba(255, 255, 255, 0.15)', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
               <div style={{ marginBottom: '20px' }}>
                 <h2 style={{ margin: 0, fontSize: '22px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px' }}>
                   🎧 MindSpace Soothing Music & Song Search Hub 🎵
                 </h2>
-                <p style={{ margin: '6px 0 0', fontSize: '14px', color: '#94a3b8' }}>
+                <p style={{ margin: '6px 0 0', fontSize: '14px', color: 'var(--ink-4)' }}>
                   Search for any song, artist, or relaxing track to stream in the background while studying or journaling.
                 </p>
               </div>
@@ -4791,12 +4955,12 @@ export default function MoodTracker() {
                   value={musicSearchQuery} 
                   onChange={(e) => setMusicSearchQuery(e.target.value)} 
                   placeholder="Search any song or artist (e.g. Rain, Lofi, Sinhala, Acoustic)..." 
-                  style={{ width: '100%', height: '52px', lineHeight: '1.5', padding: '12px 18px', borderRadius: '14px', border: '1.5px solid #475569', background: '#1e293b', color: '#ffffff', fontSize: '16px', outline: 'none', boxSizing: 'border-box', colorScheme: 'dark' }}
+                  style={{ width: '100%', height: '52px', lineHeight: '1.5', padding: '12px 18px', borderRadius: '14px', border: '1.5px solid #475569', background: '#1e293b', color: '#ffffff', fontSize: '16px', outline: 'none', boxSizing: 'border-box', colorScheme: 'dark', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
                 />
                 <button 
                   type="submit" 
                   disabled={isSearchingMusic}
-                  style={{ width: '100%', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer', fontSize: '15.5px', touchAction: 'manipulation', boxShadow: '0 4px 14px rgba(99,102,241,0.4)' }}
+                  style={{ width: '100%', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer', fontSize: '15.5px', touchAction: 'manipulation', boxShadow: '0 4px 14px color-mix(in srgb, var(--primary) 40%, transparent)', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
                 >
                   {isSearchingMusic ? 'Searching tracks...' : '🔍 Search Music'}
                 </button>
@@ -4823,8 +4987,8 @@ export default function MoodTracker() {
                     key={track.trackId}
                     onClick={() => handlePlayTrack(track)}
                     style={{
-                      background: nowPlayingTrack?.trackId === track.trackId ? 'rgba(99, 102, 241, 0.45)' : 'rgba(255, 255, 255, 0.06)',
-                      border: nowPlayingTrack?.trackId === track.trackId ? '2px solid #818cf8' : '1px solid rgba(255,255,255,0.1)',
+                      background: nowPlayingTrack?.trackId === track.trackId ? 'color-mix(in srgb, var(--primary) 45%, transparent)' : 'rgba(255, 255, 255, 0.06)',
+                      border: nowPlayingTrack?.trackId === track.trackId ? '2px solid var(--primary)' : '1px solid rgba(255,255,255,0.1)',
                       borderRadius: '16px',
                       padding: '12px',
                       cursor: 'pointer',
@@ -4845,7 +5009,7 @@ export default function MoodTracker() {
                     <div style={{ fontSize: '12.5px', fontWeight: '700', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {track.trackName}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ink-4)', width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginTop: '2px' }}>
                       {track.artistName}
                     </div>
                   </div>
@@ -4854,7 +5018,7 @@ export default function MoodTracker() {
 
               {/* Now Playing Audio Control Bar */}
               {nowPlayingTrack && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(0,0,0,0.5)', padding: '14px 20px', borderRadius: '16px', border: '1px solid rgba(129,140,248,0.4)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: 'rgba(0,0,0,0.5)', padding: '14px 20px', borderRadius: '16px', border: '1px solid color-mix(in srgb, var(--primary) 40%, transparent)' }}>
                   <img 
                     src={getTrackCoverImage(nowPlayingTrack)} 
                     onError={(e) => { e.currentTarget.src = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=150&auto=format&fit=crop&q=80' }} 
@@ -4866,7 +5030,7 @@ export default function MoodTracker() {
                     <div style={{ fontSize: '14px', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {nowPlayingTrack.trackName}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#a5b4fc', marginTop: '2px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--primary)', marginTop: '2px' }}>
                       {nowPlayingTrack.artistName}
                     </div>
                   </div>
@@ -4874,7 +5038,7 @@ export default function MoodTracker() {
                   <button
                     type="button"
                     onClick={handleTogglePlayPause}
-                    style={{ width: '48px', height: '48px', borderRadius: '50%', background: isMusicPlaying ? '#ef4444' : '#10b981', color: 'white', border: 'none', fontSize: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'manipulation', boxShadow: '0 4px 12px rgba(16,185,129,0.4)' }}
+                    style={{ width: '48px', height: '48px', borderRadius: '50%', background: isMusicPlaying ? 'var(--danger-fill)' : 'var(--success-fill)', color: 'white', border: 'none', fontSize: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'manipulation', boxShadow: '0 4px 12px color-mix(in srgb, var(--success) 40%, transparent)' }}
                   >
                     {isMusicPlaying ? '⏸' : '▶'}
                   </button>
@@ -4902,30 +5066,30 @@ export default function MoodTracker() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
                   
                   {/* Weekly wellness summary */}
-                  <div style={{ background: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)', padding: '24px', borderRadius: '24px', border: '1px solid #818cf8' }}>
+                  <div style={{ background: 'linear-gradient(135deg, var(--primary-soft), var(--primary-soft))', padding: '24px', borderRadius: '24px', border: '1px solid var(--primary)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                       <span style={{ fontSize: '24px' }}>✨</span>
-                      <strong style={{ color: '#1e1b4b', fontSize: '16px' }}>AI Weekly Mental Wellness Summary</strong>
+                      <strong style={{ color: 'var(--primary-ink)', fontSize: '16px' }}>AI Weekly Mental Wellness Summary</strong>
                     </div>
-                    <p style={{ margin: 0, color: '#1e1b4b', fontSize: '13.5px', lineHeight: '1.6' }}>
+                    <p style={{ margin: 0, color: 'var(--primary-ink)', fontSize: '13.5px', lineHeight: '1.6' }}>
                       {analyticsData.weeklySummary}
                     </p>
                   </div>
 
                   {/* Mood Predictions & Suggestions */}
-                  <div style={{ background: 'white', padding: '24px', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.01)' }}>
-                    <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#1e293b', fontWeight: 'bold' }}>🤖 AI Mood Prediction</h3>
+                  <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '24px', border: '1px solid var(--line)', boxShadow: '0 4px 12px rgba(0,0,0,0.01)' }}>
+                    <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: 'var(--ink)', fontWeight: 'bold' }}>🤖 AI Mood Prediction</h3>
                     <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '16px' }}>
-                      <div style={{ fontSize: '32px', background: '#f59e0b15', color: '#f59e0b', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
+                      <div style={{ fontSize: '32px', background: 'color-mix(in srgb, var(--warn) 8%, transparent)', color: 'var(--warn)', width: '64px', height: '64px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
                         {analyticsData.predictedMood}
                       </div>
                       <div>
-                        <strong style={{ color: '#1e293b', fontSize: '14.5px', display: 'block' }}>Predicted Mood Level</strong>
-                        <span style={{ color: '#64748b', fontSize: '12px' }}>Forecasted score for the next few days.</span>
+                        <strong style={{ color: 'var(--ink)', fontSize: '14.5px', display: 'block' }}>Predicted Mood Level</strong>
+                        <span style={{ color: 'var(--ink-3)', fontSize: '12px' }}>Forecasted score for the next few days.</span>
                       </div>
                     </div>
                     
-                    <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '12px', borderLeft: '4px solid #10b981', fontSize: '12.5px', color: '#475569' }}>
+                    <div style={{ background: 'var(--surface-2)', padding: '12px', borderRadius: '12px', borderLeft: '4px solid var(--success)', fontSize: '12.5px', color: 'var(--ink-2)' }}>
                       <strong>Suggested Action:</strong> Practice breathing exercises when academic exam levels are elevated.
                     </div>
                   </div>
@@ -4935,53 +5099,53 @@ export default function MoodTracker() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
                   
                   {/* Mood Index trend */}
-                  <div style={{ background: 'white', padding: '24px', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
-                    <h3 style={{ color: '#1e293b', fontSize: '16px', fontWeight: 'bold', marginBottom: '20px' }}>📈 Mood Trend (Last 7 Logs)</h3>
+                  <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '24px', border: '1px solid var(--line)' }}>
+                    <h3 style={{ color: 'var(--ink)', fontSize: '16px', fontWeight: 'bold', marginBottom: '20px' }}>📈 Mood Trend (Last 7 Logs)</h3>
                     <div style={{ width: '100%', height: '250px' }}>
                       <ResponsiveContainer>
                         <LineChart data={analyticsData.weeklyTrend}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                          <XAxis dataKey="date" stroke="#64748b" style={{ fontSize: '11px' }} />
-                          <YAxis stroke="#64748b" domain={[1, 5]} style={{ fontSize: '11px' }} ticks={[1, 2, 3, 4, 5]} />
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
+                          <XAxis dataKey="date" stroke="var(--ink-3)" style={{ fontSize: '11px' }} />
+                          <YAxis stroke="var(--ink-3)" domain={[1, 5]} style={{ fontSize: '11px' }} ticks={[1, 2, 3, 4, 5]} />
                           <Tooltip contentStyle={{ borderRadius: '8px' }} />
-                          <Line type="monotone" dataKey="mood" stroke="#6366f1" strokeWidth={3} activeDot={{ r: 6 }} />
+                          <Line type="monotone" dataKey="mood" stroke="var(--primary)" strokeWidth={3} activeDot={{ r: 6 }} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
                   </div>
 
                   {/* Sleep vs Mood comparison */}
-                  <div style={{ background: 'white', padding: '24px', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
-                    <h3 style={{ color: '#1e293b', fontSize: '16px', fontWeight: 'bold', marginBottom: '20px' }}>🛌 Sleep Hours vs Mood Score</h3>
+                  <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '24px', border: '1px solid var(--line)' }}>
+                    <h3 style={{ color: 'var(--ink)', fontSize: '16px', fontWeight: 'bold', marginBottom: '20px' }}>🛌 Sleep Hours vs Mood Score</h3>
                     <div style={{ width: '100%', height: '250px' }}>
                       <ResponsiveContainer>
                         <LineChart data={analyticsData.sleepVsMood}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                          <XAxis dataKey="date" stroke="#64748b" style={{ fontSize: '11px' }} />
-                          <YAxis stroke="#64748b" yAxisId="left" orientation="left" stroke="#3b82f6" label={{ value: 'Sleep (hrs)', angle: -90, position: 'insideLeft', style: { fontSize: '10px', fill: '#3b82f6' } }} style={{ fontSize: '10px' }} />
-                          <YAxis stroke="#64748b" yAxisId="right" orientation="right" stroke="#10b981" label={{ value: 'Mood (1-5)', angle: 90, position: 'insideRight', style: { fontSize: '10px', fill: '#10b981' } }} style={{ fontSize: '10px' }} />
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
+                          <XAxis dataKey="date" stroke="var(--ink-3)" style={{ fontSize: '11px' }} />
+                          <YAxis stroke="var(--ink-3)" yAxisId="left" orientation="left" stroke="var(--sky)" label={{ value: 'Sleep (hrs)', angle: -90, position: 'insideLeft', style: { fontSize: '10px', fill: 'var(--sky)' } }} style={{ fontSize: '10px' }} />
+                          <YAxis stroke="var(--ink-3)" yAxisId="right" orientation="right" stroke="var(--success)" label={{ value: 'Mood (1-5)', angle: 90, position: 'insideRight', style: { fontSize: '10px', fill: 'var(--success)' } }} style={{ fontSize: '10px' }} />
                           <Tooltip />
-                          <Line yAxisId="left" type="monotone" dataKey="sleep" stroke="#3b82f6" strokeWidth={2} />
-                          <Line yAxisId="right" type="monotone" dataKey="mood" stroke="#10b981" strokeWidth={2} />
+                          <Line yAxisId="left" type="monotone" dataKey="sleep" stroke="var(--sky)" strokeWidth={2} />
+                          <Line yAxisId="right" type="monotone" dataKey="mood" stroke="var(--success)" strokeWidth={2} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
                   </div>
 
                   {/* Trigger rates */}
-                  <div style={{ background: 'white', padding: '24px', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
-                    <h3 style={{ color: '#1e293b', fontSize: '16px', fontWeight: 'bold', marginBottom: '20px' }}>⚠️ Common Trigger Frequency</h3>
+                  <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '24px', border: '1px solid var(--line)' }}>
+                    <h3 style={{ color: 'var(--ink)', fontSize: '16px', fontWeight: 'bold', marginBottom: '20px' }}>⚠️ Common Trigger Frequency</h3>
                     {analyticsData.triggerFrequency.length === 0 ? (
-                      <p style={{ fontStyle: 'italic', color: '#94a3b8', textAlign: 'center', marginTop: '60px' }}>Not enough trigger data logged yet.</p>
+                      <p style={{ fontStyle: 'italic', color: 'var(--ink-4)', textAlign: 'center', marginTop: '60px' }}>Not enough trigger data logged yet.</p>
                     ) : (
                       <div style={{ width: '100%', height: '250px' }}>
                         <ResponsiveContainer>
                           <BarChart data={analyticsData.triggerFrequency}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                            <XAxis dataKey="name" stroke="#64748b" style={{ fontSize: '11px' }} />
-                            <YAxis stroke="#64748b" style={{ fontSize: '11px' }} allowDecimals={false} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
+                            <XAxis dataKey="name" stroke="var(--ink-3)" style={{ fontSize: '11px' }} />
+                            <YAxis stroke="var(--ink-3)" style={{ fontSize: '11px' }} allowDecimals={false} />
                             <Tooltip />
-                            <Bar dataKey="count" fill="#6366f1" radius={[6, 6, 0, 0]} />
+                            <Bar dataKey="count" fill="var(--primary)" radius={[6, 6, 0, 0]} />
                           </BarChart>
                         </ResponsiveContainer>
                       </div>
@@ -4989,19 +5153,19 @@ export default function MoodTracker() {
                   </div>
 
                   {/* Activity vs Mood correlation */}
-                  <div style={{ background: 'white', padding: '24px', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
-                    <h3 style={{ color: '#1e293b', fontSize: '16px', fontWeight: 'bold', marginBottom: '20px' }}>🏃 Activity vs Average Mood</h3>
+                  <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '24px', border: '1px solid var(--line)' }}>
+                    <h3 style={{ color: 'var(--ink)', fontSize: '16px', fontWeight: 'bold', marginBottom: '20px' }}>🏃 Activity vs Average Mood</h3>
                     {analyticsData.activityVsMood.length === 0 ? (
-                      <p style={{ fontStyle: 'italic', color: '#94a3b8', textAlign: 'center', marginTop: '60px' }}>No activities logged yet.</p>
+                      <p style={{ fontStyle: 'italic', color: 'var(--ink-4)', textAlign: 'center', marginTop: '60px' }}>No activities logged yet.</p>
                     ) : (
                       <div style={{ width: '100%', height: '250px' }}>
                         <ResponsiveContainer>
                           <BarChart data={analyticsData.activityVsMood}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                            <XAxis dataKey="name" stroke="#64748b" style={{ fontSize: '10px' }} />
-                            <YAxis stroke="#64748b" domain={[0, 5]} style={{ fontSize: '11px' }} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
+                            <XAxis dataKey="name" stroke="var(--ink-3)" style={{ fontSize: '10px' }} />
+                            <YAxis stroke="var(--ink-3)" domain={[0, 5]} style={{ fontSize: '11px' }} />
                             <Tooltip />
-                            <Bar dataKey="avgMood" fill="#10b981" radius={[6, 6, 0, 0]} />
+                            <Bar dataKey="avgMood" fill="var(--success)" radius={[6, 6, 0, 0]} />
                           </BarChart>
                         </ResponsiveContainer>
                       </div>
@@ -5012,14 +5176,14 @@ export default function MoodTracker() {
 
                 {/* Weather & Music correlations */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', flexWrap: 'wrap' }}>
-                  <div style={{ background: 'white', padding: '20px', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
-                    <h4 style={{ color: '#1e293b', fontSize: '14px', fontWeight: 'bold', margin: '0 0 12px 0' }}>☀️ Weather vs Average Mood</h4>
+                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '20px', border: '1px solid var(--line)' }}>
+                    <h4 style={{ color: 'var(--ink)', fontSize: '14px', fontWeight: 'bold', margin: '0 0 12px 0' }}>☀️ Weather vs Average Mood</h4>
                     {analyticsData.weatherVsMood.length === 0 ? (
-                      <span style={{ color: '#94a3b8', fontSize: '12px', fontStyle: 'italic' }}>No weather correlations compiled.</span>
+                      <span style={{ color: 'var(--ink-4)', fontSize: '12px', fontStyle: 'italic' }}>No weather correlations compiled.</span>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {analyticsData.weatherVsMood.map(w => (
-                          <div key={w.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderBottom: '1px solid #f1f5f9', paddingBottom: '6px' }}>
+                          <div key={w.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderBottom: '1px solid var(--line)', paddingBottom: '6px' }}>
                             <span>{w.name}</span>
                             <strong>{w.avgMood} / 5.0</strong>
                           </div>
@@ -5028,14 +5192,14 @@ export default function MoodTracker() {
                     )}
                   </div>
 
-                  <div style={{ background: 'white', padding: '20px', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
-                    <h4 style={{ color: '#1e293b', fontSize: '14px', fontWeight: 'bold', margin: '0 0 12px 0' }}>🎵 Music Genre vs Average Mood</h4>
+                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '20px', border: '1px solid var(--line)' }}>
+                    <h4 style={{ color: 'var(--ink)', fontSize: '14px', fontWeight: 'bold', margin: '0 0 12px 0' }}>🎵 Music Genre vs Average Mood</h4>
                     {analyticsData.musicVsMood.length === 0 ? (
-                      <span style={{ color: '#94a3b8', fontSize: '12px', fontStyle: 'italic' }}>No music correlations compiled.</span>
+                      <span style={{ color: 'var(--ink-4)', fontSize: '12px', fontStyle: 'italic' }}>No music correlations compiled.</span>
                     ) : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {analyticsData.musicVsMood.map(m => (
-                          <div key={m.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderBottom: '1px solid #f1f5f9', paddingBottom: '6px' }}>
+                          <div key={m.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderBottom: '1px solid var(--line)', paddingBottom: '6px' }}>
                             <span>{m.name}</span>
                             <strong>{m.avgMood} / 5.0</strong>
                           </div>
@@ -5047,7 +5211,7 @@ export default function MoodTracker() {
 
               </div>
             ) : (
-              <p style={{ textAlign: 'center', color: '#94a3b8', padding: '40px', fontStyle: 'italic' }}>No analytics compiled yet. Save mood entries to generate stats.</p>
+              <p style={{ textAlign: 'center', color: 'var(--ink-4)', padding: '40px', fontStyle: 'italic' }}>No analytics compiled yet. Save mood entries to generate stats.</p>
             )}
           </div>
         )}
@@ -5062,9 +5226,9 @@ export default function MoodTracker() {
             </div>
 
             {/* Badges showcase */}
-            <div style={{ background: 'white', padding: '32px', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ color: '#1e293b', margin: '0 0 8px 0', fontSize: '18px', fontWeight: 'bold' }}>🏆 Wellness Badges</h3>
-              <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>Awarded based on your daily consistency and healthy lifestyle parameters.</p>
+            <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', border: '1px solid var(--line)' }}>
+              <h3 style={{ color: 'var(--ink)', margin: '0 0 8px 0', fontSize: '18px', fontWeight: 'bold' }}>🏆 Wellness Badges</h3>
+              <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '24px' }}>Awarded based on your daily consistency and healthy lifestyle parameters.</p>
 
               {userProfile && userProfile.badges && userProfile.badges.length > 0 ? (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -5085,13 +5249,13 @@ export default function MoodTracker() {
                       <div key={badge} style={{ padding: '16px', background: bg, borderRadius: '16px', textAlign: 'center', border: '1px solid rgba(0,0,0,0.03)' }}>
                         <div style={{ fontSize: '32px', marginBottom: '6px' }}>{icon}</div>
                         <h4 style={{ margin: '0 0 3px 0', fontSize: '13.5px', color: tc, fontWeight: 'bold' }}>{badge}</h4>
-                        <p style={{ margin: 0, fontSize: '10.5px', color: '#64748b', lineHeight: '1.3' }}>{desc}</p>
+                        <p style={{ margin: 0, fontSize: '10.5px', color: 'var(--ink-3)', lineHeight: '1.3' }}>{desc}</p>
                       </div>
                     )
                   })}
                 </div>
               ) : (
-                <div style={{ border: '2px dashed #e2e8f0', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontStyle: 'italic', fontSize: '13px', padding: '40px', textAlign: 'center' }}>
+                <div style={{ border: '2px dashed var(--line)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-4)', fontStyle: 'italic', fontSize: '13px', padding: '40px', textAlign: 'center' }}>
                   No badges unlocked yet. Keep logging daily with healthy sleep and hydration to earn achievements!
                 </div>
               )}
@@ -5102,10 +5266,10 @@ export default function MoodTracker() {
 
         {/* TAB 4: JOURNAL TIMELINE HISTORY */}
         {activeTab === 'history' && (
-          <div style={{ background: 'white', padding: '32px', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
-            <h3 style={{ color: '#1e293b', margin: '0 0 20px 0', fontSize: '18px', fontWeight: 'bold' }}>📅 Your Mood Log Timeline</h3>
+          <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', border: '1px solid var(--line)' }}>
+            <h3 style={{ color: 'var(--ink)', margin: '0 0 20px 0', fontSize: '18px', fontWeight: 'bold' }}>📅 Your Mood Log Timeline</h3>
             {history.length === 0 ? (
-              <p style={{ color: '#94a3b8', textAlign: 'center', padding: '20px', fontStyle: 'italic' }}>No logged entries yet. Record your mood above.</p>
+              <p style={{ color: 'var(--ink-4)', textAlign: 'center', padding: '20px', fontStyle: 'italic' }}>No logged entries yet. Record your mood above.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {history.map((item, i) => (
@@ -5116,12 +5280,12 @@ export default function MoodTracker() {
                       flexDirection: 'column', 
                       gap: '12px', 
                       padding: '16px 18px', 
-                      background: '#f8fafc', 
+                      background: 'var(--surface-2)', 
                       borderRadius: '20px', 
                       borderLeft: `6px solid ${item.color || '#e2e8f0'}`,
-                      borderTop: '1px solid #f1f5f9',
-                      borderRight: '1px solid #f1f5f9',
-                      borderBottom: '1px solid #f1f5f9',
+                      borderTop: '1px solid var(--line)',
+                      borderRight: '1px solid var(--line)',
+                      borderBottom: '1px solid var(--line)',
                       boxShadow: '0 2px 8px rgba(0,0,0,0.01)',
                       width: '100%',
                       boxSizing: 'border-box',
@@ -5130,40 +5294,40 @@ export default function MoodTracker() {
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', width: '100%', boxSizing: 'border-box' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ fontSize: '32px', background: 'white', padding: '6px 10px', borderRadius: '14px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.emoji}</div>
+                        <div style={{ fontSize: '32px', background: 'var(--surface)', padding: '6px 10px', borderRadius: '14px', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.emoji}</div>
                         <div>
-                          <strong style={{ fontSize: '16px', color: '#1e293b' }}>{item.label}</strong>
+                          <strong style={{ fontSize: '16px', color: 'var(--ink)' }}>{item.label}</strong>
                           {item.trigger && (
-                            <span style={{ fontSize: '11px', background: '#e0e7ff', color: '#4f46e5', padding: '2px 8px', borderRadius: '10px', marginLeft: '6px', fontWeight: 'bold' }}>
+                            <span style={{ fontSize: '11px', background: 'var(--primary-soft)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '10px', marginLeft: '6px', fontWeight: 'bold' }}>
                               #{item.trigger}
                             </span>
                           )}
                         </div>
                       </div>
-                      <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: '500' }}>{formatDate(item.createdAt)}</span>
+                      <span style={{ color: 'var(--ink-4)', fontSize: '12px', fontWeight: '500' }}>{formatDate(item.createdAt)}</span>
                     </div>
 
                     {/* Display lifestyle parameter badges */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', width: '100%', boxSizing: 'border-box' }}>
-                      <span style={{ fontSize: '11px', background: 'white', border: '1px solid #e2e8f0', padding: '4px 8px', borderRadius: '8px', color: '#475569', whiteSpace: 'nowrap' }}>🛌 {item.sleepHours} hrs Sleep</span>
-                      <span style={{ fontSize: '11px', background: 'white', border: '1px solid #e2e8f0', padding: '4px 8px', borderRadius: '8px', color: '#475569', whiteSpace: 'nowrap' }}>💧 {item.waterIntake}ml Hydration</span>
-                      <span style={{ fontSize: '11px', background: 'white', border: '1px solid #e2e8f0', padding: '4px 8px', borderRadius: '8px', color: '#475569', whiteSpace: 'nowrap' }}>⚡ Energy: {item.energyLevel}/5</span>
-                      <span style={{ fontSize: '11px', background: 'white', border: '1px solid #e2e8f0', padding: '4px 8px', borderRadius: '8px', color: '#475569', whiteSpace: 'nowrap' }}>📱 Screen: {item.screenTime} hrs</span>
-                      {item.weather && <span style={{ fontSize: '11px', background: 'white', border: '1px solid #e2e8f0', padding: '4px 8px', borderRadius: '8px', color: '#475569', whiteSpace: 'nowrap' }}>{item.weather === 'Sunny' ? '☀️' : item.weather === 'Rainy' ? '🌧️' : item.weather === 'Cloudy' ? '☁️' : '💨'} {item.weather}</span>}
+                      <span style={{ fontSize: '11px', background: 'var(--surface)', border: '1px solid var(--line)', padding: '4px 8px', borderRadius: '8px', color: 'var(--ink-2)', whiteSpace: 'nowrap' }}>🛌 {item.sleepHours} hrs Sleep</span>
+                      <span style={{ fontSize: '11px', background: 'var(--surface)', border: '1px solid var(--line)', padding: '4px 8px', borderRadius: '8px', color: 'var(--ink-2)', whiteSpace: 'nowrap' }}>💧 {item.waterIntake}ml Hydration</span>
+                      <span style={{ fontSize: '11px', background: 'var(--surface)', border: '1px solid var(--line)', padding: '4px 8px', borderRadius: '8px', color: 'var(--ink-2)', whiteSpace: 'nowrap' }}>⚡ Energy: {item.energyLevel}/5</span>
+                      <span style={{ fontSize: '11px', background: 'var(--surface)', border: '1px solid var(--line)', padding: '4px 8px', borderRadius: '8px', color: 'var(--ink-2)', whiteSpace: 'nowrap' }}>📱 Screen: {item.screenTime} hrs</span>
+                      {item.weather && <span style={{ fontSize: '11px', background: 'var(--surface)', border: '1px solid var(--line)', padding: '4px 8px', borderRadius: '8px', color: 'var(--ink-2)', whiteSpace: 'nowrap' }}>{item.weather === 'Sunny' ? '☀️' : item.weather === 'Rainy' ? '🌧️' : item.weather === 'Cloudy' ? '☁️' : '💨'} {item.weather}</span>}
                     </div>
 
                     {/* Display activities */}
                     {item.activities && item.activities.length > 0 && (
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', width: '100%', boxSizing: 'border-box' }}>
                         {item.activities.map(act => (
-                          <span key={act} style={{ fontSize: '11px', background: '#ecfdf5', color: '#047857', padding: '3px 8px', borderRadius: '6px', fontWeight: 'bold' }}>{act}</span>
+                          <span key={act} style={{ fontSize: '11px', background: 'var(--success-soft)', color: 'var(--success-ink)', padding: '3px 8px', borderRadius: '6px', fontWeight: 'bold' }}>{act}</span>
                         ))}
                       </div>
                     )}
 
                     {/* Note */}
                     {item.note && (
-                      <p style={{ color: '#334155', fontSize: '13px', margin: 0, fontStyle: 'italic', background: 'white', padding: '10px 14px', borderRadius: '10px', border: '1px solid #f1f5f9', wordBreak: 'break-word', width: '100%', boxSizing: 'border-box' }}>
+                      <p style={{ color: 'var(--ink-2)', fontSize: '13px', margin: 0, fontStyle: 'italic', background: 'var(--surface)', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--line)', wordBreak: 'break-word', width: '100%', boxSizing: 'border-box' }}>
                         "{item.note}"
                       </p>
                     )}
@@ -5171,21 +5335,21 @@ export default function MoodTracker() {
                     {/* Embedded Base64 Photo */}
                     {item.photo && (
                       <div style={{ width: '100%', boxSizing: 'border-box', marginTop: '2px' }}>
-                        <img src={item.photo} alt="Mood memory attachment" style={{ width: '100%', borderRadius: '12px', border: '1.5px solid #e2e8f0', objectFit: 'cover', maxHeight: '220px', display: 'block', boxSizing: 'border-box' }} />
+                        <img src={item.photo} alt="Mood memory attachment" style={{ width: '100%', borderRadius: '12px', border: '1.5px solid var(--line)', objectFit: 'cover', maxHeight: '220px', display: 'block', boxSizing: 'border-box' }} />
                       </div>
                     )}
 
                     {/* Playable Base64 Audio Voice Note */}
                     {item.voiceNote && (
                       <div style={{ width: '100%', boxSizing: 'border-box', marginTop: '4px' }}>
-                        <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 'bold', marginBottom: '4px' }}>🎙️ Playback Voice Note:</span>
+                        <span style={{ display: 'block', fontSize: '11px', color: 'var(--ink-3)', fontWeight: 'bold', marginBottom: '4px' }}>🎙️ Playback Voice Note:</span>
                         <audio src={item.voiceNote} controls style={{ width: '100%', height: '40px', borderRadius: '8px', boxSizing: 'border-box' }} />
                       </div>
                     )}
 
                     {/* AI sentiment analysis breakdown */}
                     {item.aiSentiment && (
-                      <div style={{ width: '100%', padding: '10px 14px', background: '#f0fdf4', border: '1px solid #d1fae5', borderRadius: '12px', fontSize: '12.5px', color: '#065f46', boxSizing: 'border-box', wordBreak: 'break-word', marginTop: '4px' }}>
+                      <div style={{ width: '100%', padding: '10px 14px', background: 'var(--success-soft)', border: '1px solid var(--success-soft)', borderRadius: '12px', fontSize: '12.5px', color: 'var(--success-ink)', boxSizing: 'border-box', wordBreak: 'break-word', marginTop: '4px' }}>
                         <strong>🤖 AI Sentiment Analyzer:</strong> {item.aiSentiment.label} Sentiment (score: {item.aiSentiment.score})
                       </div>
                     )}
@@ -5197,24 +5361,33 @@ export default function MoodTracker() {
         )}
       </div>
 
-      {/* Open-source HTML5 games hosted locally (Back + Fullscreen built in) */}
-      {localGame && <LocalGameModal game={localGame} onClose={() => setLocalGame(null)} />}
-
       {/* --- STANDARDIZED GAME DISPLAY MODAL --- */}
       {activeGame && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(5px)', zIndex: 5000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div style={{ background: 'white', borderRadius: '24px', maxWidth: '580px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '32px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', position: 'relative', border: '1px solid #e2e8f0' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(5px)', zIndex: 5000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: '24px', maxWidth: '580px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '32px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', position: 'relative', border: '1px solid var(--line)' }}>
             
-            {/* Game window controls: Back + Fullscreen (every game) */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '14px', paddingRight: '44px' }}>
-              <BackButton onClick={closeActiveGame} />
-              <FullscreenButton />
-            </div>
-
             <button 
-              onClick={closeActiveGame} 
-              aria-label="Close game"
-              style={{ position: 'absolute', top: '20px', right: '20px', border: 'none', background: '#f1f5f9', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              onClick={() => {
+                playTickSound()
+                // Cleanup Web Audio oscillators if active
+                if (playingRain || playingWaves || playingTone || playingWind || playingCampfire) {
+                  try { soundNodes.rain?.stop() } catch(e) {}
+                  try { soundNodes.wavesSource?.stop() } catch(e) {}
+                  try { soundNodes.toneOsc?.stop() } catch(e) {}
+                  try { soundNodes.windSource?.stop() } catch(e) {}
+                  try { soundNodes.campfireOsc?.stop() } catch(e) {}
+                  clearInterval(soundNodes.wavesInterval)
+                  clearInterval(soundNodes.windInterval)
+                  clearInterval(soundNodes.campfireInterval)
+                  setPlayingRain(false)
+                  setPlayingWaves(false)
+                  setPlayingTone(false)
+                  setPlayingWind(false)
+                  setPlayingCampfire(false)
+                }
+                setActiveGame(null)
+              }} 
+              style={{ position: 'absolute', top: '20px', right: '20px', border: 'none', background: 'var(--surface-3)', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px', color: 'var(--ink-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
               ✕
             </button>
@@ -5222,8 +5395,8 @@ export default function MoodTracker() {
             {/* BUBBLE POPPER */}
             {activeGame === 'bubbles' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🫧 Zen Bubble Popper'}</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>{activeGameConfig?.desc || 'Release physical stress by popping bubbles.'} Popped: <strong>{popCount} / 12</strong></p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🫧 Zen Bubble Popper'}</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '24px' }}>{activeGameConfig?.desc || 'Release physical stress by popping bubbles.'} Popped: <strong>{popCount} / 12</strong></p>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', maxWidth: '280px', margin: '0 auto 24px' }}>
                   {bubbles.map((popped, idx) => (
@@ -5234,8 +5407,8 @@ export default function MoodTracker() {
                         width: '56px',
                         height: '56px',
                         borderRadius: '50%',
-                        background: popped ? '#e2e8f0' : 'linear-gradient(135deg, #a1c4fd, #c2e9fb)',
-                        border: popped ? '2px dashed #94a3b8' : '2px solid #3b82f6',
+                        background: popped ? 'var(--line)' : 'linear-gradient(135deg, var(--sky-fill), var(--primary-soft))',
+                        border: popped ? '2px dashed var(--line-strong)' : '2px solid var(--sky)',
                         cursor: popped ? 'default' : 'pointer',
                         transform: popped ? 'scale(0.9)' : 'scale(1)',
                         transition: 'all 0.1s',
@@ -5243,7 +5416,7 @@ export default function MoodTracker() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontSize: '22px',
-                        boxShadow: popped ? 'none' : '0 4px 6px rgba(59, 130, 246, 0.1)'
+                        boxShadow: popped ? 'none' : '0 4px 6px color-mix(in srgb, var(--sky) 10%, transparent)'
                       }}
                     >
                       {popped ? (activeGameConfig?.subtype === 'cloud' ? '✨' : '💥') : (activeGameConfig?.subtype === 'balloon' ? '🎈' : activeGameConfig?.subtype === 'cloud' ? '☁️' : '🫧')}
@@ -5251,7 +5424,7 @@ export default function MoodTracker() {
                   ))}
                 </div>
 
-                <button onClick={resetBubbles} style={{ padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', boxShadow: '0 4px 10px rgba(59, 130, 246, 0.2)' }}>
+                <button onClick={resetBubbles} style={{ padding: '10px 20px', background: 'var(--sky-fill)', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', boxShadow: '0 4px 10px color-mix(in srgb, var(--sky) 20%, transparent)' }}>
                   🔄 Refresh
                 </button>
               </div>
@@ -5260,8 +5433,8 @@ export default function MoodTracker() {
             {/* ZEN MEMORY MATCH */}
             {(activeGame === 'memory' || activeGame === 'memorycard' || activeGame === 'emotions' || activeGame === 'emotionmatch') && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🧩 Zen Memory Match'}</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>{activeGameConfig?.desc || 'Focus your thoughts gently by matching pairs.'} Moves: <strong>{moves}</strong></p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🧩 Zen Memory Match'}</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '24px' }}>{activeGameConfig?.desc || 'Focus your thoughts gently by matching pairs.'} Moves: <strong>{moves}</strong></p>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', maxWidth: '320px', margin: '0 auto 24px' }}>
                   {cards.map((card, idx) => {
@@ -5272,7 +5445,7 @@ export default function MoodTracker() {
                         onClick={() => clickCard(idx)}
                         style={{
                           height: '64px',
-                          background: isOpen ? '#f1f5f9' : 'linear-gradient(135deg, #818cf8, #4f46e5)',
+                          background: isOpen ? 'var(--surface-3)' : 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))',
                           borderRadius: '14px',
                           cursor: isOpen ? 'default' : 'pointer',
                           display: 'flex',
@@ -5280,8 +5453,8 @@ export default function MoodTracker() {
                           justifyContent: 'center',
                           fontSize: card.emoji.length > 2 ? '11.5px' : '24px',
                           fontWeight: 'bold',
-                          border: isOpen ? '2px solid #818cf8' : 'none',
-                          boxShadow: isOpen ? 'none' : '0 4px 10px rgba(79, 70, 229, 0.15)',
+                          border: isOpen ? '2px solid var(--primary)' : 'none',
+                          boxShadow: isOpen ? 'none' : '0 4px 10px color-mix(in srgb, var(--primary) 15%, transparent)',
                           transition: 'all 0.2s'
                         }}
                       >
@@ -5292,12 +5465,12 @@ export default function MoodTracker() {
                 </div>
 
                 {matched.length === cards.length / 2 && (
-                  <div style={{ background: '#ecfdf5', color: '#047857', padding: '12px', borderRadius: '12px', marginBottom: '20px', fontSize: '13.5px', fontWeight: 'bold' }}>
+                  <div style={{ background: 'var(--success-soft)', color: 'var(--success-ink)', padding: '12px', borderRadius: '12px', marginBottom: '20px', fontSize: '13.5px', fontWeight: 'bold' }}>
                     🎉 Calm achieved! You matched all pairs in {moves} moves.
                   </div>
                 )}
 
-                <button onClick={() => { playResetSound(); initMemoryGame(activeGameConfig); }} style={{ padding: '10px 20px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', boxShadow: '0 4px 10px rgba(79, 70, 229, 0.2)' }}>
+                <button onClick={() => { playResetSound(); initMemoryGame(activeGameConfig); }} style={{ padding: '10px 20px', background: 'var(--primary-fill)', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', boxShadow: '0 4px 10px color-mix(in srgb, var(--primary) 20%, transparent)' }}>
                   🔄 Reset Game
                 </button>
               </div>
@@ -5306,19 +5479,19 @@ export default function MoodTracker() {
             {/* GRATITUDE GARDEN */}
             {activeGame === 'gratitude' && !activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🌸 Gratitude Garden'}</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>{activeGameConfig?.desc || 'Plant flower seeds of thankfulness.'}</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🌸 Gratitude Garden'}</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '24px' }}>{activeGameConfig?.desc || 'Plant flower seeds of thankfulness.'}</p>
 
-                <div style={{ background: '#f0fdf4', border: '2px dashed #bbf7d0', borderRadius: '20px', minHeight: '130px', display: 'flex', flexWrap: 'wrap', gap: '16px', padding: '24px', justifyContent: 'center', alignItems: 'center', marginBottom: '24px' }}>
+                <div style={{ background: 'var(--success-soft)', border: '2px dashed var(--success)', borderRadius: '20px', minHeight: '130px', display: 'flex', flexWrap: 'wrap', gap: '16px', padding: '24px', justifyContent: 'center', alignItems: 'center', marginBottom: '24px' }}>
                   {gardenPlants.length === 0 ? (
-                    <span style={{ color: '#86efac', fontSize: '13.5px', fontStyle: 'italic' }}>
+                    <span style={{ color: 'var(--success)', fontSize: '13.5px', fontStyle: 'italic' }}>
                       {activeGameConfig?.subtype === 'garden' ? 'Your virtual garden soil is ready. Plant a seed of peace! 🌱' : 'Your virtual garden soil is ready. Plant a seed! 🌱'}
                     </span>
                   ) : (
                     gardenPlants.map(plant => (
                       <div key={plant.id} title={plant.text} style={{ textAlign: 'center', animation: 'fadeIn 0.5s ease-out' }}>
                         <div style={{ fontSize: '40px' }}>{plant.flower}</div>
-                        <div style={{ fontSize: '10.5px', color: '#16a34a', fontWeight: 'bold', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{plant.text}</div>
+                        <div style={{ fontSize: '10.5px', color: 'var(--success-ink)', fontWeight: 'bold', maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{plant.text}</div>
                       </div>
                     ))
                   )}
@@ -5331,20 +5504,20 @@ export default function MoodTracker() {
                       value={gratitudeText} 
                       onChange={(e) => setGratitudeText(e.target.value)}
                       placeholder={activeGameConfig?.subtype === 'garden' ? `I plant peace because... (${gardenPlants.length + 1}/5)` : `I am grateful for... (${gardenPlants.length + 1}/5)`}
-                      style={{ flex: 1, padding: '12px', border: '2px solid #bbf7d0', borderRadius: '10px', outline: 'none', fontSize: '13.5px' }}
+                      style={{ flex: 1, padding: '12px', border: '2px solid var(--success)', borderRadius: '10px', outline: 'none', fontSize: '13.5px' }}
                       required
                     />
-                    <button type="submit" style={{ padding: '0 20px', background: '#16a34a', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>
+                    <button type="submit" style={{ padding: '0 20px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}>
                       🌱 Plant
                     </button>
                   </form>
                 ) : (
-                  <div style={{ background: '#ecfdf5', color: '#047857', padding: '14px', borderRadius: '12px', marginBottom: '20px', fontSize: '14px', fontWeight: 'bold' }}>
+                  <div style={{ background: 'var(--success-soft)', color: 'var(--success-ink)', padding: '14px', borderRadius: '12px', marginBottom: '20px', fontSize: '14px', fontWeight: 'bold' }}>
                     {activeGameConfig?.subtype === 'garden' ? '🌸 Splendid! Your zen garden has flourished. Keep this tranquility close.' : '🌸 Splendid! Your gratitude garden has flourished. Keep these positive thoughts close.'}
                   </div>
                 )}
 
-                <button onClick={() => { playResetSound(); setGardenPlants([]); }} style={{ padding: '8px 16px', background: '#f3f4f6', color: '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>
+                <button onClick={() => { playResetSound(); setGardenPlants([]); }} style={{ padding: '8px 16px', background: 'var(--surface-3)', color: 'var(--ink-2)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>
                   🔄 Clear Garden
                 </button>
               </div>
@@ -5353,14 +5526,14 @@ export default function MoodTracker() {
             {/* DYNAMIC GRATITUDE CHALLENGE */}
             {activeGame === 'gratitude' && activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>📜 Gratitude Challenge</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Reflect on and check off these three mindful items around you:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>📜 Gratitude Challenge</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Reflect on and check off these three mindful items around you:</p>
                 
-                <div style={{ textAlign: 'left', maxWidth: '380px', margin: '0 auto 24px', background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #cbd5e1', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                <div style={{ textAlign: 'left', maxWidth: '380px', margin: '0 auto 24px', background: 'var(--surface-2)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line-strong)', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                   {activeGameData.prompts.map((prompt, idx) => {
                     const isChecked = (quizInput.split(',')[idx] || '').trim() === 'true';
                     return (
-                      <label key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', fontWeight: 'bold', color: '#334155', cursor: 'pointer' }}>
+                      <label key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '14px', fontWeight: 'bold', color: 'var(--ink-2)', cursor: 'pointer' }}>
                         <input
                           type="checkbox"
                           checked={isChecked}
@@ -5377,7 +5550,7 @@ export default function MoodTracker() {
                               setQuizFeedback('Beautiful reflection! Tending to gratitude lifts the heart. ❤️🏆');
                             }
                           }}
-                          style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: '#10b981' }}
+                          style={{ width: '20px', height: '20px', cursor: 'pointer', accentColor: 'var(--success)' }}
                         />
                         <span>{prompt}</span>
                       </label>
@@ -5388,7 +5561,7 @@ export default function MoodTracker() {
                 {quizFeedback && (
                   <p style={{
                     fontSize: '14.5px',
-                    color: '#047857',
+                    color: 'var(--success-ink)',
                     fontWeight: 'bold',
                     marginBottom: '16px'
                   }}>
@@ -5401,8 +5574,8 @@ export default function MoodTracker() {
             {/* TIC-TAC-TOE */}
             {activeGame === 'tictactoe' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '❌⭕ Calm Tic-Tac-Toe'}</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>{activeGameConfig?.desc || 'Play peacefully as ❌ against our slow AI bot (⭕).'}</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '❌⭕ Calm Tic-Tac-Toe'}</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '24px' }}>{activeGameConfig?.desc || 'Play peacefully as ❌ against our slow AI bot (⭕).'}</p>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', maxWidth: '240px', margin: '0 auto 24px' }}>
                   {tttBoard.map((cell, idx) => (
@@ -5412,8 +5585,8 @@ export default function MoodTracker() {
                       style={{
                         width: '72px',
                         height: '72px',
-                        background: '#f8fafc',
-                        border: '2px solid #e2e8f0',
+                        background: 'var(--surface-2)',
+                        border: '2px solid var(--line)',
                         borderRadius: '12px',
                         cursor: cell === '' && !tttWinner ? 'pointer' : 'default',
                         display: 'flex',
@@ -5421,7 +5594,7 @@ export default function MoodTracker() {
                         justifyContent: 'center',
                         fontSize: '28px',
                         fontWeight: 'bold',
-                        color: cell === 'X' ? '#4f46e5' : '#ef4444'
+                        color: cell === 'X' ? 'var(--primary)' : 'var(--danger)'
                       }}
                     >
                       {cell}
@@ -5431,8 +5604,8 @@ export default function MoodTracker() {
 
                 {tttWinner && (
                   <div style={{ 
-                    background: tttWinner === 'X' ? '#ecfdf5' : tttWinner === 'O' ? '#fef2f2' : '#f1f5f9', 
-                    color: tttWinner === 'X' ? '#047857' : tttWinner === 'O' ? '#b91c1c' : '#475569', 
+                    background: tttWinner === 'X' ? 'var(--success-soft)' : tttWinner === 'O' ? 'var(--danger-soft)' : 'var(--surface-3)', 
+                    color: tttWinner === 'X' ? 'var(--success-ink)' : tttWinner === 'O' ? 'var(--danger-ink)' : 'var(--ink-2)', 
                     padding: '12px', 
                     borderRadius: '10px', 
                     marginBottom: '20px', 
@@ -5447,7 +5620,7 @@ export default function MoodTracker() {
 
                 <button 
                   onClick={() => { playResetSound(); setTttBoard(Array(9).fill('')); setTttWinner(null); setTttIsXNext(true); }}
-                  style={{ padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
+                  style={{ padding: '10px 20px', background: 'var(--sky-fill)', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
                 >
                   🔄 Play Again
                 </button>
@@ -5457,42 +5630,42 @@ export default function MoodTracker() {
             {/* SOUND BOARD */}
             {activeGame === 'soundboard' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🎵 Calming Sound Board'}</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>{activeGameConfig?.desc || 'Synthesize live ambient waves. Toggle nodes on/off to mix your tracks:'}</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🎵 Calming Sound Board'}</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '24px' }}>{activeGameConfig?.desc || 'Synthesize live ambient waves. Toggle nodes on/off to mix your tracks:'}</p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '320px', margin: '0 auto 24px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: 'var(--surface-2)', borderRadius: '14px', border: '1px solid var(--line)' }}>
                     <span style={{ fontSize: '14px', fontWeight: '600' }}>🌧️ Soft Summer Rain</span>
                     <button 
                       onClick={toggleRain} 
-                      style={{ padding: '8px 16px', background: playingRain ? '#ef4444' : '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                      style={{ padding: '8px 16px', background: playingRain ? 'var(--danger-fill)' : 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
                     >
                       {playingRain ? 'Stop' : 'Play'}
                     </button>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: 'var(--surface-2)', borderRadius: '14px', border: '1px solid var(--line)' }}>
                     <span style={{ fontSize: '14px', fontWeight: '600' }}>🌊 Ocean Wave Swells</span>
                     <button 
                       onClick={toggleWaves} 
-                      style={{ padding: '8px 16px', background: playingWaves ? '#ef4444' : '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                      style={{ padding: '8px 16px', background: playingWaves ? 'var(--danger-fill)' : 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
                     >
                       {playingWaves ? 'Stop' : 'Play'}
                     </button>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: 'var(--surface-2)', borderRadius: '14px', border: '1px solid var(--line)' }}>
                     <span style={{ fontSize: '14px', fontWeight: '600' }}>🧘 Binaural Deep Beats</span>
                     <button 
                       onClick={toggleTone} 
-                      style={{ padding: '8px 16px', background: playingTone ? '#ef4444' : '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                      style={{ padding: '8px 16px', background: playingTone ? 'var(--danger-fill)' : 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
                     >
                       {playingTone ? 'Stop' : 'Play'}
                     </button>
                   </div>
                 </div>
 
-                <div style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>
+                <div style={{ fontSize: '11px', color: 'var(--ink-4)', fontStyle: 'italic' }}>
                   Sounds are generated procedurally using Web Audio API oscillators.
                 </div>
               </div>
@@ -5501,23 +5674,23 @@ export default function MoodTracker() {
             {/* BREATHING BALLOON */}
             {activeGame === 'breathing' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🎈 Breathing Balloon'}</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '16px' }}>{activeGameConfig?.desc || 'Slow down. Breathe matching the balloon cycles.'}</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🎈 Breathing Balloon'}</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '16px' }}>{activeGameConfig?.desc || 'Slow down. Breathe matching the balloon cycles.'}</p>
 
                 <div style={{ marginBottom: '24px' }}>
                   <button 
                     onClick={() => { playTickSound(); setBreathingAudioEnabled(!breathingAudioEnabled); }}
                     style={{ 
                       padding: '8px 16px', 
-                      background: breathingAudioEnabled ? '#e0e7ff' : '#f1f5f9', 
-                      color: breathingAudioEnabled ? '#4f46e5' : '#64748b', 
+                      background: breathingAudioEnabled ? 'var(--primary-soft)' : 'var(--surface-3)', 
+                      color: breathingAudioEnabled ? 'var(--primary)' : 'var(--ink-3)', 
                       border: 'none', 
                       borderRadius: '20px', 
                       cursor: 'pointer', 
                       fontSize: '12.5px', 
                       fontWeight: 'bold',
                       transition: 'all 0.2s',
-                      boxShadow: breathingAudioEnabled ? '0 4px 6px rgba(79, 70, 229, 0.1)' : 'none'
+                      boxShadow: breathingAudioEnabled ? '0 4px 6px color-mix(in srgb, var(--primary) 10%, transparent)' : 'none'
                     }}
                   >
                     {breathingAudioEnabled ? '🔊 Sound & Voice Guide: ON' : '🔇 Sound & Voice Guide: OFF'}
@@ -5529,7 +5702,7 @@ export default function MoodTracker() {
                     width: '100px',
                     height: '100px',
                     borderRadius: '50%',
-                    background: breathingPhase === 'Inhale' ? 'rgba(79, 70, 229, 0.35)' : breathingPhase === 'Hold' ? 'rgba(16, 185, 129, 0.35)' : breathingPhase === 'Exhale' ? 'rgba(239, 68, 68, 0.35)' : 'rgba(245, 158, 11, 0.35)',
+                    background: breathingPhase === 'Inhale' ? 'color-mix(in srgb, var(--primary) 35%, transparent)' : breathingPhase === 'Hold' ? 'color-mix(in srgb, var(--success) 35%, transparent)' : breathingPhase === 'Exhale' ? 'color-mix(in srgb, var(--danger) 35%, transparent)' : 'color-mix(in srgb, var(--warn) 35%, transparent)',
                     border: `3px solid ${breathingPhase === 'Inhale' ? '#4f46e5' : breathingPhase === 'Hold' ? '#10b981' : breathingPhase === 'Exhale' ? '#ef4444' : '#f59e0b'}`,
                     transform: breathingPhase === 'Inhale' || breathingPhase === 'Hold' ? 'scale(1.4)' : 'scale(0.9)',
                     transition: 'transform 4s linear, background 0.5s ease',
@@ -5537,14 +5710,14 @@ export default function MoodTracker() {
                     flexDirection: 'column',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    color: '#1e293b'
+                    color: 'var(--ink)'
                   }}>
                     <strong style={{ fontSize: '20px' }}>{breathingTimer}</strong>
                     <span style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', marginTop: '2px' }}>{breathingPhase}</span>
                   </div>
                 </div>
 
-                <p style={{ color: '#475569', fontSize: '13.5px', fontStyle: 'italic' }}>
+                <p style={{ color: 'var(--ink-2)', fontSize: '13.5px', fontStyle: 'italic' }}>
                   {breathingPhase === 'Inhale' && '🌸 Breathe in slowly... fill your chest.'}
                   {breathingPhase === 'Hold' && '🛑 Keep your breath steady. Relax.'}
                   {breathingPhase === 'Exhale' && '🍃 Release gently... let it all out.'}
@@ -5556,18 +5729,18 @@ export default function MoodTracker() {
             {/* AFFIRMATION SPINNER */}
             {activeGame === 'affirmation' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🎡 Positive Affirmation Spinner'}</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>{activeGameConfig?.desc || 'Spin the dial to draw a daily positive affirmation.'}</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🎡 Positive Affirmation Spinner'}</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '24px' }}>{activeGameConfig?.desc || 'Spin the dial to draw a daily positive affirmation.'}</p>
 
                 <div style={{ height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', maxWidth: '300px' }}>
                   {activeAffirmation ? (
                     <div style={{ 
-                      background: 'linear-gradient(135deg, #e0e7ff, #c7d2fe)', 
+                      background: 'linear-gradient(135deg, var(--primary-soft), var(--primary-soft))', 
                       padding: '20px', 
                       borderRadius: '16px', 
-                      border: '1px solid #818cf8',
+                      border: '1px solid var(--primary)',
                       fontSize: '14px',
-                      color: '#1e1b4b',
+                      color: 'var(--primary-ink)',
                       fontWeight: 'bold',
                       lineHeight: '1.5',
                       animation: 'fadeIn 0.5s ease-out'
@@ -5575,7 +5748,7 @@ export default function MoodTracker() {
                       🌟 "{activeAffirmation}"
                     </div>
                   ) : (
-                    <div style={{ border: '2px dashed #cbd5e1', borderRadius: '16px', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', fontSize: '13.5px' }}>
+                    <div style={{ border: '2px dashed var(--line-strong)', borderRadius: '16px', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-4)', fontSize: '13.5px' }}>
                       {spinning ? '🌀 Spinning the Wheel...' : 'Click Spin Below! 🎡'}
                     </div>
                   )}
@@ -5584,7 +5757,7 @@ export default function MoodTracker() {
                 <button 
                   onClick={spinWheel} 
                   disabled={spinning}
-                  style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' }}
+                  style={{ padding: '12px 24px', background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
                 >
                   {spinning ? '⏳ Spinning...' : '🎡 Spin Affirmation Wheel'}
                 </button>
@@ -5594,11 +5767,11 @@ export default function MoodTracker() {
             {/* WHACK-A-STRESS */}
             {activeGame === 'whack' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🔨 Whack-A-Stress'}</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>{activeGameConfig?.desc || 'Tap stress factors to vent frustration!'} Score: <strong>{whackScore}</strong> | Time Left: <strong>{whackTimeLeft}s</strong></p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🔨 Whack-A-Stress'}</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>{activeGameConfig?.desc || 'Tap stress factors to vent frustration!'} Score: <strong>{whackScore}</strong> | Time Left: <strong>{whackTimeLeft}s</strong></p>
 
                 {!whackRunning && whackTimeLeft === 0 && (
-                  <button onClick={startWhack} style={{ padding: '12px 24px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', marginBottom: '24px' }}>
+                  <button onClick={startWhack} style={{ padding: '12px 24px', background: 'var(--danger-fill)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', marginBottom: '24px' }}>
                     ⚡ Start Stress Release
                   </button>
                 )}
@@ -5615,15 +5788,15 @@ export default function MoodTracker() {
                           style={{
                             width: '70px',
                             height: '70px',
-                            background: isActive ? '#fecaca' : '#f1f5f9',
-                            border: isActive ? '2px solid #ef4444' : '1px solid #e2e8f0',
+                            background: isActive ? 'var(--danger-soft)' : 'var(--surface-3)',
+                            border: isActive ? '2px solid var(--danger)' : '1px solid var(--line)',
                             borderRadius: '12px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             fontSize: isActive ? '10px' : '20px',
                             fontWeight: 'bold',
-                            color: '#b91c1c',
+                            color: 'var(--danger-ink)',
                             cursor: isActive ? 'pointer' : 'default',
                             transform: isActive ? 'scale(1.05)' : 'scale(1)',
                             transition: 'all 0.1s'
@@ -5637,7 +5810,7 @@ export default function MoodTracker() {
                 )}
 
                 {!whackRunning && whackScore > 0 && (
-                  <div style={{ background: '#f1f5f9', padding: '12px', borderRadius: '10px', fontSize: '13.5px', color: '#475569', fontWeight: 'bold' }}>
+                  <div style={{ background: 'var(--surface-3)', padding: '12px', borderRadius: '10px', fontSize: '13.5px', color: 'var(--ink-2)', fontWeight: 'bold' }}>
                     🔨 Venting Complete! You released {whackScore} stressors. Feel a bit lighter?
                   </div>
                 )}
@@ -5647,8 +5820,8 @@ export default function MoodTracker() {
             {/* ZEN DOODLER */}
             {activeGame === 'doodler' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🎨 Zen Doodler'}</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>{activeGameConfig?.desc || 'Doodle freely using mouse or touch to relax your hands and mind.'}</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🎨 Zen Doodler'}</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>{activeGameConfig?.desc || 'Doodle freely using mouse or touch to relax your hands and mind.'}</p>
 
                 <canvas 
                   ref={canvasRef}
@@ -5661,7 +5834,7 @@ export default function MoodTracker() {
                   onTouchStart={startDraw}
                   onTouchMove={draw}
                   onTouchEnd={stopDraw}
-                  style={{ background: activeGameConfig?.subtype === 'sand' ? '#f0e2b3' : '#faf8f5', border: '2px solid #e2e8f0', borderRadius: '16px', display: 'block', margin: '0 auto 20px', cursor: 'crosshair', touchAction: 'none' }}
+                  style={{ background: activeGameConfig?.subtype === 'sand' ? 'var(--warn-fill)' : 'var(--warn-soft)', border: '2px solid var(--line)', borderRadius: '16px', display: 'block', margin: '0 auto 20px', cursor: 'crosshair', touchAction: 'none' }}
                 />
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '450px', margin: '0 auto' }}>
@@ -5684,14 +5857,14 @@ export default function MoodTracker() {
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569' }}>Size:</label>
-                    <select value={brushWidth} onChange={e => { playTickSound(); setBrushWidth(Number(e.target.value)); }} style={{ padding: '4px 8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--ink-2)' }}>Size:</label>
+                    <select value={brushWidth} onChange={e => { playTickSound(); setBrushWidth(Number(e.target.value)); }} style={{ padding: '4px 8px', border: '1px solid var(--line-strong)', borderRadius: '6px', fontSize: '12px' }}>
                       <option value="3">Thin</option>
                       <option value="6">Medium</option>
                       <option value="12">Thick</option>
                     </select>
 
-                    <button onClick={clearCanvas} style={{ padding: '6px 12px', background: '#334155', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+                    <button onClick={clearCanvas} style={{ padding: '6px 12px', background: '#334155', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
                       🗑️ Clear
                     </button>
                   </div>
@@ -5702,10 +5875,10 @@ export default function MoodTracker() {
             {/* MIND-WORD SEARCH */}
             {activeGame === 'wordsearch' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🔍 Mindful Word Search'}</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>{activeGameConfig?.desc || 'Select letters to find positive words:'} {getWordSearchWords().join(', ')}</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>{activeGameConfig?.title || '🔍 Mindful Word Search'}</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>{activeGameConfig?.desc || 'Select letters to find positive words:'} {getWordSearchWords().join(', ')}</p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px', maxWidth: '240px', margin: '0 auto 20px', background: '#f8fafc', padding: '8px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px', maxWidth: '240px', margin: '0 auto 20px', background: 'var(--surface-2)', padding: '8px', borderRadius: '16px', border: '1px solid var(--line)' }}>
                   {getWordSearchGrid().flatMap((row, r) => 
                     row.map((letter, c) => {
                       const isSelected = selectedCells.some(cell => cell.r === r && cell.c === c)
@@ -5717,15 +5890,15 @@ export default function MoodTracker() {
                             width: '32px',
                             height: '32px',
                             borderRadius: '8px',
-                            background: isSelected ? '#cbd5e1' : 'white',
-                            border: '1px solid #e2e8f0',
+                            background: isSelected ? 'var(--line-strong)' : 'var(--surface)',
+                            border: '1px solid var(--line)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             fontWeight: 'bold',
                             fontSize: '14px',
                             cursor: 'pointer',
-                            color: '#1e293b',
+                            color: 'var(--ink)',
                             userSelect: 'none'
                           }}
                         >
@@ -5737,10 +5910,10 @@ export default function MoodTracker() {
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '20px' }}>
-                  <button onClick={checkWordSelection} style={{ padding: '8px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>
+                  <button onClick={checkWordSelection} style={{ padding: '8px 16px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>
                     🔍 Check Word
                   </button>
-                  <button onClick={() => { playResetSound(); setSelectedCells([]); }} style={{ padding: '8px 16px', background: '#f3f4f6', color: '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>
+                  <button onClick={() => { playResetSound(); setSelectedCells([]); }} style={{ padding: '8px 16px', background: 'var(--surface-3)', color: 'var(--ink-2)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}>
                     Clear Selection
                   </button>
                 </div>
@@ -5756,8 +5929,8 @@ export default function MoodTracker() {
                           borderRadius: '20px',
                           fontSize: '12px',
                           fontWeight: 'bold',
-                          background: found ? '#d1fae5' : '#f1f5f9',
-                          color: found ? '#065f46' : '#94a3b8',
+                          background: found ? 'var(--success-soft)' : 'var(--surface-3)',
+                          color: found ? 'var(--success-ink)' : 'var(--ink-4)',
                           textDecoration: found ? 'line-through' : 'none',
                           border: `1px solid ${found ? '#a7f3d0' : '#cbd5e1'}`
                         }}
@@ -5773,12 +5946,12 @@ export default function MoodTracker() {
             {/* FLAPPY BIRD */}
             {activeGame === 'flappy' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🐦 Flappy Bird</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '16px' }}>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🐦 Flappy Bird</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '16px' }}>
                   Tap flap to fly! Navigate through the green pipes.
                 </p>
-                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#1e293b', marginBottom: '12px' }}>
-                  Score: <strong style={{ color: '#4f46e5' }}>{flappyScore}</strong>
+                <div style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--ink)', marginBottom: '12px' }}>
+                  Score: <strong style={{ color: 'var(--primary)' }}>{flappyScore}</strong>
                 </div>
 
                 {/* Sky viewport */}
@@ -5788,8 +5961,8 @@ export default function MoodTracker() {
                     position: 'relative', 
                     width: '320px', 
                     height: '200px', 
-                    background: 'linear-gradient(to bottom, #bae6fd, #e0f2fe)', 
-                    border: '2px solid #cbd5e1', 
+                    background: 'linear-gradient(to bottom, var(--sky-soft), var(--sky-soft))', 
+                    border: '2px solid var(--line-strong)', 
                     borderRadius: '16px', 
                     margin: '0 auto 16px', 
                     overflow: 'hidden',
@@ -5801,18 +5974,18 @@ export default function MoodTracker() {
                   {!flappyStarted && !flappyOver && (
                     <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.75)', zIndex: 10 }}>
                       <span style={{ fontSize: '24px', marginBottom: '6px' }}>👆</span>
-                      <span style={{ fontWeight: 'bold', color: '#1e293b', fontSize: '14px' }}>Click inside or tap Flap to start</span>
+                      <span style={{ fontWeight: 'bold', color: 'var(--ink)', fontSize: '14px' }}>Click inside or tap Flap to start</span>
                     </div>
                   )}
 
                   {/* Game Over Overlay */}
                   {flappyOver && (
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(254,242,242,0.9)', zIndex: 10 }}>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'color-mix(in srgb, var(--danger) 90%, transparent)', zIndex: 10 }}>
                       <span style={{ fontSize: '28px', marginBottom: '4px' }}>💥</span>
-                      <span style={{ fontWeight: 'bold', color: '#b91c1c', fontSize: '15px', marginBottom: '8px' }}>Game Over!</span>
+                      <span style={{ fontWeight: 'bold', color: 'var(--danger-ink)', fontSize: '15px', marginBottom: '8px' }}>Game Over!</span>
                       <button 
                         onClick={(e) => { e.stopPropagation(); initFlappyGame(); }} 
-                        style={{ padding: '6px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                        style={{ padding: '6px 12px', background: 'var(--danger-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
                       >
                         Try Again
                       </button>
@@ -5849,10 +6022,10 @@ export default function MoodTracker() {
                           top: 0, 
                           width: '30px', 
                           height: `${pipe.top}px`, 
-                          background: 'linear-gradient(to right, #10b981, #059669)', 
+                          background: 'linear-gradient(to right, var(--success-fill), var(--success-fill))', 
                           borderBottomLeftRadius: '6px', 
                           borderBottomRightRadius: '6px',
-                          border: '1px solid #047857',
+                          border: '1px solid var(--success)',
                           borderTop: 'none'
                         }} 
                       />
@@ -5864,10 +6037,10 @@ export default function MoodTracker() {
                           top: `${pipe.bottom}px`, 
                           width: '30px', 
                           height: `${200 - pipe.bottom}px`, 
-                          background: 'linear-gradient(to right, #10b981, #059669)', 
+                          background: 'linear-gradient(to right, var(--success-fill), var(--success-fill))', 
                           borderTopLeftRadius: '6px', 
                           borderTopRightRadius: '6px',
-                          border: '1px solid #047857',
+                          border: '1px solid var(--success)',
                           borderBottom: 'none'
                         }} 
                       />
@@ -5879,13 +6052,13 @@ export default function MoodTracker() {
                   <button 
                     disabled={flappyOver}
                     onClick={flapFlappyBird} 
-                    style={{ padding: '10px 24px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 10px rgba(59, 130, 246, 0.2)' }}
+                    style={{ padding: '10px 24px', background: 'var(--sky-fill)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 10px color-mix(in srgb, var(--sky) 20%, transparent)' }}
                   >
                     🚀 Flap (Jump)
                   </button>
                   <button 
                     onClick={initFlappyGame} 
-                    style={{ padding: '10px 18px', background: '#cbd5e1', color: '#475569', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
+                    style={{ padding: '10px 18px', background: 'var(--line-strong)', color: 'var(--ink-2)', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
                   >
                     🔄 Reset
                   </button>
@@ -5896,8 +6069,8 @@ export default function MoodTracker() {
             {/* BRICK BREAKER */}
             {activeGame === 'bricks' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🧱 Brick Breaker</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '16px' }}>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🧱 Brick Breaker</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '16px' }}>
                   Bounce the ball to clear all colored blocks!
                 </p>
 
@@ -5917,12 +6090,12 @@ export default function MoodTracker() {
                 >
                   {/* Instructions Overlay */}
                   {!brickStarted && !brickOver && !brickWin && (
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(30, 41, 59, 0.85)', zIndex: 10 }}>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'color-mix(in srgb, var(--sky) 85%, transparent)', zIndex: 10 }}>
                       <span style={{ fontSize: '24px', marginBottom: '6px' }}>🎮</span>
                       <span style={{ fontWeight: 'bold', color: 'white', fontSize: '14px', marginBottom: '12px' }}>Clear the blocks to win!</span>
                       <button 
                         onClick={() => setBrickStarted(true)} 
-                        style={{ padding: '8px 18px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
+                        style={{ padding: '8px 18px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
                       >
                         Start Game
                       </button>
@@ -5931,12 +6104,12 @@ export default function MoodTracker() {
 
                   {/* Game Over Overlay */}
                   {brickOver && (
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(254, 242, 242, 0.95)', zIndex: 10 }}>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'color-mix(in srgb, var(--danger) 95%, transparent)', zIndex: 10 }}>
                       <span style={{ fontSize: '28px', marginBottom: '4px' }}>💥</span>
-                      <span style={{ fontWeight: 'bold', color: '#b91c1c', fontSize: '15px', marginBottom: '8px' }}>Game Over!</span>
+                      <span style={{ fontWeight: 'bold', color: 'var(--danger-ink)', fontSize: '15px', marginBottom: '8px' }}>Game Over!</span>
                       <button 
                         onClick={initBricksGame} 
-                        style={{ padding: '8px 16px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 'bold' }}
+                        style={{ padding: '8px 16px', background: 'var(--danger-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 'bold' }}
                       >
                         Restart
                       </button>
@@ -5945,12 +6118,12 @@ export default function MoodTracker() {
 
                   {/* Victory Overlay */}
                   {brickWin && (
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(240, 253, 250, 0.95)', zIndex: 10 }}>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'color-mix(in srgb, var(--primary) 95%, transparent)', zIndex: 10 }}>
                       <span style={{ fontSize: '28px', marginBottom: '4px' }}>🏆</span>
-                      <span style={{ fontWeight: 'bold', color: '#0f766e', fontSize: '15px', marginBottom: '8px' }}>Victory! All blocks cleared!</span>
+                      <span style={{ fontWeight: 'bold', color: 'var(--primary-ink)', fontSize: '15px', marginBottom: '8px' }}>Victory! All blocks cleared!</span>
                       <button 
                         onClick={initBricksGame} 
-                        style={{ padding: '8px 16px', background: '#0d9488', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 'bold' }}
+                        style={{ padding: '8px 16px', background: 'var(--primary-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 'bold' }}
                       >
                         Play Again
                       </button>
@@ -5965,7 +6138,7 @@ export default function MoodTracker() {
                       top: `${brickBall.y - 5}px`, 
                       width: '10px', 
                       height: '10px', 
-                      background: '#fb923c', 
+                      background: 'var(--sun-fill)', 
                       borderRadius: '50%',
                       boxShadow: '0 0 8px #fb923c'
                     }} 
@@ -5979,9 +6152,9 @@ export default function MoodTracker() {
                       top: '185px', 
                       width: '60px', 
                       height: '8px', 
-                      background: '#38bdf8', 
+                      background: 'var(--primary-fill)', 
                       borderRadius: '4px',
-                      boxShadow: '0 2px 4px rgba(56, 189, 248, 0.4)'
+                      boxShadow: '0 2px 4px color-mix(in srgb, var(--primary) 40%, transparent)'
                     }} 
                   />
 
@@ -5995,7 +6168,7 @@ export default function MoodTracker() {
                         top: `${brick.y - 8}px`, 
                         width: '60px', 
                         height: '16px', 
-                        background: brick.id % 3 === 0 ? '#f43f5e' : brick.id % 3 === 1 ? '#a855f7' : '#ec4899', 
+                        background: brick.id % 3 === 0 ? 'var(--danger-fill)' : brick.id % 3 === 1 ? 'var(--primary-fill)' : 'var(--rose-fill)', 
                         border: '1px solid #1e293b',
                         borderRadius: '3px'
                       }} 
@@ -6021,7 +6194,7 @@ export default function MoodTracker() {
                   </button>
                   <button 
                     onClick={initBricksGame} 
-                    style={{ padding: '10px 16px', background: '#cbd5e1', color: '#475569', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
+                    style={{ padding: '10px 16px', background: 'var(--line-strong)', color: 'var(--ink-2)', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
                   >
                     🔄 Reset
                   </button>
@@ -6032,12 +6205,12 @@ export default function MoodTracker() {
             {/* CATCH THE STARS */}
             {activeGame === 'catch' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🌠 Catch the Stars</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '16px' }}>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🌠 Catch the Stars</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '16px' }}>
                   Move the basket left and right to catch the falling stars!
                 </p>
-                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#1e293b', marginBottom: '12px' }}>
-                  Score: <strong style={{ color: '#eab308' }}>{catchScore} / 5</strong>
+                <div style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--ink)', marginBottom: '12px' }}>
+                  Score: <strong style={{ color: 'var(--warn)' }}>{catchScore} / 5</strong>
                 </div>
 
                 {/* Viewport (400x200) */}
@@ -6056,12 +6229,12 @@ export default function MoodTracker() {
                 >
                   {/* Game Over / Win Overlay */}
                   {catchOver && (
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'rgba(240, 253, 250, 0.95)', zIndex: 10 }}>
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'color-mix(in srgb, var(--primary) 95%, transparent)', zIndex: 10 }}>
                       <span style={{ fontSize: '32px', marginBottom: '4px' }}>🎉</span>
-                      <span style={{ fontWeight: 'bold', color: '#0f766e', fontSize: '15px', marginBottom: '8px' }}>Superb! Caught all 5 stars!</span>
+                      <span style={{ fontWeight: 'bold', color: 'var(--primary-ink)', fontSize: '15px', marginBottom: '8px' }}>Superb! Caught all 5 stars!</span>
                       <button 
                         onClick={initCatchGame} 
-                        style={{ padding: '8px 16px', background: '#0d9488', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 'bold' }}
+                        style={{ padding: '8px 16px', background: 'var(--primary-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 'bold' }}
                       >
                         Play Again
                       </button>
@@ -6119,7 +6292,7 @@ export default function MoodTracker() {
                   </button>
                   <button 
                     onClick={initCatchGame} 
-                    style={{ padding: '10px 16px', background: '#cbd5e1', color: '#475569', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
+                    style={{ padding: '10px 16px', background: 'var(--line-strong)', color: 'var(--ink-2)', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
                   >
                     🔄 Reset
                   </button>
@@ -6130,19 +6303,19 @@ export default function MoodTracker() {
             {/* CLICK SPEED TEST */}
             {activeGame === 'clicktest' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>⚡ Click Speed Test</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>⚡ Click Speed Test</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>
                   Tap the button as many times as possible before the timer runs out!
                 </p>
 
-                <div style={{ display: 'flex', justifyContent: 'space-around', maxWidth: '300px', margin: '0 auto 20px', background: '#f8fafc', padding: '12px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-around', maxWidth: '300px', margin: '0 auto 20px', background: 'var(--surface-2)', padding: '12px', borderRadius: '16px', border: '1px solid var(--line)' }}>
                   <div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase' }}>Time Left</div>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: clickTestTimeLeft <= 1 ? '#ef4444' : '#1e293b' }}>{clickTestTimeLeft}s</div>
+                    <div style={{ fontSize: '11px', color: 'var(--ink-4)', fontWeight: 'bold', textTransform: 'uppercase' }}>Time Left</div>
+                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: clickTestTimeLeft <= 1 ? 'var(--danger)' : 'var(--ink)' }}>{clickTestTimeLeft}s</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 'bold', textTransform: 'uppercase' }}>Total Clicks</div>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#4f46e5' }}>{clickTestCount}</div>
+                    <div style={{ fontSize: '11px', color: 'var(--ink-4)', fontWeight: 'bold', textTransform: 'uppercase' }}>Total Clicks</div>
+                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--primary)' }}>{clickTestCount}</div>
                   </div>
                 </div>
 
@@ -6153,13 +6326,13 @@ export default function MoodTracker() {
                       width: '160px', 
                       height: '160px', 
                       borderRadius: '50%', 
-                      background: clickTestActive ? 'linear-gradient(135deg, #f43f5e, #e11d48)' : 'linear-gradient(135deg, #6366f1, #4f46e5)', 
+                      background: clickTestActive ? 'linear-gradient(135deg, var(--danger-fill), var(--danger-fill))' : 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', 
                       color: 'white', 
                       border: 'none', 
                       fontSize: '20px', 
                       fontWeight: 'bold', 
                       cursor: 'pointer', 
-                      boxShadow: '0 10px 25px -5px rgba(79, 70, 229, 0.4)',
+                      boxShadow: '0 10px 25px -5px color-mix(in srgb, var(--primary) 40%, transparent)',
                       transition: 'transform 0.05s, background-color 0.2s',
                       outline: 'none',
                       margin: '0 auto 20px',
@@ -6172,7 +6345,7 @@ export default function MoodTracker() {
                   </button>
                 ) : (
                   <div style={{ marginBottom: '20px' }}>
-                    <div style={{ background: '#ecfdf5', color: '#065f46', padding: '16px', borderRadius: '16px', fontWeight: 'bold', fontSize: '15px', border: '1px solid #a7f3d0', marginBottom: '16px' }}>
+                    <div style={{ background: 'var(--success-soft)', color: 'var(--success-ink)', padding: '16px', borderRadius: '16px', fontWeight: 'bold', fontSize: '15px', border: '1px solid var(--success)', marginBottom: '16px' }}>
                       🎉 Final Score: {(clickTestCount / 5).toFixed(1)} clicks per second! ({clickTestCount} clicks total)
                     </div>
                   </div>
@@ -6180,7 +6353,7 @@ export default function MoodTracker() {
 
                 <button 
                   onClick={initClickTest} 
-                  style={{ padding: '10px 20px', background: '#cbd5e1', color: '#475569', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
+                  style={{ padding: '10px 20px', background: 'var(--line-strong)', color: 'var(--ink-2)', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
                 >
                   🔄 Restart Test
                 </button>
@@ -6190,8 +6363,8 @@ export default function MoodTracker() {
             {/* WOULD YOU RATHER */}
             {activeGame === 'wouldyourather' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>⚖️ Would You Rather?</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Choose your preference and see how others voted!</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>⚖️ Would You Rather?</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Choose your preference and see how others voted!</p>
                 {(() => {
                   const questions = [
                     { q: 'Would you rather...', a: 'Have the ability to fly 🦅', b: 'Be able to read minds 🧠', pctA: 62, pctB: 38 },
@@ -6203,30 +6376,30 @@ export default function MoodTracker() {
                   const q = questions[wyrIndex % questions.length];
                   return (
                     <div>
-                      <h4 style={{ color: '#475569', marginBottom: '20px', fontStyle: 'italic' }}>"{q.q}"</h4>
+                      <h4 style={{ color: 'var(--ink-2)', marginBottom: '20px', fontStyle: 'italic' }}>"{q.q}"</h4>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '360px', margin: '0 auto' }}>
                         {wyrVote === null ? (
                           <>
-                            <button onClick={() => { setWyrVote('A'); playSuccessHarp(); }} style={{ padding: '14px', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 'bold', color: '#1e293b', cursor: 'pointer', textAlign: 'center' }}>{q.a}</button>
-                            <button onClick={() => { setWyrVote('B'); playSuccessHarp(); }} style={{ padding: '14px', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '12px', fontWeight: 'bold', color: '#1e293b', cursor: 'pointer', textAlign: 'center' }}>{q.b}</button>
+                            <button onClick={() => { setWyrVote('A'); playSuccessHarp(); }} style={{ padding: '14px', background: 'var(--surface-2)', border: '2px solid var(--line)', borderRadius: '12px', fontWeight: 'bold', color: 'var(--ink)', cursor: 'pointer', textAlign: 'center' }}>{q.a}</button>
+                            <button onClick={() => { setWyrVote('B'); playSuccessHarp(); }} style={{ padding: '14px', background: 'var(--surface-2)', border: '2px solid var(--line)', borderRadius: '12px', fontWeight: 'bold', color: 'var(--ink)', cursor: 'pointer', textAlign: 'center' }}>{q.b}</button>
                           </>
                         ) : (
-                          <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '16px', border: '1px solid #cbd5e1' }}>
+                          <div style={{ background: 'var(--surface-2)', padding: '16px', borderRadius: '16px', border: '1px solid var(--line-strong)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontWeight: 'bold', fontSize: '13px' }}>
                               <span>{q.a}</span>
-                              <span style={{ color: wyrVote === 'A' ? '#4f46e5' : '#64748b' }}>{q.pctA}% {wyrVote === 'A' && '✅'}</span>
+                              <span style={{ color: wyrVote === 'A' ? 'var(--primary)' : 'var(--ink-3)' }}>{q.pctA}% {wyrVote === 'A' && '✅'}</span>
                             </div>
-                            <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden', marginBottom: '16px' }}>
-                              <div style={{ width: `${q.pctA}%`, height: '100%', background: '#4f46e5' }} />
+                            <div style={{ height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden', marginBottom: '16px' }}>
+                              <div style={{ width: `${q.pctA}%`, height: '100%', background: 'var(--primary-fill)' }} />
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontWeight: 'bold', fontSize: '13px' }}>
                               <span>{q.b}</span>
-                              <span style={{ color: wyrVote === 'B' ? '#4f46e5' : '#64748b' }}>{q.pctB}% {wyrVote === 'B' && '✅'}</span>
+                              <span style={{ color: wyrVote === 'B' ? 'var(--primary)' : 'var(--ink-3)' }}>{q.pctB}% {wyrVote === 'B' && '✅'}</span>
                             </div>
-                            <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden', marginBottom: '16px' }}>
-                              <div style={{ width: `${q.pctB}%`, height: '100%', background: '#4f46e5' }} />
+                            <div style={{ height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden', marginBottom: '16px' }}>
+                              <div style={{ width: `${q.pctB}%`, height: '100%', background: 'var(--primary-fill)' }} />
                             </div>
-                            <button onClick={() => { setWyrVote(null); setWyrIndex(prev => prev + 1); playTickSound(); }} style={{ padding: '8px 16px', background: '#cbd5e1', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 'bold', color: '#475569' }}>Next Question ➡️</button>
+                            <button onClick={() => { setWyrVote(null); setWyrIndex(prev => prev + 1); playTickSound(); }} style={{ padding: '8px 16px', background: 'var(--line-strong)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 'bold', color: 'var(--ink-2)' }}>Next Question ➡️</button>
                           </div>
                         )}
                       </div>
@@ -6239,8 +6412,8 @@ export default function MoodTracker() {
             {/* SLOT MACHINE */}
             {activeGame === 'slots' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🎰 Lucky Emoji Slots</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🎰 Lucky Emoji Slots</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>
                   Spin the reels to match emojis and achieve instant calm!
                 </p>
 
@@ -6252,8 +6425,8 @@ export default function MoodTracker() {
                       style={{ 
                         width: '72px', 
                         height: '96px', 
-                        background: '#fff', 
-                        border: '3px solid #cbd5e1', 
+                        background: 'var(--surface)', 
+                        border: '3px solid var(--line-strong)', 
                         borderRadius: '16px', 
                         fontSize: '36px', 
                         display: 'flex', 
@@ -6272,8 +6445,8 @@ export default function MoodTracker() {
                   <div style={{ 
                     fontSize: '15px', 
                     fontWeight: 'bold', 
-                    color: slotsResult.includes('JACKPOT') ? '#047857' : slotsResult.includes('Small') ? '#1d4ed8' : '#475569', 
-                    background: slotsResult.includes('JACKPOT') ? '#d1fae5' : slotsResult.includes('Small') ? '#dbeafe' : '#f1f5f9',
+                    color: slotsResult.includes('JACKPOT') ? 'var(--success-ink)' : slotsResult.includes('Small') ? 'var(--sky)' : 'var(--ink-2)', 
+                    background: slotsResult.includes('JACKPOT') ? 'var(--success-soft)' : slotsResult.includes('Small') ? 'var(--sky-soft)' : 'var(--surface-3)',
                     padding: '12px', 
                     borderRadius: '12px', 
                     maxWidth: '300px', 
@@ -6289,14 +6462,14 @@ export default function MoodTracker() {
                   onClick={spinSlots} 
                   style={{ 
                     padding: '12px 32px', 
-                    background: slotsSpinning ? '#94a3b8' : 'linear-gradient(135deg, #f59e0b, #d97706)', 
+                    background: slotsSpinning ? 'var(--ink-4)' : 'linear-gradient(135deg, var(--warn-fill), var(--warn-fill))', 
                     color: 'white', 
                     border: 'none', 
                     borderRadius: '12px', 
                     fontSize: '15px', 
                     fontWeight: 'bold', 
                     cursor: slotsSpinning ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 4px 10px rgba(217, 119, 6, 0.2)'
+                    boxShadow: '0 4px 10px color-mix(in srgb, var(--warn) 20%, transparent)'
                   }}
                 >
                   {slotsSpinning ? 'Spinning...' : '🎰 SPIN REELS'}
@@ -6314,23 +6487,23 @@ export default function MoodTracker() {
             {/* HIGHER OR LOWER */}
             {activeGame === 'higherlower' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🃏 Card Higher or Lower</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🃏 Card Higher or Lower</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>
                   Will the next drawn card be larger or smaller than the current card?
                 </p>
 
                 {/* Score panel */}
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '20px', fontSize: '13px', fontWeight: 'bold', color: '#475569' }}>
-                  <span>Correct Guesses: <strong style={{ color: '#10b981' }}>{hlScore}</strong></span>
-                  <span>Active Streak: <strong style={{ color: '#ef4444' }}>{hlStreak}</strong></span>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '20px', fontSize: '13px', fontWeight: 'bold', color: 'var(--ink-2)' }}>
+                  <span>Correct Guesses: <strong style={{ color: 'var(--success-ink)' }}>{hlScore}</strong></span>
+                  <span>Active Streak: <strong style={{ color: 'var(--danger)' }}>{hlStreak}</strong></span>
                 </div>
 
                 {/* Card Display */}
                 <div style={{ 
                   width: '100px', 
                   height: '140px', 
-                  background: 'white', 
-                  border: '2px solid #cbd5e1', 
+                  background: 'var(--surface)', 
+                  border: '2px solid var(--line-strong)', 
                   borderRadius: '16px', 
                   margin: '0 auto 20px', 
                   display: 'flex', 
@@ -6341,13 +6514,13 @@ export default function MoodTracker() {
                   boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)',
                   position: 'relative'
                 }}>
-                  <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#ef4444', alignSelf: 'flex-start' }}>♥</span>
-                  <span style={{ fontSize: '36px', fontWeight: 'extrabold', color: '#1e293b' }}>{hlCard}</span>
-                  <span style={{ fontSize: '20px', fontWeight: 'bold', color: '#ef4444', alignSelf: 'flex-end', transform: 'rotate(180deg)' }}>♥</span>
+                  <span style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--danger)', alignSelf: 'flex-start' }}>♥</span>
+                  <span style={{ fontSize: '36px', fontWeight: 'extrabold', color: 'var(--ink)' }}>{hlCard}</span>
+                  <span style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--danger)', alignSelf: 'flex-end', transform: 'rotate(180deg)' }}>♥</span>
                 </div>
 
                 {hlMessage && (
-                  <p style={{ fontSize: '13px', color: '#475569', fontWeight: '600', maxWidth: '300px', margin: '0 auto 20px' }}>
+                  <p style={{ fontSize: '13px', color: 'var(--ink-2)', fontWeight: '600', maxWidth: '300px', margin: '0 auto 20px' }}>
                     {hlMessage}
                   </p>
                 )}
@@ -6355,19 +6528,19 @@ export default function MoodTracker() {
                 <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
                   <button 
                     onClick={() => guessHigherLower('higher')}
-                    style={{ padding: '10px 20px', background: '#10b981', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
+                    style={{ padding: '10px 20px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
                   >
                     Higher ⬆️
                   </button>
                   <button 
                     onClick={() => guessHigherLower('lower')}
-                    style={{ padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
+                    style={{ padding: '10px 20px', background: 'var(--sky-fill)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
                   >
                     Lower ⬇️
                   </button>
                   <button 
                     onClick={initHigherLower}
-                    style={{ padding: '10px 14px', background: '#cbd5e1', color: '#475569', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
+                    style={{ padding: '10px 14px', background: 'var(--line-strong)', color: 'var(--ink-2)', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
                   >
                     🔄 Reset
                   </button>
@@ -6378,8 +6551,8 @@ export default function MoodTracker() {
             {/* GUESS THE NUMBER */}
             {activeGame === 'guessnumber' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🎲 Guess the Number</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🎲 Guess the Number</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>
                   Select the secret number between 1 and 10!
                 </p>
 
@@ -6387,13 +6560,13 @@ export default function MoodTracker() {
                   <div style={{ 
                     fontSize: '13.5px', 
                     fontWeight: 'bold', 
-                    color: gnMessage.includes('Correct') ? '#047857' : '#475569', 
-                    background: gnMessage.includes('Correct') ? '#d1fae5' : '#f8fafc',
+                    color: gnMessage.includes('Correct') ? 'var(--success-ink)' : 'var(--ink-2)', 
+                    background: gnMessage.includes('Correct') ? 'var(--success-soft)' : 'var(--surface-2)',
                     padding: '12px 16px', 
                     borderRadius: '12px', 
                     maxWidth: '320px', 
                     margin: '0 auto 20px',
-                    border: '1px solid #cbd5e1',
+                    border: '1px solid var(--line-strong)',
                     boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
                   }}>
                     {gnMessage}
@@ -6411,11 +6584,11 @@ export default function MoodTracker() {
                         padding: '10px 0',
                         fontSize: '14px',
                         fontWeight: 'bold',
-                        background: 'white',
-                        border: '1.5px solid #cbd5e1',
+                        background: 'var(--surface)',
+                        border: '1.5px solid var(--line-strong)',
                         borderRadius: '8px',
                         cursor: 'pointer',
-                        color: '#1e293b',
+                        color: 'var(--ink)',
                         transition: 'all 0.15s'
                       }}
                     >
@@ -6426,7 +6599,7 @@ export default function MoodTracker() {
 
                 <button 
                   onClick={initGuessNumber}
-                  style={{ padding: '10px 20px', background: '#cbd5e1', color: '#475569', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
+                  style={{ padding: '10px 20px', background: 'var(--line-strong)', color: 'var(--ink-2)', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
                 >
                   🔄 Try Another
                 </button>
@@ -6436,8 +6609,8 @@ export default function MoodTracker() {
             {/* COIN FLIP */}
             {activeGame === 'coinflip' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🪙 Predict the Coin Flip</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🪙 Predict the Coin Flip</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>
                   Choose Heads or Tails, then flip the golden coin!
                 </p>
 
@@ -6446,8 +6619,8 @@ export default function MoodTracker() {
                   width: '90px', 
                   height: '90px', 
                   borderRadius: '50%', 
-                  background: 'linear-gradient(135deg, #fbbf24, #f59e0b)', 
-                  border: '4px solid #d97706',
+                  background: 'linear-gradient(135deg, var(--warn-fill), var(--warn-fill))', 
+                  border: '4px solid var(--warn)',
                   color: 'white', 
                   fontSize: '36px', 
                   display: 'flex', 
@@ -6455,15 +6628,14 @@ export default function MoodTracker() {
                   justifyContent: 'center', 
                   fontWeight: 'extrabold', 
                   margin: '0 auto 20px',
-                  boxShadow: '0 8px 16px rgba(217, 119, 6, 0.25)',
+                  boxShadow: '0 8px 16px color-mix(in srgb, var(--warn) 25%, transparent)',
                   transform: cfMessage === 'Flipping...' ? 'rotateY(720deg)' : 'none',
-                  transition: 'transform 0.8s ease-out'
-                }}>
+                  transition: 'transform 0.8s ease-out', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
                   {cfResult ? (cfResult === 'Heads' ? '👤' : '🪙') : '🪙'}
                 </div>
 
                 {cfMessage && (
-                  <p style={{ fontSize: '13.5px', color: '#1e293b', fontWeight: 'bold', marginBottom: '20px' }}>
+                  <p style={{ fontSize: '13.5px', color: 'var(--ink)', fontWeight: 'bold', marginBottom: '20px' }}>
                     {cfMessage}
                   </p>
                 )}
@@ -6471,13 +6643,13 @@ export default function MoodTracker() {
                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                   <button
                     onClick={() => flipCoin('Heads')}
-                    style={{ padding: '10px 20px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
+                    style={{ padding: '10px 20px', background: 'var(--warn-fill)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
                   >
                     👤 Choose Heads
                   </button>
                   <button
                     onClick={() => flipCoin('Tails')}
-                    style={{ padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
+                    style={{ padding: '10px 20px', background: 'var(--sky-fill)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
                   >
                     🪙 Choose Tails
                   </button>
@@ -6488,19 +6660,19 @@ export default function MoodTracker() {
             {/* MATH QUIZ */}
             {activeGame === 'mathquiz' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>➕ Mindful Math Quiz</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>➕ Mindful Math Quiz</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>
                   Solve the equation to sharpen your focus!
                 </p>
 
                 <div style={{ 
-                  background: '#f8fafc', 
-                  border: '1.5px solid #e2e8f0', 
+                  background: 'var(--surface-2)', 
+                  border: '1.5px solid var(--line)', 
                   padding: '24px', 
                   borderRadius: '16px', 
                   fontSize: '28px', 
                   fontWeight: 'bold', 
-                  color: '#1e293b', 
+                  color: 'var(--ink)', 
                   marginBottom: '20px',
                   boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
                 }}>
@@ -6511,8 +6683,8 @@ export default function MoodTracker() {
                   <div style={{ 
                     fontSize: '13.5px', 
                     fontWeight: 'bold', 
-                    color: mqMessage.includes('Correct') ? '#047857' : '#ef4444', 
-                    background: mqMessage.includes('Correct') ? '#d1fae5' : '#fee2e2',
+                    color: mqMessage.includes('Correct') ? 'var(--success-ink)' : 'var(--danger)', 
+                    background: mqMessage.includes('Correct') ? 'var(--success-soft)' : 'var(--danger-soft)',
                     padding: '12px', 
                     borderRadius: '12px', 
                     maxWidth: '300px', 
@@ -6532,11 +6704,11 @@ export default function MoodTracker() {
                         padding: '12px 24px',
                         fontSize: '16px',
                         fontWeight: 'bold',
-                        background: 'white',
-                        border: '1.5px solid #cbd5e1',
+                        background: 'var(--surface)',
+                        border: '1.5px solid var(--line-strong)',
                         borderRadius: '10px',
                         cursor: 'pointer',
-                        color: '#1e293b',
+                        color: 'var(--ink)',
                         boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
                       }}
                     >
@@ -6547,7 +6719,7 @@ export default function MoodTracker() {
 
                 <button 
                   onClick={initMathQuiz}
-                  style={{ padding: '10px 20px', background: '#cbd5e1', color: '#475569', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
+                  style={{ padding: '10px 20px', background: 'var(--line-strong)', color: 'var(--ink-2)', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
                 >
                   🔄 Next Quiz
                 </button>
@@ -6557,12 +6729,12 @@ export default function MoodTracker() {
             {/* COLOR REFLEX MATCH */}
             {activeGame === 'colormatch' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🔴 Color Reflex Match</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '16px' }}>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🔴 Color Reflex Match</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '16px' }}>
                   Does the color word match the color it is printed in?
                 </p>
-                <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#1e293b', marginBottom: '20px' }}>
-                  Score: <strong style={{ color: '#10b981' }}>{crScore}</strong>
+                <div style={{ fontSize: '16px', fontWeight: 'bold', color: 'var(--ink)', marginBottom: '20px' }}>
+                  Score: <strong style={{ color: 'var(--success-ink)' }}>{crScore}</strong>
                 </div>
 
                 {/* Color word box */}
@@ -6575,7 +6747,7 @@ export default function MoodTracker() {
                   color: crColor, 
                   letterSpacing: '2px',
                   marginBottom: '20px',
-                  boxShadow: '0 4px 12px rgba(30,41,59,0.1)'
+                  boxShadow: '0 4px 12px color-mix(in srgb, var(--sky) 10%, transparent)'
                 }}>
                   {crText}
                 </div>
@@ -6583,7 +6755,7 @@ export default function MoodTracker() {
                 {crMessage && (
                   <p style={{ 
                     fontSize: '13.5px', 
-                    color: crMessage.includes('Correct') ? '#047857' : crMessage.includes('Incorrect') ? '#b91c1c' : '#475569', 
+                    color: crMessage.includes('Correct') ? 'var(--success-ink)' : crMessage.includes('Incorrect') ? 'var(--danger-ink)' : 'var(--ink-2)', 
                     fontWeight: 'bold', 
                     marginBottom: '20px' 
                   }}>
@@ -6594,13 +6766,13 @@ export default function MoodTracker() {
                 <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                   <button
                     onClick={() => answerColorMatch(true)}
-                    style={{ padding: '10px 24px', background: '#10b981', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13.5px' }}
+                    style={{ padding: '10px 24px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13.5px' }}
                   >
                     Yes, Match ✅
                   </button>
                   <button
                     onClick={() => answerColorMatch(false)}
-                    style={{ padding: '10px 24px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13.5px' }}
+                    style={{ padding: '10px 24px', background: 'var(--danger-fill)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13.5px' }}
                   >
                     No, Mismatch ❌
                   </button>
@@ -6630,8 +6802,8 @@ export default function MoodTracker() {
               const board = getChessBoard();
               return (
                 <div style={{ textAlign: 'center' }}>
-                  <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>👑 Chess Puzzle Challenge</h3>
-                  <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '16px' }}>
+                  <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>👑 Chess Puzzle Challenge</h3>
+                  <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '16px' }}>
                     Solve the tactical chess puzzle! Difficulty rating: <strong>{activeGameData.rating}</strong>
                   </p>
                   
@@ -6704,7 +6876,7 @@ export default function MoodTracker() {
                   {chessFeedback && (
                     <p style={{
                       fontSize: '14px',
-                      color: chessFeedback.includes('Correct') || chessFeedback.includes('Solved') ? '#047857' : '#b91c1c',
+                      color: chessFeedback.includes('Correct') || chessFeedback.includes('Solved') ? 'var(--success-ink)' : 'var(--danger-ink)',
                       fontWeight: 'bold',
                       marginBottom: '16px'
                     }}>
@@ -6721,7 +6893,7 @@ export default function MoodTracker() {
                           setChessFeedback('');
                           setChessSelectedCell(null);
                         }}
-                        style={{ padding: '8px 18px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                        style={{ padding: '8px 18px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                       >
                         🔄 Play Again
                       </button>
@@ -6734,17 +6906,17 @@ export default function MoodTracker() {
             {/* DYNAMIC TRIVIA */}
             {activeGame === 'trivia' && activeGameData && activeGameData.question && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>❓ Dynamic Trivia Quiz</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Select the correct answer to solve this trivia puzzle:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>❓ Dynamic Trivia Quiz</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Select the correct answer to solve this trivia puzzle:</p>
 
                 <div style={{
                   fontSize: '16px',
                   fontWeight: 'bold',
-                  color: '#1e293b',
-                  background: '#f8fafc',
+                  color: 'var(--ink)',
+                  background: 'var(--surface-2)',
                   padding: '20px',
                   borderRadius: '16px',
-                  border: '1px solid #e2e8f0',
+                  border: '1px solid var(--line)',
                   marginBottom: '20px',
                   lineHeight: '1.5'
                 }} dangerouslySetInnerHTML={{ __html: activeGameData.question }} />
@@ -6770,10 +6942,10 @@ export default function MoodTracker() {
                         }}
                         style={{
                           padding: '12px',
-                          background: isAnswered ? (isCorrect ? '#d1fae5' : isSelected ? '#fee2e2' : '#f8fafc') : '#f8fafc',
+                          background: isAnswered ? (isCorrect ? 'var(--success-soft)' : isSelected ? 'var(--danger-soft)' : 'var(--surface-2)') : 'var(--surface-2)',
                           border: `2px solid ${isAnswered ? (isCorrect ? '#10b981' : isSelected ? '#ef4444' : '#e2e8f0') : '#e2e8f0'}`,
                           borderRadius: '12px',
-                          color: '#1e293b',
+                          color: 'var(--ink)',
                           fontWeight: 'bold',
                           cursor: 'pointer',
                           textAlign: 'left'
@@ -6788,7 +6960,7 @@ export default function MoodTracker() {
                   <p style={{
                     marginTop: '20px',
                     fontSize: '14.5px',
-                    color: triviaFeedback.includes('Correct') ? '#047857' : '#b91c1c',
+                    color: triviaFeedback.includes('Correct') ? 'var(--success-ink)' : 'var(--danger-ink)',
                     fontWeight: 'bold'
                   }}>
                     {triviaFeedback}
@@ -6800,9 +6972,9 @@ export default function MoodTracker() {
             {/* SPEED MATH */}
             {activeGame === 'speedmath' && activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>⚡ Speed Math</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Solve this rapid math equation:</p>
-                <div style={{ fontSize: '32px', fontWeight: 'extrabold', color: '#1e293b', background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>⚡ Speed Math</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Solve this rapid math equation:</p>
+                <div style={{ fontSize: '32px', fontWeight: 'extrabold', color: 'var(--ink)', background: 'var(--surface-2)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)', marginBottom: '20px' }}>
                   {activeGameData.question}
                 </div>
                 
@@ -6828,10 +7000,10 @@ export default function MoodTracker() {
                         }}
                         style={{
                           padding: '12px',
-                          background: isAnswered ? (isCorrect ? '#d1fae5' : isSelected ? '#fee2e2' : '#f8fafc') : '#f8fafc',
+                          background: isAnswered ? (isCorrect ? 'var(--success-soft)' : isSelected ? 'var(--danger-soft)' : 'var(--surface-2)') : 'var(--surface-2)',
                           border: `2px solid ${isAnswered ? (isCorrect ? '#10b981' : isSelected ? '#ef4444' : '#e2e8f0') : '#e2e8f0'}`,
                           borderRadius: '12px',
-                          color: '#1e293b',
+                          color: 'var(--ink)',
                           fontWeight: 'bold',
                           fontSize: '16px',
                           cursor: 'pointer',
@@ -6848,7 +7020,7 @@ export default function MoodTracker() {
                   <div>
                     <p style={{
                       fontSize: '14.5px',
-                      color: quizFeedback.includes('Correct') ? '#047857' : '#b91c1c',
+                      color: quizFeedback.includes('Correct') ? 'var(--success-ink)' : 'var(--danger-ink)',
                       fontWeight: 'bold',
                       marginBottom: '20px'
                     }}>
@@ -6868,7 +7040,7 @@ export default function MoodTracker() {
                           options: [ans, ans + 4, ans - 3].sort(() => Math.random() - 0.5)
                         });
                       }}
-                      style={{ padding: '8px 18px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                      style={{ padding: '8px 18px', background: 'var(--sky-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                     >
                       Next Equation ➡️
                     </button>
@@ -6902,8 +7074,8 @@ export default function MoodTracker() {
               }
               return (
                 <div style={{ textAlign: 'center' }}>
-                  <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🧠 Visual Memory</h3>
-                  <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '16px' }}>Repeat the flashed sequence of grids to train concentration:</p>
+                  <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🧠 Visual Memory</h3>
+                  <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '16px' }}>Repeat the flashed sequence of grids to train concentration:</p>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', maxWidth: '180px', margin: '0 auto 24px' }}>
                     {[0, 1, 2, 3].map((val) => {
@@ -6930,7 +7102,7 @@ export default function MoodTracker() {
 
                   <button 
                     onClick={() => { playTickSound(); setQuizFeedback(''); setSimonUserIndex(0); flashSimonSequence(simonSequence); }} 
-                    style={{ padding: '8px 18px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
+                    style={{ padding: '8px 18px', background: 'var(--primary-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
                   >
                     🔊 Replay Sequence
                   </button>
@@ -6939,7 +7111,7 @@ export default function MoodTracker() {
                     <p style={{
                       marginTop: '20px',
                       fontSize: '14px',
-                      color: quizFeedback.includes('Perfect') ? '#047857' : '#b91c1c',
+                      color: quizFeedback.includes('Perfect') ? 'var(--success-ink)' : 'var(--danger-ink)',
                       fontWeight: 'bold'
                     }}>
                       {quizFeedback}
@@ -6952,12 +7124,12 @@ export default function MoodTracker() {
             {/* PATTERN MATCH */}
             {activeGame === 'patternmatch' && activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>📊 Pattern Match</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Identify the missing shape in the logical sequence:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>📊 Pattern Match</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Identify the missing shape in the logical sequence:</p>
 
-                <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#1e293b', background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '24px', display: 'flex', justifyContent: 'center', gap: '16px' }}>
+                <div style={{ fontSize: '32px', fontWeight: 'bold', color: 'var(--ink)', background: 'var(--surface-2)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)', marginBottom: '24px', display: 'flex', justifyContent: 'center', gap: '16px' }}>
                   {activeGameData.sequence.map((item, idx) => (
-                    <span key={idx} style={{ color: item === '?' ? '#4f46e5' : '#1e293b' }}>{item}</span>
+                    <span key={idx} style={{ color: item === '?' ? 'var(--primary)' : 'var(--ink)' }}>{item}</span>
                   ))}
                 </div>
 
@@ -6982,7 +7154,7 @@ export default function MoodTracker() {
                         }}
                         style={{
                           padding: '12px 20px',
-                          background: isAnswered ? (isCorrect ? '#d1fae5' : isSelected ? '#fee2e2' : '#f8fafc') : '#f8fafc',
+                          background: isAnswered ? (isCorrect ? 'var(--success-soft)' : isSelected ? 'var(--danger-soft)' : 'var(--surface-2)') : 'var(--surface-2)',
                           border: `2px solid ${isAnswered ? (isCorrect ? '#10b981' : isSelected ? '#ef4444' : '#e2e8f0') : '#e2e8f0'}`,
                           borderRadius: '12px',
                           fontSize: '24px',
@@ -6999,7 +7171,7 @@ export default function MoodTracker() {
                   <p style={{
                     marginTop: '20px',
                     fontSize: '14.5px',
-                    color: quizFeedback.includes('Correct') ? '#047857' : '#b91c1c',
+                    color: quizFeedback.includes('Correct') ? 'var(--success-ink)' : 'var(--danger-ink)',
                     fontWeight: 'bold'
                   }}>
                     {quizFeedback}
@@ -7011,8 +7183,8 @@ export default function MoodTracker() {
             {/* SUDOKU */}
             {activeGame === 'sudoku' && activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🔢 Sudoku Puzzle</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '16px' }}>Fill in the missing numbers (1-9) to complete the grid:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🔢 Sudoku Puzzle</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '16px' }}>Fill in the missing numbers (1-9) to complete the grid:</p>
                 
                 <div style={{
                   display: 'grid',
@@ -7020,7 +7192,7 @@ export default function MoodTracker() {
                   gap: '2px',
                   maxWidth: '340px',
                   margin: '0 auto 20px',
-                  background: '#cbd5e1',
+                  background: 'var(--line-strong)',
                   padding: '4px',
                   borderRadius: '8px'
                 }}>
@@ -7051,8 +7223,8 @@ export default function MoodTracker() {
                             textAlign: 'center',
                             fontSize: '14px',
                             fontWeight: isOriginal ? 'extrabold' : 'bold',
-                            background: isOriginal ? '#f1f5f9' : 'white',
-                            color: isOriginal ? '#475569' : '#4f46e5',
+                            background: isOriginal ? 'var(--surface-3)' : 'var(--surface)',
+                            color: isOriginal ? 'var(--ink-2)' : 'var(--primary)',
                             border: 'none',
                             outline: 'none',
                             borderRight,
@@ -7085,7 +7257,7 @@ export default function MoodTracker() {
                         setQuizFeedback('Incorrect solutions exist or board is incomplete. Keep trying! ❌');
                       }
                     }}
-                    style={{ padding: '8px 18px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                    style={{ padding: '8px 18px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                   >
                     Check Solution
                   </button>
@@ -7095,7 +7267,7 @@ export default function MoodTracker() {
                       setSudokuPlayBoard(activeGameData.board.map(row => [...row]));
                       setQuizFeedback('');
                     }}
-                    style={{ padding: '8px 18px', background: '#f3f4f6', color: '#475569', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                    style={{ padding: '8px 18px', background: 'var(--surface-3)', color: 'var(--ink-2)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                   >
                     Reset Board
                   </button>
@@ -7104,7 +7276,7 @@ export default function MoodTracker() {
                 {quizFeedback && (
                   <p style={{
                     fontSize: '14px',
-                    color: quizFeedback.includes('Congratulations') ? '#047857' : '#b91c1c',
+                    color: quizFeedback.includes('Congratulations') ? 'var(--success-ink)' : 'var(--danger-ink)',
                     fontWeight: 'bold'
                   }}>
                     {quizFeedback}
@@ -7116,16 +7288,16 @@ export default function MoodTracker() {
             {/* CROSSWORD */}
             {activeGame === 'crossword' && activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🧩 Mindful Crossword</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Solve these clues with calming mental health terms:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🧩 Mindful Crossword</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Solve these clues with calming mental health terms:</p>
                 
-                <div style={{ textAlign: 'left', maxWidth: '400px', margin: '0 auto 20px', background: '#f8fafc', padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ textAlign: 'left', maxWidth: '400px', margin: '0 auto 20px', background: 'var(--surface-2)', padding: '16px', borderRadius: '16px', border: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {activeGameData.clues.map((item, idx) => {
                     const userVal = (quizInput.split(',')[idx] || '').trim().toUpperCase();
                     const isCorrect = userVal === item.word.toUpperCase();
                     return (
                       <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: '600', color: '#475569' }}>Clue {idx + 1}: {item.clue}</span>
+                        <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--ink-2)' }}>Clue {idx + 1}: {item.clue}</span>
                         <input
                           type="text"
                           placeholder="Type answer..."
@@ -7139,10 +7311,10 @@ export default function MoodTracker() {
                             padding: '8px 12px',
                             borderRadius: '8px',
                             border: `1px solid ${isCorrect ? '#10b981' : '#cbd5e1'}`,
-                            background: isCorrect ? '#f0fdf4' : 'white',
+                            background: isCorrect ? 'var(--success-soft)' : 'var(--surface)',
                             fontSize: '14px',
                             fontWeight: 'bold',
-                            color: isCorrect ? '#15803d' : '#1e293b',
+                            color: isCorrect ? 'var(--success-ink)' : 'var(--ink)',
                             outline: 'none'
                           }}
                         />
@@ -7168,7 +7340,7 @@ export default function MoodTracker() {
                       setQuizFeedback('Some answers are incorrect or missing. Check again! ❌');
                     }
                   }}
-                  style={{ padding: '8px 18px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                  style={{ padding: '8px 18px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                 >
                   Check Clues
                 </button>
@@ -7177,7 +7349,7 @@ export default function MoodTracker() {
                   <p style={{
                     marginTop: '12px',
                     fontSize: '14px',
-                    color: quizFeedback.includes('Amazing') ? '#047857' : '#b91c1c',
+                    color: quizFeedback.includes('Amazing') ? 'var(--success-ink)' : 'var(--danger-ink)',
                     fontWeight: 'bold'
                   }}>
                     {quizFeedback}
@@ -7189,10 +7361,10 @@ export default function MoodTracker() {
             {/* WORD SCRAMBLE */}
             {activeGame === 'scramble' && activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🔤 Word Scramble</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Unscramble this positive word to focus your mind:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🔤 Word Scramble</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Unscramble this positive word to focus your mind:</p>
                 
-                <div style={{ fontSize: '36px', fontWeight: 'extrabold', letterSpacing: '6px', color: '#4f46e5', margin: '20px 0', textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '36px', fontWeight: 'extrabold', letterSpacing: '6px', color: 'var(--primary)', margin: '20px 0', textTransform: 'uppercase' }}>
                   {activeGameData.scrambled}
                 </div>
 
@@ -7206,7 +7378,7 @@ export default function MoodTracker() {
                     width: '100%',
                     maxWidth: '280px',
                     borderRadius: '12px',
-                    border: '2px solid #cbd5e1',
+                    border: '2px solid var(--line-strong)',
                     fontSize: '16px',
                     fontWeight: 'bold',
                     textAlign: 'center',
@@ -7226,7 +7398,7 @@ export default function MoodTracker() {
                         setQuizFeedback('Incorrect guess. Try again! ❌');
                       }
                     }}
-                    style={{ padding: '10px 20px', background: '#10b981', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' }}
+                    style={{ padding: '10px 20px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' }}
                   >
                     Check Guess
                   </button>
@@ -7236,7 +7408,7 @@ export default function MoodTracker() {
                   <p style={{
                     marginTop: '12px',
                     fontSize: '14.5px',
-                    color: quizFeedback.includes('Excellent') ? '#047857' : '#b91c1c',
+                    color: quizFeedback.includes('Excellent') ? 'var(--success-ink)' : 'var(--danger-ink)',
                     fontWeight: 'bold'
                   }}>
                     {quizFeedback}
@@ -7248,14 +7420,14 @@ export default function MoodTracker() {
             {/* NUMBER SEQUENCE */}
             {activeGame === 'numbersequence' && activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>📈 Number Sequence</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Find the missing number in the mathematical pattern:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>📈 Number Sequence</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Find the missing number in the mathematical pattern:</p>
                 
-                <div style={{ fontSize: '32px', fontWeight: 'extrabold', color: '#1e293b', background: '#f8fafc', padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '20px', display: 'flex', justifyContent: 'center', gap: '14px' }}>
+                <div style={{ fontSize: '32px', fontWeight: 'extrabold', color: 'var(--ink)', background: 'var(--surface-2)', padding: '16px', borderRadius: '16px', border: '1px solid var(--line)', marginBottom: '20px', display: 'flex', justifyContent: 'center', gap: '14px' }}>
                   {activeGameData.sequence.map((num, i) => (
                     <span key={i}>{num}</span>
                   ))}
-                  <span style={{ color: '#4f46e5' }}>?</span>
+                  <span style={{ color: 'var(--primary)' }}>?</span>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', maxWidth: '300px', margin: '0 auto 20px' }}>
@@ -7279,10 +7451,10 @@ export default function MoodTracker() {
                         }}
                         style={{
                           padding: '12px',
-                          background: isAnswered ? (isCorrect ? '#d1fae5' : isSelected ? '#fee2e2' : '#f8fafc') : '#f8fafc',
+                          background: isAnswered ? (isCorrect ? 'var(--success-soft)' : isSelected ? 'var(--danger-soft)' : 'var(--surface-2)') : 'var(--surface-2)',
                           border: `2px solid ${isAnswered ? (isCorrect ? '#10b981' : isSelected ? '#ef4444' : '#e2e8f0') : '#e2e8f0'}`,
                           borderRadius: '12px',
-                          color: '#1e293b',
+                          color: 'var(--ink)',
                           fontWeight: 'bold',
                           cursor: 'pointer'
                         }}
@@ -7296,7 +7468,7 @@ export default function MoodTracker() {
                 {quizFeedback && (
                   <p style={{
                     fontSize: '14.5px',
-                    color: quizFeedback.includes('Perfect') ? '#047857' : '#b91c1c',
+                    color: quizFeedback.includes('Perfect') ? 'var(--success-ink)' : 'var(--danger-ink)',
                     fontWeight: 'bold'
                   }}>
                     {quizFeedback}
@@ -7308,10 +7480,10 @@ export default function MoodTracker() {
             {/* LOGIC RIDDLE */}
             {activeGame === 'logicpuzzle' && activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🧠 Logic Riddle</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Solve this riddle to sharpen your focus:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🧠 Logic Riddle</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Solve this riddle to sharpen your focus:</p>
                 
-                <div style={{ fontSize: '16px', fontWeight: '600', color: '#1e293b', background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '20px', lineHeight: '1.5' }}>
+                <div style={{ fontSize: '16px', fontWeight: '600', color: 'var(--ink)', background: 'var(--surface-2)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)', marginBottom: '20px', lineHeight: '1.5' }}>
                   "{activeGameData.question}"
                 </div>
 
@@ -7336,10 +7508,10 @@ export default function MoodTracker() {
                         }}
                         style={{
                           padding: '12px',
-                          background: isAnswered ? (isCorrect ? '#d1fae5' : isSelected ? '#fee2e2' : '#f8fafc') : '#f8fafc',
+                          background: isAnswered ? (isCorrect ? 'var(--success-soft)' : isSelected ? 'var(--danger-soft)' : 'var(--surface-2)') : 'var(--surface-2)',
                           border: `2px solid ${isAnswered ? (isCorrect ? '#10b981' : isSelected ? '#ef4444' : '#e2e8f0') : '#e2e8f0'}`,
                           borderRadius: '12px',
-                          color: '#1e293b',
+                          color: 'var(--ink)',
                           fontWeight: 'bold',
                           cursor: 'pointer'
                         }}
@@ -7353,7 +7525,7 @@ export default function MoodTracker() {
                 {quizFeedback && (
                   <p style={{
                     fontSize: '14.5px',
-                    color: quizFeedback.includes('Correct') ? '#047857' : '#b91c1c',
+                    color: quizFeedback.includes('Correct') ? 'var(--success-ink)' : 'var(--danger-ink)',
                     fontWeight: 'bold'
                   }}>
                     {quizFeedback}
@@ -7365,14 +7537,14 @@ export default function MoodTracker() {
             {/* NONOGRAM */}
             {activeGame === 'nonogram' && activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🎨 Mindful Nonogram</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '16px' }}>Paint grid cells to match row and column count clues:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🎨 Mindful Nonogram</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '16px' }}>Paint grid cells to match row and column count clues:</p>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
                   {/* Col clues row */}
                   <div style={{ display: 'flex', marginLeft: '50px' }}>
                     {activeGameData.colClues.map((clue, idx) => (
-                      <div key={idx} style={{ width: '36px', height: '36px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', fontSize: '11px', fontWeight: 'bold', color: '#64748b' }}>
+                      <div key={idx} style={{ width: '36px', height: '36px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', alignItems: 'center', fontSize: '11px', fontWeight: 'bold', color: 'var(--ink-3)' }}>
                         {clue.map((c, i) => <span key={i}>{c}</span>)}
                       </div>
                     ))}
@@ -7382,7 +7554,7 @@ export default function MoodTracker() {
                   {nonogramPlayGrid.map((row, r) => (
                     <div key={r} style={{ display: 'flex', alignItems: 'center' }}>
                       {/* Row clue */}
-                      <div style={{ width: '50px', display: 'flex', justifyContent: 'flex-end', paddingRight: '8px', fontSize: '11px', fontWeight: 'bold', color: '#64748b', gap: '4px' }}>
+                      <div style={{ width: '50px', display: 'flex', justifyContent: 'flex-end', paddingRight: '8px', fontSize: '11px', fontWeight: 'bold', color: 'var(--ink-3)', gap: '4px' }}>
                         {activeGameData.rowClues[r].map((c, i) => <span key={i}>{c}</span>)}
                       </div>
                       {/* Row cells */}
@@ -7399,8 +7571,8 @@ export default function MoodTracker() {
                           style={{
                             width: '36px',
                             height: '36px',
-                            background: val === 1 ? '#4f46e5' : 'white',
-                            border: '1px solid #cbd5e1',
+                            background: val === 1 ? 'var(--primary-fill)' : 'var(--surface)',
+                            border: '1px solid var(--line-strong)',
                             cursor: 'pointer',
                             transition: 'background 0.1s'
                           }}
@@ -7430,7 +7602,7 @@ export default function MoodTracker() {
                         setQuizFeedback('Grid does not match clues. Keep tweaking! ❌');
                       }
                     }}
-                    style={{ padding: '8px 18px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                    style={{ padding: '8px 18px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                   >
                     Check Painting
                   </button>
@@ -7440,7 +7612,7 @@ export default function MoodTracker() {
                       setNonogramPlayGrid(Array(5).fill(null).map(() => Array(5).fill(0)));
                       setQuizFeedback('');
                     }}
-                    style={{ padding: '8px 18px', background: '#f3f4f6', color: '#475569', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                    style={{ padding: '8px 18px', background: 'var(--surface-3)', color: 'var(--ink-2)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                   >
                     Clear Grid
                   </button>
@@ -7449,7 +7621,7 @@ export default function MoodTracker() {
                 {quizFeedback && (
                   <p style={{
                     fontSize: '14px',
-                    color: quizFeedback.includes('Excellent') ? '#047857' : '#b91c1c',
+                    color: quizFeedback.includes('Excellent') ? 'var(--success-ink)' : 'var(--danger-ink)',
                     fontWeight: 'bold'
                   }}>
                     {quizFeedback}
@@ -7461,23 +7633,23 @@ export default function MoodTracker() {
             {/* KAKURO */}
             {activeGame === 'kakuro' && activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>➕ Kakuro Cross-Sum</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Fill cells (1-9) such that horizontal rows sum to target clue and columns sum to vertical clue:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>➕ Kakuro Cross-Sum</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Fill cells (1-9) such that horizontal rows sum to target clue and columns sum to vertical clue:</p>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 48px)', gap: '4px', justifyContent: 'center', marginBottom: '20px' }}>
                   <div />
                   {/* Col clues */}
-                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', color: '#64748b' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', color: 'var(--ink-3)' }}>
                     <span>⬇️</span>
                     <span>{activeGameData.colSums[0]}</span>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', color: '#64748b' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', color: 'var(--ink-3)' }}>
                     <span>⬇️</span>
                     <span>{activeGameData.colSums[1]}</span>
                   </div>
 
                   {/* Row 1 */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '6px', fontSize: '12px', fontWeight: 'bold', color: '#64748b' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '6px', fontSize: '12px', fontWeight: 'bold', color: 'var(--ink-3)' }}>
                     {activeGameData.rowSums[0]} ➡️
                   </div>
                   <input
@@ -7490,7 +7662,7 @@ export default function MoodTracker() {
                       setQuizInput(arr.join(','));
                       playTickSound();
                     }}
-                    style={{ width: '48px', height: '48px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', border: '2px solid #cbd5e1', borderRadius: '8px' }}
+                    style={{ width: '48px', height: '48px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', border: '2px solid var(--line-strong)', borderRadius: '8px' }}
                   />
                   <input
                     type="text"
@@ -7502,11 +7674,11 @@ export default function MoodTracker() {
                       setQuizInput(arr.join(','));
                       playTickSound();
                     }}
-                    style={{ width: '48px', height: '48px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', border: '2px solid #cbd5e1', borderRadius: '8px' }}
+                    style={{ width: '48px', height: '48px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', border: '2px solid var(--line-strong)', borderRadius: '8px' }}
                   />
 
                   {/* Row 2 */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '6px', fontSize: '12px', fontWeight: 'bold', color: '#64748b' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: '6px', fontSize: '12px', fontWeight: 'bold', color: 'var(--ink-3)' }}>
                     {activeGameData.rowSums[1]} ➡️
                   </div>
                   <input
@@ -7519,7 +7691,7 @@ export default function MoodTracker() {
                       setQuizInput(arr.join(','));
                       playTickSound();
                     }}
-                    style={{ width: '48px', height: '48px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', border: '2px solid #cbd5e1', borderRadius: '8px' }}
+                    style={{ width: '48px', height: '48px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', border: '2px solid var(--line-strong)', borderRadius: '8px' }}
                   />
                   <input
                     type="text"
@@ -7531,7 +7703,7 @@ export default function MoodTracker() {
                       setQuizInput(arr.join(','));
                       playTickSound();
                     }}
-                    style={{ width: '48px', height: '48px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', border: '2px solid #cbd5e1', borderRadius: '8px' }}
+                    style={{ width: '48px', height: '48px', textAlign: 'center', fontSize: '18px', fontWeight: 'bold', border: '2px solid var(--line-strong)', borderRadius: '8px' }}
                   />
                 </div>
 
@@ -7552,7 +7724,7 @@ export default function MoodTracker() {
                         setQuizFeedback('Incorrect sums or entries. Try again! ❌');
                       }
                     }}
-                    style={{ padding: '8px 18px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                    style={{ padding: '8px 18px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                   >
                     Check Sums
                   </button>
@@ -7561,7 +7733,7 @@ export default function MoodTracker() {
                 {quizFeedback && (
                   <p style={{
                     fontSize: '14px',
-                    color: quizFeedback.includes('Outstanding') ? '#047857' : '#b91c1c',
+                    color: quizFeedback.includes('Outstanding') ? 'var(--success-ink)' : 'var(--danger-ink)',
                     fontWeight: 'bold'
                   }}>
                     {quizFeedback}
@@ -7573,8 +7745,8 @@ export default function MoodTracker() {
             {/* JIGSAW */}
             {activeGame === 'jigsaw' && activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🖼️ Mindful Jigsaw Puzzle</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Swap positions of the tiles until they are sorted (0 to 3) to assemble the calm picture:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🖼️ Mindful Jigsaw Puzzle</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Swap positions of the tiles until they are sorted (0 to 3) to assemble the calm picture:</p>
                 
                 <div style={{
                   display: 'grid',
@@ -7611,17 +7783,17 @@ export default function MoodTracker() {
                         style={{
                           height: '80px',
                           background: colors[tileVal],
-                          border: isSelected ? '3px solid #4f46e5' : '1px solid #cbd5e1',
+                          border: isSelected ? '3px solid var(--primary)' : '1px solid var(--line-strong)',
                           borderRadius: '12px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           cursor: 'pointer',
                           fontWeight: 'bold',
-                          color: '#475569',
+                          color: 'var(--ink-2)',
                           fontSize: '14px',
                           userSelect: 'none',
-                          boxShadow: isSelected ? '0 0 12px rgba(79, 70, 229, 0.4)' : 'none'
+                          boxShadow: isSelected ? '0 0 12px color-mix(in srgb, var(--primary) 40%, transparent)' : 'none'
                         }}
                       >
                         {emojiMap[tileVal]}
@@ -7633,7 +7805,7 @@ export default function MoodTracker() {
                 {quizFeedback && (
                   <p style={{
                     fontSize: '14.5px',
-                    color: '#047857',
+                    color: 'var(--success-ink)',
                     fontWeight: 'bold',
                     marginBottom: '16px'
                   }}>
@@ -7646,8 +7818,8 @@ export default function MoodTracker() {
             {/* SHAPE SORT */}
             {activeGame === 'shapesort' && activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>📐 Shape Sorter</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Sort each shape by matching it to the correct slot container:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>📐 Shape Sorter</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Sort each shape by matching it to the correct slot container:</p>
                 
                 <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginBottom: '24px' }}>
                   {activeGameData.shapes.map(s => {
@@ -7665,15 +7837,15 @@ export default function MoodTracker() {
                           width: '64px',
                           height: '64px',
                           borderRadius: '12px',
-                          background: '#f8fafc',
-                          border: quizInput === String(s.id) ? '3px solid #4f46e5' : '1px solid #e2e8f0',
+                          background: 'var(--surface-2)',
+                          border: quizInput === String(s.id) ? '3px solid var(--primary)' : '1px solid var(--line)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           fontSize: '32px',
                           cursor: isPlaced ? 'default' : 'pointer',
                           opacity: isPlaced ? 0.3 : 1,
-                          boxShadow: quizInput === String(s.id) ? '0 0 10px rgba(79,70,229,0.3)' : 'none'
+                          boxShadow: quizInput === String(s.id) ? '0 0 10px color-mix(in srgb, var(--primary) 30%, transparent)' : 'none'
                         }}
                       >
                         {iconMap[s.name]}
@@ -7707,13 +7879,13 @@ export default function MoodTracker() {
                         }}
                         style={{
                           padding: '16px 8px',
-                          border: '2px dashed #cbd5e1',
+                          border: '2px dashed var(--line-strong)',
                           borderRadius: '16px',
                           fontSize: '13px',
                           fontWeight: 'bold',
-                          color: '#64748b',
+                          color: 'var(--ink-3)',
                           cursor: 'pointer',
-                          background: '#fafafa',
+                          background: 'var(--surface-2)',
                           minHeight: '80px',
                           display: 'flex',
                           flexDirection: 'column',
@@ -7722,7 +7894,7 @@ export default function MoodTracker() {
                         }}
                       >
                         <div>{slotType} Slot</div>
-                        <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
+                        <div style={{ fontSize: '11px', color: 'var(--ink-4)', marginTop: '4px' }}>
                           {shapeSortPlaced.map(id => {
                             const s = activeGameData.shapes.find(shape => shape.id === id);
                             if (s && s.name === slotType) {
@@ -7740,7 +7912,7 @@ export default function MoodTracker() {
                 {quizFeedback && (
                   <p style={{
                     fontSize: '14px',
-                    color: quizFeedback.includes('Outstanding') ? '#047857' : '#b91c1c',
+                    color: quizFeedback.includes('Outstanding') ? 'var(--success-ink)' : 'var(--danger-ink)',
                     fontWeight: 'bold'
                   }}>
                     {quizFeedback}
@@ -7752,8 +7924,8 @@ export default function MoodTracker() {
             {/* RELAX MATCH */}
             {activeGame === 'relaxmatch' && activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🧩 Soothing Pair Match</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Open cards and find the matching calm symbols:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🧩 Soothing Pair Match</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Open cards and find the matching calm symbols:</p>
                 
                 <div style={{
                   display: 'grid',
@@ -7795,8 +7967,8 @@ export default function MoodTracker() {
                         }}
                         style={{
                           height: '72px',
-                          background: isFlipped ? '#f0fdf4' : 'linear-gradient(135deg, #e0e7ff, #c7d2fe)',
-                          border: isFlipped ? '2px solid #10b981' : '1px solid #a5b4fc',
+                          background: isFlipped ? 'var(--success-soft)' : 'linear-gradient(135deg, var(--primary-soft), var(--primary-soft))',
+                          border: isFlipped ? '2px solid var(--success)' : '1px solid var(--primary)',
                           borderRadius: '16px',
                           display: 'flex',
                           alignItems: 'center',
@@ -7804,7 +7976,7 @@ export default function MoodTracker() {
                           fontSize: '28px',
                           cursor: isFlipped ? 'default' : 'pointer',
                           userSelect: 'none',
-                          boxShadow: isFlipped ? 'none' : '0 4px 6px rgba(165,180,252,0.15)',
+                          boxShadow: isFlipped ? 'none' : '0 4px 6px color-mix(in srgb, var(--primary) 15%, transparent)',
                           transition: 'transform 0.15s'
                         }}
                       >
@@ -7817,7 +7989,7 @@ export default function MoodTracker() {
                 {quizFeedback && (
                   <p style={{
                     fontSize: '14.5px',
-                    color: '#047857',
+                    color: 'var(--success-ink)',
                     fontWeight: 'bold'
                   }}>
                     {quizFeedback}
@@ -7829,8 +8001,8 @@ export default function MoodTracker() {
             {/* ZEN PUZZLE */}
             {activeGame === 'zenpuzzle' && activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🌸 Zen Sliding Blocks</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Slide adjacent blocks into the empty slot to align them in order (1, 2, 3):</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🌸 Zen Sliding Blocks</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Slide adjacent blocks into the empty slot to align them in order (1, 2, 3):</p>
                 
                 <div style={{
                   display: 'grid',
@@ -7865,8 +8037,8 @@ export default function MoodTracker() {
                         }}
                         style={{
                           height: '72px',
-                          background: isBlank ? '#f1f5f9' : 'linear-gradient(135deg, #e9d5ff, #c084fc)',
-                          border: isBlank ? '1px dashed #cbd5e1' : '1px solid #c084fc',
+                          background: isBlank ? 'var(--surface-3)' : 'linear-gradient(135deg, var(--primary-soft), var(--primary-fill))',
+                          border: isBlank ? '1px dashed var(--line-strong)' : '1px solid var(--primary)',
                           borderRadius: '12px',
                           display: 'flex',
                           alignItems: 'center',
@@ -7887,7 +8059,7 @@ export default function MoodTracker() {
                 {quizFeedback && (
                   <p style={{
                     fontSize: '14.5px',
-                    color: '#065f46',
+                    color: 'var(--success-ink)',
                     fontWeight: 'bold'
                   }}>
                     {quizFeedback}
@@ -7899,21 +8071,21 @@ export default function MoodTracker() {
             {/* POSITIVE QUOTES */}
             {activeGame === 'positivequotes' && activeGameData && (
               <div style={{ textAlign: 'center', padding: '10px' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>💬 Affirming Quotes</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>Let these wisdom words soak into your heart:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>💬 Affirming Quotes</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '24px' }}>Let these wisdom words soak into your heart:</p>
                 
                 <div style={{
-                  background: 'linear-gradient(135deg, #fef3c7, #fffbeb)',
+                  background: 'linear-gradient(135deg, var(--warn-soft), var(--warn-soft))',
                   padding: '30px',
                   borderRadius: '24px',
-                  border: '1px solid #fde68a',
+                  border: '1px solid var(--warn)',
                   marginBottom: '20px',
-                  boxShadow: '0 10px 15px -3px rgba(251,191,36,0.1)'
+                  boxShadow: '0 10px 15px -3px color-mix(in srgb, var(--warn) 10%, transparent)'
                 }}>
-                  <p style={{ fontSize: '18px', fontWeight: 'bold', color: '#78350f', fontStyle: 'italic', marginBottom: '16px', lineHeight: '1.6' }}>
+                  <p style={{ fontSize: '18px', fontWeight: 'bold', color: 'var(--sun-ink)', fontStyle: 'italic', marginBottom: '16px', lineHeight: '1.6' }}>
                     "{activeGameData.text}"
                   </p>
-                  <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#92400e', textAlign: 'right', margin: 0 }}>
+                  <p style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--sun-ink)', textAlign: 'right', margin: 0 }}>
                     — {activeGameData.author || 'Unknown'}
                   </p>
                 </div>
@@ -7923,7 +8095,7 @@ export default function MoodTracker() {
                     playGameWinSound();
                     alert('Quotes can comfort but speaking with real friends helps further. Be kind to yourself today!');
                   }}
-                  style={{ padding: '8px 18px', background: '#d97706', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                  style={{ padding: '8px 18px', background: 'var(--warn-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                 >
                   ❤️ Keep Affirmation
                 </button>
@@ -7933,18 +8105,18 @@ export default function MoodTracker() {
             {/* CALM GENERATOR */}
             {activeGame === 'calmgenerator' && activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🏡 Calm Activity Generator</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>Try this short physical relaxation exercise to center yourself:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🏡 Calm Activity Generator</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '24px' }}>Try this short physical relaxation exercise to center yourself:</p>
                 
                 <div style={{
-                  background: '#ecfdf5',
+                  background: 'var(--success-soft)',
                   padding: '24px',
                   borderRadius: '20px',
-                  border: '1px solid #a7f3d0',
+                  border: '1px solid var(--success)',
                   marginBottom: '24px',
                   fontSize: '16px',
                   fontWeight: 'bold',
-                  color: '#065f46',
+                  color: 'var(--success-ink)',
                   lineHeight: '1.5'
                 }}>
                   {activeGameData.activity}
@@ -7960,8 +8132,8 @@ export default function MoodTracker() {
                     disabled={calmGeneratorDone}
                     style={{
                       padding: '12px 24px',
-                      background: calmGeneratorDone ? '#d1fae5' : '#10b981',
-                      color: calmGeneratorDone ? '#065f46' : 'white',
+                      background: calmGeneratorDone ? 'var(--success-soft)' : 'var(--success-fill)',
+                      color: calmGeneratorDone ? 'var(--success-ink)' : 'white',
                       border: 'none',
                       borderRadius: '12px',
                       cursor: calmGeneratorDone ? 'default' : 'pointer',
@@ -7980,7 +8152,7 @@ export default function MoodTracker() {
                   <p style={{
                     marginTop: '16px',
                     fontSize: '14px',
-                    color: '#047857',
+                    color: 'var(--success-ink)',
                     fontWeight: 'bold'
                   }}>
                     {quizFeedback}
@@ -7992,61 +8164,61 @@ export default function MoodTracker() {
             {/* VIRTUAL PET */}
             {activeGame === 'pet' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🐱 Virtual Pet Care</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Keep your virtual pet happy by taking care of its needs!</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🐱 Virtual Pet Care</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Keep your virtual pet happy by taking care of its needs!</p>
 
                 <div style={{ fontSize: '72px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px' }}>
                   {petStats.love > 80 ? '😸' : petStats.hunger < 20 ? '😾' : petStats.energy < 20 ? '💤' : '🐱'}
                 </div>
 
-                <div style={{ maxWidth: '300px', margin: '0 auto 20px', background: '#f8fafc', padding: '16px', borderRadius: '16px', border: '1px solid #cbd5e1', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', fontWeight: 'bold', color: '#475569' }}>
+                <div style={{ maxWidth: '300px', margin: '0 auto 20px', background: 'var(--surface-2)', padding: '16px', borderRadius: '16px', border: '1px solid var(--line-strong)', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', fontWeight: 'bold', color: 'var(--ink-2)' }}>
                     <span>Hunger:</span>
                     <span>{petStats.hunger}/100</span>
                   </div>
-                  <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: `${petStats.hunger}%`, height: '100%', background: '#f59e0b' }} />
+                  <div style={{ height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: `${petStats.hunger}%`, height: '100%', background: 'var(--warn-fill)' }} />
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', fontWeight: 'bold', color: '#475569', marginTop: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', fontWeight: 'bold', color: 'var(--ink-2)', marginTop: '6px' }}>
                     <span>Happiness/Love:</span>
                     <span>{petStats.love}/100</span>
                   </div>
-                  <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: `${petStats.love}%`, height: '100%', background: '#ec4899' }} />
+                  <div style={{ height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: `${petStats.love}%`, height: '100%', background: 'var(--rose-fill)' }} />
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', fontWeight: 'bold', color: '#475569', marginTop: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', fontWeight: 'bold', color: 'var(--ink-2)', marginTop: '6px' }}>
                     <span>Energy:</span>
                     <span>{petStats.energy}/100</span>
                   </div>
-                  <div style={{ height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                    <div style={{ width: `${petStats.energy}%`, height: '100%', background: '#10b981' }} />
+                  <div style={{ height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: `${petStats.energy}%`, height: '100%', background: 'var(--success-fill)' }} />
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '16px' }}>
-                  <button onClick={() => { setPetStats(p => ({ hunger: Math.min(100, p.hunger + 20), love: p.love, energy: p.energy })); setPetMessage('Kitty enjoyed the fish! 🐟'); playSatisfyingPop(); }} style={{ padding: '8px 14px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>🐟 Feed</button>
-                  <button onClick={() => { setPetStats(p => ({ hunger: p.hunger, love: Math.min(100, p.love + 25), energy: p.energy })); setPetMessage('Purrrr! Kitty loves pats. ❤️'); playSuccessHarp(); }} style={{ padding: '8px 14px', background: '#ec4899', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>❤️ Pet</button>
-                  <button onClick={() => { setPetStats(p => ({ hunger: p.hunger, love: p.love, energy: Math.min(100, p.energy + 30) })); setPetMessage('Kitty took a refreshing nap! 💤'); triggerBeep(440, 0.3); }} style={{ padding: '8px 14px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>💤 Nap</button>
+                  <button onClick={() => { setPetStats(p => ({ hunger: Math.min(100, p.hunger + 20), love: p.love, energy: p.energy })); setPetMessage('Kitty enjoyed the fish! 🐟'); playSatisfyingPop(); }} style={{ padding: '8px 14px', background: 'var(--warn-fill)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>🐟 Feed</button>
+                  <button onClick={() => { setPetStats(p => ({ hunger: p.hunger, love: Math.min(100, p.love + 25), energy: p.energy })); setPetMessage('Purrrr! Kitty loves pats. ❤️'); playSuccessHarp(); }} style={{ padding: '8px 14px', background: 'var(--rose-fill)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>❤️ Pet</button>
+                  <button onClick={() => { setPetStats(p => ({ hunger: p.hunger, love: p.love, energy: Math.min(100, p.energy + 30) })); setPetMessage('Kitty took a refreshing nap! 💤'); triggerBeep(440, 0.3); }} style={{ padding: '8px 14px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>💤 Nap</button>
                 </div>
-                <div style={{ fontSize: '12px', color: '#475569', fontStyle: 'italic', fontWeight: '600' }}>"{petMessage}"</div>
+                <div style={{ fontSize: '12px', color: 'var(--ink-2)', fontStyle: 'italic', fontWeight: '600' }}>"{petMessage}"</div>
               </div>
             )}
 
             {/* GRATITUDE QUEST */}
             {activeGame === 'gratitudequest' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>📜 Gratitude Quest</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Enter 3 things you are grateful for today to grow a beautiful flower!</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>📜 Gratitude Quest</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Enter 3 things you are grateful for today to grow a beautiful flower!</p>
 
-                <div style={{ background: '#ecfdf5', border: '1.5px dashed #a7f3d0', padding: '16px', borderRadius: '16px', display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', marginBottom: '20px' }}>
+                <div style={{ background: 'var(--success-soft)', border: '1.5px dashed var(--success)', padding: '16px', borderRadius: '16px', display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center', marginBottom: '20px' }}>
                   {gardenPlants.map(p => (
-                    <span key={p.id} style={{ padding: '6px 12px', background: 'white', border: '1.5px solid #34d399', color: '#047857', borderRadius: '20px', fontSize: '12.5px', fontWeight: 'bold' }}>
+                    <span key={p.id} style={{ padding: '6px 12px', background: 'var(--surface)', border: '1.5px solid var(--success)', color: 'var(--success-ink)', borderRadius: '20px', fontSize: '12.5px', fontWeight: 'bold' }}>
                       🌸 {p.text}
                     </span>
                   ))}
-                  {gardenPlants.length === 0 && <span style={{ color: '#059669', fontStyle: 'italic', fontSize: '13px' }}>Your flower soil is ready... 🌱</span>}
+                  {gardenPlants.length === 0 && <span style={{ color: 'var(--success-ink)', fontStyle: 'italic', fontSize: '13px' }}>Your flower soil is ready... 🌱</span>}
                 </div>
 
                 {gardenPlants.length < 3 ? (
@@ -8062,15 +8234,15 @@ export default function MoodTracker() {
                       value={gratitudeText}
                       onChange={e => setGratitudeText(e.target.value)}
                       placeholder={`I am grateful for... (${gardenPlants.length}/3)`}
-                      style={{ flex: 1, padding: '10px 14px', border: '2.5px solid #a7f3d0', borderRadius: '10px', fontSize: '13px', outline: 'none' }}
+                      style={{ flex: 1, padding: '10px 14px', border: '2.5px solid var(--success)', borderRadius: '10px', fontSize: '13px', outline: 'none' }}
                       required
                     />
-                    <button type="submit" style={{ padding: '0 18px', background: '#059669', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' }}>🌱 Plant</button>
+                    <button type="submit" style={{ padding: '0 18px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' }}>🌱 Plant</button>
                   </form>
                 ) : (
                   <div>
                     <div style={{ fontSize: '72px', animation: 'fadeIn 0.5s' }}>🌻</div>
-                    <div style={{ color: '#047857', fontSize: '14px', fontWeight: 'bold', marginTop: '8px' }}>
+                    <div style={{ color: 'var(--success-ink)', fontSize: '14px', fontWeight: 'bold', marginTop: '8px' }}>
                       Amazing! Your Gratitude Quest is complete.
                     </div>
                   </div>
@@ -8081,21 +8253,21 @@ export default function MoodTracker() {
             {/* SAFE SPACE */}
             {activeGame === 'safespace' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🏡 Safe Space Story Game</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Select space parameters to write your tranquil dream narrative!</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🏡 Safe Space Story Game</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Select space parameters to write your tranquil dream narrative!</p>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', maxWidth: '360px', margin: '0 auto 20px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px', textAlign: 'left', fontWeight: 'bold' }}>Choose Space:</label>
-                    <select value={spaceChoice} onChange={e => setSpaceChoice(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12.5px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '4px', textAlign: 'left', fontWeight: 'bold' }}>Choose Space:</label>
+                    <select value={spaceChoice} onChange={e => setSpaceChoice(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid var(--line-strong)', borderRadius: '6px', fontSize: '12.5px' }}>
                       <option>Quiet Cabin 🏡</option>
                       <option>Sunny Beach 🏖️</option>
                       <option>Mystic Forest 🌲</option>
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: '#64748b', marginBottom: '4px', textAlign: 'left', fontWeight: 'bold' }}>Choose Weather:</label>
-                    <select value={weatherChoice} onChange={e => setWeatherChoice(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12.5px' }}>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '4px', textAlign: 'left', fontWeight: 'bold' }}>Choose Weather:</label>
+                    <select value={weatherChoice} onChange={e => setWeatherChoice(e.target.value)} style={{ width: '100%', padding: '8px', border: '1px solid var(--line-strong)', borderRadius: '6px', fontSize: '12.5px' }}>
                       <option>Rainy 🌧️</option>
                       <option>Sunny ☀️</option>
                       <option>Snowy ❄️</option>
@@ -8103,12 +8275,12 @@ export default function MoodTracker() {
                   </div>
                 </div>
 
-                <button onClick={buildSafeSpaceStory} style={{ padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '24px' }}>
+                <button onClick={buildSafeSpaceStory} style={{ padding: '10px 20px', background: 'var(--sky-fill)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', marginBottom: '24px' }}>
                   🏡 Build Safe Story
                 </button>
 
                 {safeSpaceStory && (
-                  <div style={{ background: '#f5f3ff', border: '1.5px solid #c084fc', padding: '20px', borderRadius: '16px', fontSize: '14px', color: '#581c87', fontWeight: '500', lineHeight: '1.6', animation: 'fadeIn 0.5s' }}>
+                  <div style={{ background: 'var(--primary-soft)', border: '1.5px solid var(--primary)', padding: '20px', borderRadius: '16px', fontSize: '14px', color: 'var(--primary-ink)', fontWeight: '500', lineHeight: '1.6', animation: 'fadeIn 0.5s' }}>
                     {safeSpaceStory}
                   </div>
                 )}
@@ -8118,8 +8290,8 @@ export default function MoodTracker() {
             {/* BALLOON RELEASE */}
             {activeGame === 'balloon' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🎈 Worry Balloon Release</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Type a worry onto a balloon and click to release and let it float away!</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🎈 Worry Balloon Release</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Type a worry onto a balloon and click to release and let it float away!</p>
 
                 <div style={{ display: 'flex', gap: '8px', maxWidth: '360px', margin: '0 auto 20px' }}>
                   <input 
@@ -8127,12 +8299,12 @@ export default function MoodTracker() {
                     value={balloonThought}
                     onChange={e => setBalloonThought(e.target.value)}
                     placeholder="Enter a worry (e.g. Exam pressure)..."
-                    style={{ flex: 1, padding: '10px 14px', border: '2px solid #cbd5e1', borderRadius: '10px', fontSize: '13px', outline: 'none' }}
+                    style={{ flex: 1, padding: '10px 14px', border: '2px solid var(--line-strong)', borderRadius: '10px', fontSize: '13px', outline: 'none' }}
                   />
-                  <button onClick={releaseBalloon} style={{ padding: '0 18px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' }}>🎈 Release</button>
+                  <button onClick={releaseBalloon} style={{ padding: '0 18px', background: 'var(--danger-fill)', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' }}>🎈 Release</button>
                 </div>
 
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', minHeight: '120px', background: '#f8fafc', padding: '20px', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'center', minHeight: '120px', background: 'var(--surface-2)', padding: '20px', borderRadius: '20px', border: '1px solid var(--line)' }}>
                   {releasedBalloons.map(b => (
                     <div 
                       key={b.id}
@@ -8142,22 +8314,21 @@ export default function MoodTracker() {
                       }}
                       style={{
                         padding: '8px 16px',
-                        background: 'linear-gradient(135deg, #f87171, #ef4444)',
+                        background: 'linear-gradient(135deg, var(--danger-fill), var(--danger-fill))',
                         color: 'white',
                         borderRadius: '20px',
                         fontSize: '12px',
                         fontWeight: 'bold',
                         cursor: 'pointer',
-                        boxShadow: '0 4px 10px rgba(239, 68, 68, 0.2)',
+                        boxShadow: '0 4px 10px color-mix(in srgb, var(--danger) 20%, transparent)',
                         animation: 'fadeIn 0.3s',
-                        userSelect: 'none'
-                      }}
+                        userSelect: 'none', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
                       title="Click to POP and release!"
                     >
                       🎈 {b.text} (Pop 💥)
                     </div>
                   ))}
-                  {releasedBalloons.length === 0 && <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '13px', marginTop: '30px' }}>No balloons released. Write a worry above.</span>}
+                  {releasedBalloons.length === 0 && <span style={{ color: 'var(--ink-4)', fontStyle: 'italic', fontSize: '13px', marginTop: '30px' }}>No balloons released. Write a worry above.</span>}
                 </div>
               </div>
             )}
@@ -8165,8 +8336,8 @@ export default function MoodTracker() {
             {/* ROCK PAPER SCISSORS */}
             {activeGame === 'rps' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>✊✋ Rock Paper Scissors</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>Play against the CPU. Choose your play:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>✊✋ Rock Paper Scissors</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '24px' }}>Play against the CPU. Choose your play:</p>
 
                 <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginBottom: '24px' }}>
                   {[{ icon: '✊', val: 'Rock' }, { icon: '✋', val: 'Paper' }, { icon: '✌️', val: 'Scissors' }].map(play => (
@@ -8192,7 +8363,7 @@ export default function MoodTracker() {
                         }
                         alert(msg);
                       }}
-                      style={{ width: '64px', height: '64px', borderRadius: '16px', border: '1.5px solid #cbd5e1', background: 'white', fontSize: '28px', cursor: 'pointer' }}
+                      style={{ width: '64px', height: '64px', borderRadius: '16px', border: '1.5px solid var(--line-strong)', background: 'var(--surface)', fontSize: '28px', cursor: 'pointer' }}
                     >
                       {play.icon}
                     </button>
@@ -8204,10 +8375,10 @@ export default function MoodTracker() {
             {/* HANGMAN */}
             {activeGame === 'hangman' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>😵 Hangman</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '16px' }}>Guess the letters to solve the mindful word!</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>😵 Hangman</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '16px' }}>Guess the letters to solve the mindful word!</p>
 
-                <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#1e293b', letterSpacing: '8px', marginBottom: '24px' }}>
+                <div style={{ fontSize: '28px', fontWeight: 'bold', color: 'var(--ink)', letterSpacing: '8px', marginBottom: '24px' }}>
                   {hangmanWord.split('').map(char => hangmanGuesses.includes(char) ? char : '_').join(' ')}
                 </div>
 
@@ -8217,18 +8388,18 @@ export default function MoodTracker() {
                   const lost = wrong.length >= 6;
                   return (
                     <div>
-                      <div style={{ marginBottom: '20px', color: '#ef4444', fontWeight: 'bold', fontSize: '13px' }}>
+                      <div style={{ marginBottom: '20px', color: 'var(--danger)', fontWeight: 'bold', fontSize: '13px' }}>
                         Mistakes: {wrong.length}/6 ({wrong.join(', ') || 'none'})
                       </div>
                       
                       {won && (
-                        <div style={{ background: '#ecfdf5', color: '#047857', padding: '12px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', fontWeight: 'bold' }}>
+                        <div style={{ background: 'var(--success-soft)', color: 'var(--success-ink)', padding: '12px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', fontWeight: 'bold' }}>
                           🎉 You solved it! The word is "{hangmanWord}".
                         </div>
                       )}
 
                       {lost && (
-                        <div style={{ background: '#fef2f2', color: '#b91c1c', padding: '12px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', fontWeight: 'bold' }}>
+                        <div style={{ background: 'var(--danger-soft)', color: 'var(--danger-ink)', padding: '12px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', fontWeight: 'bold' }}>
                           💀 Game Over! The word was "{hangmanWord}".
                         </div>
                       )}
@@ -8240,7 +8411,7 @@ export default function MoodTracker() {
                               key={char}
                               disabled={hangmanGuesses.includes(char)}
                               onClick={() => guessHangmanLetter(char)}
-                              style={{ width: '32px', height: '32px', border: '1px solid #cbd5e1', borderRadius: '6px', background: hangmanGuesses.includes(char) ? '#e2e8f0' : 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}
+                              style={{ width: '32px', height: '32px', border: '1px solid var(--line-strong)', borderRadius: '6px', background: hangmanGuesses.includes(char) ? 'var(--line)' : 'var(--surface)', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}
                             >
                               {char}
                             </button>
@@ -8251,7 +8422,7 @@ export default function MoodTracker() {
                   );
                 })()}
 
-                <button onClick={initHangman} style={{ marginTop: '20px', padding: '8px 16px', background: '#f3f4f6', color: '#4b5563', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>
+                <button onClick={initHangman} style={{ marginTop: '20px', padding: '8px 16px', background: 'var(--surface-3)', color: 'var(--ink-2)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>
                   🔄 New Word
                 </button>
               </div>
@@ -8260,10 +8431,10 @@ export default function MoodTracker() {
             {/* SNAKE */}
             {activeGame === 'snake' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🐍 Zen Snake</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '12px' }}>Steer the snake to eat food. Score: <strong>{whackScore}</strong></p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🐍 Zen Snake</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '12px' }}>Steer the snake to eat food. Score: <strong>{whackScore}</strong></p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '2px', width: '176px', height: '176px', margin: '0 auto 20px', background: '#f1f5f9', border: '2px solid #cbd5e1', padding: '4px', borderRadius: '8px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '2px', width: '176px', height: '176px', margin: '0 auto 20px', background: 'var(--surface-3)', border: '2px solid var(--line-strong)', padding: '4px', borderRadius: '8px' }}>
                   {Array(8).fill(null).map((_, r) => 
                     Array(8).fill(null).map((_, c) => {
                       const isHead = snakeBody[0] && snakeBody[0].x === c && snakeBody[0].y === r;
@@ -8275,7 +8446,7 @@ export default function MoodTracker() {
                           style={{
                             width: '20px',
                             height: '20px',
-                            background: isHead ? '#10b981' : isBody ? '#34d399' : isFood ? '#ef4444' : 'transparent',
+                            background: isHead ? 'var(--success-fill)' : isBody ? 'var(--success-fill)' : isFood ? 'var(--danger-fill)' : 'transparent',
                             borderRadius: isHead || isFood ? '50%' : '4px'
                           }}
                         />
@@ -8285,21 +8456,21 @@ export default function MoodTracker() {
                 </div>
 
                 {snakeOver && (
-                  <div style={{ background: '#fef2f2', color: '#b91c1c', padding: '12px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', fontWeight: 'bold' }}>
+                  <div style={{ background: 'var(--danger-soft)', color: 'var(--danger-ink)', padding: '12px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', fontWeight: 'bold' }}>
                     💥 Game Over! Take a breath and restart.
                   </div>
                 )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                  <button disabled={snakeOver} onClick={() => moveSnake(0, -1)} style={{ width: '40px', height: '40px', fontSize: '18px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>⬆️</button>
+                  <button disabled={snakeOver} onClick={() => moveSnake(0, -1)} style={{ width: '40px', height: '40px', fontSize: '18px', background: 'var(--sky-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>⬆️</button>
                   <div style={{ display: 'flex', gap: '16px' }}>
-                    <button disabled={snakeOver} onClick={() => moveSnake(-1, 0)} style={{ width: '40px', height: '40px', fontSize: '18px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>⬅️</button>
-                    <button disabled={snakeOver} onClick={() => moveSnake(1, 0)} style={{ width: '40px', height: '40px', fontSize: '18px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>➡️</button>
+                    <button disabled={snakeOver} onClick={() => moveSnake(-1, 0)} style={{ width: '40px', height: '40px', fontSize: '18px', background: 'var(--sky-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>⬅️</button>
+                    <button disabled={snakeOver} onClick={() => moveSnake(1, 0)} style={{ width: '40px', height: '40px', fontSize: '18px', background: 'var(--sky-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>➡️</button>
                   </div>
-                  <button disabled={snakeOver} onClick={() => moveSnake(0, 1)} style={{ width: '40px', height: '40px', fontSize: '18px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>⬇️</button>
+                  <button disabled={snakeOver} onClick={() => moveSnake(0, 1)} style={{ width: '40px', height: '40px', fontSize: '18px', background: 'var(--sky-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>⬇️</button>
                 </div>
 
-                <button onClick={initSnakeGame} style={{ padding: '8px 16px', background: '#cbd5e1', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', color: '#475569' }}>
+                <button onClick={initSnakeGame} style={{ padding: '8px 16px', background: 'var(--line-strong)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', color: 'var(--ink-2)' }}>
                   🔄 Reset
                 </button>
               </div>
@@ -8308,10 +8479,10 @@ export default function MoodTracker() {
             {/* MINESWEEPER */}
             {activeGame === 'minesweeper' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>💣 Mindful Minesweeper</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Reveal safe tiles. Try not to detonate the worry mines!</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>💣 Mindful Minesweeper</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Reveal safe tiles. Try not to detonate the worry mines!</p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', maxWidth: '180px', margin: '0 auto 20px', background: '#f8fafc', padding: '12px', borderRadius: '16px', border: '1px solid #cbd5e1' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px', maxWidth: '180px', margin: '0 auto 20px', background: 'var(--surface-2)', padding: '12px', borderRadius: '16px', border: '1px solid var(--line-strong)' }}>
                   {minesGrid.flatMap((row, r) => 
                     row.map((cell, c) => (
                       <div 
@@ -8320,8 +8491,8 @@ export default function MoodTracker() {
                         style={{
                           width: '36px',
                           height: '36px',
-                          background: cell.isFlipped ? (cell.isMine ? '#fecaca' : '#d1fae5') : '#e2e8f0',
-                          border: '1.5px solid #cbd5e1',
+                          background: cell.isFlipped ? (cell.isMine ? 'var(--danger-soft)' : 'var(--success-soft)') : 'var(--line)',
+                          border: '1.5px solid var(--line-strong)',
                           borderRadius: '8px',
                           display: 'flex',
                           alignItems: 'center',
@@ -8337,17 +8508,17 @@ export default function MoodTracker() {
                 </div>
 
                 {minesOver && (
-                  <div style={{ background: '#fef2f2', color: '#b91c1c', padding: '12px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', fontWeight: 'bold' }}>
+                  <div style={{ background: 'var(--danger-soft)', color: 'var(--danger-ink)', padding: '12px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', fontWeight: 'bold' }}>
                     💥 Boom! You popped a mine. Take a deep breath.
                   </div>
                 )}
                 {minesWin && (
-                  <div style={{ background: '#ecfdf5', color: '#047857', padding: '12px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', fontWeight: 'bold' }}>
+                  <div style={{ background: 'var(--success-soft)', color: 'var(--success-ink)', padding: '12px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', fontWeight: 'bold' }}>
                     🎉 Calm achieved! You cleared the grid safely.
                   </div>
                 )}
 
-                <button onClick={initMinesweeper} style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                <button onClick={initMinesweeper} style={{ padding: '8px 16px', background: 'var(--sky-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
                   🔄 Restart
                 </button>
               </div>
@@ -8356,10 +8527,10 @@ export default function MoodTracker() {
             {/* CONNECT FOUR */}
             {activeGame === 'connect4' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🔴🟡 Connect Four</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '16px' }}>Connect 4 chips horizontally, vertically, or diagonally to win!</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🔴🟡 Connect Four</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '16px' }}>Connect 4 chips horizontally, vertically, or diagonally to win!</p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px', maxWidth: '240px', margin: '0 auto 20px', background: '#3b82f6', padding: '10px', borderRadius: '16px', border: '2px solid #2563eb' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '6px', maxWidth: '240px', margin: '0 auto 20px', background: 'var(--sky-fill)', padding: '10px', borderRadius: '16px', border: '2px solid var(--sky)' }}>
                   {c4Grid.flatMap((row, r) => 
                     row.map((cell, c) => (
                       <div 
@@ -8368,8 +8539,8 @@ export default function MoodTracker() {
                           width: '32px',
                           height: '32px',
                           borderRadius: '50%',
-                          background: cell === 'Red' ? '#ef4444' : cell === 'Yellow' ? '#f59e0b' : 'white',
-                          border: '1px solid #1e40af'
+                          background: cell === 'Red' ? 'var(--danger-fill)' : cell === 'Yellow' ? 'var(--warn-fill)' : 'var(--surface)',
+                          border: '1px solid var(--primary)'
                         }}
                       />
                     ))
@@ -8382,7 +8553,7 @@ export default function MoodTracker() {
                       <button 
                         key={col}
                         onClick={() => dropC4Chip(col)}
-                        style={{ width: '32px', padding: '6px 0', background: '#e2e8f0', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}
+                        style={{ width: '32px', padding: '6px 0', background: 'var(--line)', border: '1px solid var(--line-strong)', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}
                       >
                         ⬇️
                       </button>
@@ -8391,14 +8562,14 @@ export default function MoodTracker() {
                 )}
 
                 {c4Winner && (
-                  <div style={{ background: c4Winner === 'Player' ? '#ecfdf5' : c4Winner === 'CPU' ? '#fef2f2' : '#f1f5f9', color: c4Winner === 'Player' ? '#047857' : c4Winner === 'CPU' ? '#b91c1c' : '#475569', padding: '12px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', fontWeight: 'bold' }}>
+                  <div style={{ background: c4Winner === 'Player' ? 'var(--success-soft)' : c4Winner === 'CPU' ? 'var(--danger-soft)' : 'var(--surface-3)', color: c4Winner === 'Player' ? 'var(--success-ink)' : c4Winner === 'CPU' ? 'var(--danger-ink)' : 'var(--ink-2)', padding: '12px', borderRadius: '10px', marginBottom: '20px', fontSize: '14px', fontWeight: 'bold' }}>
                     {c4Winner === 'Player' && '🎉 You won Connect Four! Bravo.'}
                     {c4Winner === 'CPU' && '💻 CPU won the round. Try again!'}
                     {c4Winner === 'Draw' && '🤝 It is a draw! Great defense.'}
                   </div>
                 )}
 
-                <button onClick={initConnect4} style={{ padding: '8px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+                <button onClick={initConnect4} style={{ padding: '8px 16px', background: 'var(--sky-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
                   🔄 New Game
                 </button>
               </div>
@@ -8407,25 +8578,25 @@ export default function MoodTracker() {
             {/* 2048 */}
             {activeGame === '2048' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🔢 2048 Puzzle</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '16px' }}>Slide and merge matching numbers! Score: <strong>{whackScore}</strong></p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🔢 2048 Puzzle</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '16px' }}>Slide and merge matching numbers! Score: <strong>{whackScore}</strong></p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', maxWidth: '180px', margin: '0 auto 20px', background: '#b45309', padding: '8px', borderRadius: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', maxWidth: '180px', margin: '0 auto 20px', background: 'var(--sun-fill)', padding: '8px', borderRadius: '12px' }}>
                   {grid2048.map((val, idx) => (
                     <div 
                       key={idx}
                       style={{
                         width: '36px',
                         height: '36px',
-                        background: val ? '#fffbeb' : '#d97706',
-                        color: '#b45309',
+                        background: val ? 'var(--warn-soft)' : 'var(--warn-fill)',
+                        color: 'var(--sun-ink)',
                         fontWeight: 'bold',
                         fontSize: val && val > 99 ? '10px' : '14px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         borderRadius: '6px',
-                        border: '1.5px solid #d97706'
+                        border: '1.5px solid var(--warn)'
                       }}
                     >
                       {val}
@@ -8434,15 +8605,15 @@ export default function MoodTracker() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                  <button onClick={() => slide2048('up')} style={{ width: '40px', height: '40px', fontSize: '18px', background: '#b45309', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>⬆️</button>
+                  <button onClick={() => slide2048('up')} style={{ width: '40px', height: '40px', fontSize: '18px', background: 'var(--sun-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>⬆️</button>
                   <div style={{ display: 'flex', gap: '16px' }}>
-                    <button onClick={() => slide2048('left')} style={{ width: '40px', height: '40px', fontSize: '18px', background: '#b45309', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>⬅️</button>
-                    <button onClick={() => slide2048('right')} style={{ width: '40px', height: '40px', fontSize: '18px', background: '#b45309', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>➡️</button>
+                    <button onClick={() => slide2048('left')} style={{ width: '40px', height: '40px', fontSize: '18px', background: 'var(--sun-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>⬅️</button>
+                    <button onClick={() => slide2048('right')} style={{ width: '40px', height: '40px', fontSize: '18px', background: 'var(--sun-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>➡️</button>
                   </div>
-                  <button onClick={() => slide2048('down')} style={{ width: '40px', height: '40px', fontSize: '18px', background: '#b45309', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>⬇️</button>
+                  <button onClick={() => slide2048('down')} style={{ width: '40px', height: '40px', fontSize: '18px', background: 'var(--sun-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>⬇️</button>
                 </div>
 
-                <button onClick={init2048} style={{ padding: '8px 16px', background: '#cbd5e1', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', color: '#475569' }}>
+                <button onClick={init2048} style={{ padding: '8px 16px', background: 'var(--line-strong)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', color: 'var(--ink-2)' }}>
                   🔄 Restart
                 </button>
               </div>
@@ -8451,8 +8622,8 @@ export default function MoodTracker() {
             {/* SIMON */}
             {activeGame === 'simon' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🧠 Simon Says</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '16px' }}>Repeat the flashed sequence to advance! Sequence length: <strong>{simonSequence.length}</strong></p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🧠 Simon Says</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '16px' }}>Repeat the flashed sequence to advance! Sequence length: <strong>{simonSequence.length}</strong></p>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', maxWidth: '160px', margin: '0 auto 20px' }}>
                   {['#ef4444', '#3b82f6', '#10b981', '#f59e0b'].map((color, idx) => {
@@ -8476,7 +8647,7 @@ export default function MoodTracker() {
                   })}
                 </div>
 
-                <button onClick={() => { playSuccessHarp(); flashSimonSequence(simonSequence); }} style={{ padding: '8px 16px', background: '#4f46e5', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', boxShadow: '0 4px 10px rgba(79, 70, 229, 0.2)' }}>
+                <button onClick={() => { playSuccessHarp(); flashSimonSequence(simonSequence); }} style={{ padding: '8px 16px', background: 'var(--primary-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', boxShadow: '0 4px 10px color-mix(in srgb, var(--primary) 20%, transparent)' }}>
                   🔊 Replay Sequence
                 </button>
               </div>
@@ -8485,8 +8656,8 @@ export default function MoodTracker() {
             {/* TRIVIA */}
             {activeGame === 'trivia' && !activeGameData && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>❓ MindSpace Trivia</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Answer this question about mental wellness:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>❓ MindSpace Trivia</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Answer this question about mental wellness:</p>
 
                 {(() => {
                   const questions = [
@@ -8497,7 +8668,7 @@ export default function MoodTracker() {
                   const q = questions[wyrIndex % questions.length];
                   return (
                     <div>
-                      <h4 style={{ color: '#1e293b', marginBottom: '20px', fontSize: '15px', fontWeight: 'bold' }}>{q.q}</h4>
+                      <h4 style={{ color: 'var(--ink)', marginBottom: '20px', fontSize: '15px', fontWeight: 'bold' }}>{q.q}</h4>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px', maxWidth: '380px', margin: '0 auto' }}>
                         {['a', 'b', 'c', 'd'].map(optKey => {
                           const optText = optKey === 'a' ? q.a : optKey === 'b' ? q.b : optKey === 'c' ? q.c : q.d;
@@ -8519,10 +8690,10 @@ export default function MoodTracker() {
                               }}
                               style={{
                                 padding: '12px',
-                                background: isAnswered ? (isCorrect ? '#d1fae5' : isSelected ? '#fee2e2' : '#f8fafc') : '#f8fafc',
+                                background: isAnswered ? (isCorrect ? 'var(--success-soft)' : isSelected ? 'var(--danger-soft)' : 'var(--surface-2)') : 'var(--surface-2)',
                                 border: `2px solid ${isAnswered ? (isCorrect ? '#10b981' : isSelected ? '#ef4444' : '#e2e8f0') : '#e2e8f0'}`,
                                 borderRadius: '10px',
-                                color: '#1e293b',
+                                color: 'var(--ink)',
                                 fontWeight: 'bold',
                                 cursor: 'pointer',
                                 textAlign: 'left'
@@ -8535,7 +8706,7 @@ export default function MoodTracker() {
                       </div>
                       
                       {wyrVote !== null && (
-                        <button onClick={() => { setWyrVote(null); setWyrIndex(prev => prev + 1); playTickSound(); }} style={{ marginTop: '20px', padding: '8px 16px', background: '#cbd5e1', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 'bold', color: '#475569' }}>
+                        <button onClick={() => { setWyrVote(null); setWyrIndex(prev => prev + 1); playTickSound(); }} style={{ marginTop: '20px', padding: '8px 16px', background: 'var(--line-strong)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 'bold', color: 'var(--ink-2)' }}>
                           Next Question ➡️
                         </button>
                       )}
@@ -8548,9 +8719,9 @@ export default function MoodTracker() {
             {/* WORD BUILDER */}
             {activeGame === 'wordbuilder' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>✏️ Word Builder</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '16px' }}>Build valid words using these letters: <strong style={{ color: '#4f46e5', fontSize: '16px', letterSpacing: '2px' }}>{wbLetters}</strong></p>
-                <p style={{ fontSize: '12px', color: '#64748b', marginBottom: '16px' }}>Score: <strong>{whackScore}</strong> | Words found: {wbFound.join(', ') || 'none'}</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>✏️ Word Builder</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '16px' }}>Build valid words using these letters: <strong style={{ color: 'var(--primary)', fontSize: '16px', letterSpacing: '2px' }}>{wbLetters}</strong></p>
+                <p style={{ fontSize: '12px', color: 'var(--ink-3)', marginBottom: '16px' }}>Score: <strong>{whackScore}</strong> | Words found: {wbFound.join(', ') || 'none'}</p>
 
                 <div style={{ display: 'flex', gap: '8px', maxWidth: '300px', margin: '0 auto 20px' }}>
                   <input 
@@ -8558,12 +8729,12 @@ export default function MoodTracker() {
                     value={wbInput}
                     onChange={e => setWbInput(e.target.value)}
                     placeholder="Type a word..."
-                    style={{ flex: 1, padding: '10px 14px', border: '2px solid #cbd5e1', borderRadius: '10px', fontSize: '13px', outline: 'none' }}
+                    style={{ flex: 1, padding: '10px 14px', border: '2px solid var(--line-strong)', borderRadius: '10px', fontSize: '13px', outline: 'none' }}
                   />
-                  <button onClick={submitWbWord} style={{ padding: '0 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' }}>Submit</button>
+                  <button onClick={submitWbWord} style={{ padding: '0 16px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold' }}>Submit</button>
                 </div>
                 
-                <button onClick={initWordBuilder} style={{ padding: '6px 12px', background: '#cbd5e1', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', color: '#475569' }}>
+                <button onClick={initWordBuilder} style={{ padding: '6px 12px', background: 'var(--line-strong)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', color: 'var(--ink-2)' }}>
                   🔄 New Letters
                 </button>
               </div>
@@ -8572,8 +8743,8 @@ export default function MoodTracker() {
             {/* ZEN GARDEN BUILDER */}
             {activeGame === 'garden' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🌸 Zen Garden Builder</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Select an item and click on the sandy tiles below to compose your peaceful garden.</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🌸 Zen Garden Builder</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Select an item and click on the sandy tiles below to compose your peaceful garden.</p>
                 
                 {/* Item Selection Tray */}
                 <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '20px' }}>
@@ -8584,7 +8755,7 @@ export default function MoodTracker() {
                       style={{
                         padding: '10px 16px',
                         fontSize: '20px',
-                        background: selectedGardenItem === item ? '#e0f2fe' : 'white',
+                        background: selectedGardenItem === item ? 'var(--sky-soft)' : 'var(--surface)',
                         border: `2px solid ${selectedGardenItem === item ? '#3b82f6' : '#e2e8f0'}`,
                         borderRadius: '12px',
                         cursor: 'pointer',
@@ -8603,10 +8774,10 @@ export default function MoodTracker() {
                   gap: '4px',
                   maxWidth: '220px',
                   margin: '0 auto 20px',
-                  background: '#f5efe6',
+                  background: 'var(--warn-soft)',
                   padding: '8px',
                   borderRadius: '16px',
-                  border: '3px solid #dcd1c4'
+                  border: '3px solid var(--warn)'
                 }}>
                   {zenGardenGrid.map((cell, idx) => (
                     <div
@@ -8620,12 +8791,12 @@ export default function MoodTracker() {
                       style={{
                         width: '36px',
                         height: '36px',
-                        background: '#eedece',
+                        background: 'var(--sun-soft)',
                         backgroundImage: 'radial-gradient(#e5d5c4 20%, transparent 20%), radial-gradient(#e5d5c4 20%, transparent 20%)',
                         backgroundSize: '8px 8px',
                         backgroundPosition: '0 0, 4px 4px',
                         borderRadius: '6px',
-                        border: '1px solid #dcd1c4',
+                        border: '1px solid var(--warn)',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
@@ -8642,13 +8813,13 @@ export default function MoodTracker() {
                 <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
                   <button 
                     onClick={() => { playResetSound(); setZenGardenGrid(Array(25).fill(null)); }}
-                    style={{ padding: '8px 16px', background: '#cbd5e1', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', color: '#475569' }}
+                    style={{ padding: '8px 16px', background: 'var(--line-strong)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', color: 'var(--ink-2)' }}
                   >
                     🗑️ Reset Sand
                   </button>
                   <button 
                     onClick={() => { playGameWinSound(); alert('🌸 Your garden composition is gorgeous. Breathe in its peaceful harmony.'); }}
-                    style={{ padding: '8px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                    style={{ padding: '8px 16px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                   >
                     ✅ Save Layout
                   </button>
@@ -8659,8 +8830,8 @@ export default function MoodTracker() {
             {/* COLORING BOOK */}
             {activeGame === 'coloring' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🎨 Calming Coloring Book</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '20px' }}>Choose a template and paint inside the lines using custom colors:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🎨 Calming Coloring Book</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Choose a template and paint inside the lines using custom colors:</p>
 
                 {/* Template picker */}
                 <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', marginBottom: '16px' }}>
@@ -8672,8 +8843,8 @@ export default function MoodTracker() {
                         padding: '6px 12px',
                         fontSize: '12.5px',
                         fontWeight: 'bold',
-                        background: coloringTemplate === t.key ? '#e0e7ff' : '#f1f5f9',
-                        color: coloringTemplate === t.key ? '#4f46e5' : '#475569',
+                        background: coloringTemplate === t.key ? 'var(--primary-soft)' : 'var(--surface-3)',
+                        color: coloringTemplate === t.key ? 'var(--primary)' : 'var(--ink-2)',
                         border: 'none',
                         borderRadius: '8px',
                         cursor: 'pointer'
@@ -8695,7 +8866,7 @@ export default function MoodTracker() {
                   onTouchStart={startDraw}
                   onTouchMove={draw}
                   onTouchEnd={stopDraw}
-                  style={{ background: '#faf8f5', border: '2px solid #e2e8f0', borderRadius: '16px', display: 'block', margin: '0 auto 20px', cursor: 'crosshair', touchAction: 'none' }}
+                  style={{ background: 'var(--warn-soft)', border: '2px solid var(--line)', borderRadius: '16px', display: 'block', margin: '0 auto 20px', cursor: 'crosshair', touchAction: 'none' }}
                 />
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '450px', margin: '0 auto' }}>
@@ -8718,14 +8889,14 @@ export default function MoodTracker() {
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: '600', color: '#475569' }}>Size:</label>
-                    <select value={brushWidth} onChange={e => { playTickSound(); setBrushWidth(Number(e.target.value)); }} style={{ padding: '4px 8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '12px' }}>
+                    <label style={{ fontSize: '12px', fontWeight: '600', color: 'var(--ink-2)' }}>Size:</label>
+                    <select value={brushWidth} onChange={e => { playTickSound(); setBrushWidth(Number(e.target.value)); }} style={{ padding: '4px 8px', border: '1px solid var(--line-strong)', borderRadius: '6px', fontSize: '12px' }}>
                       <option value="2">Thin</option>
                       <option value="4">Medium</option>
                       <option value="8">Thick</option>
                     </select>
 
-                    <button onClick={clearCanvas} style={{ padding: '6px 12px', background: '#334155', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>
+                    <button onClick={clearCanvas} style={{ padding: '6px 12px', background: '#334155', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
                       🗑️ Reset
                     </button>
                   </div>
@@ -8736,56 +8907,56 @@ export default function MoodTracker() {
             {/* NATURE SOUNDS EXPLORATION */}
             {activeGame === 'nature' && (
               <div style={{ textAlign: 'center' }}>
-                <h3 style={{ color: '#1e293b', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🌲 Nature Sound Exploration</h3>
-                <p style={{ color: '#64748b', fontSize: '13px', marginBottom: '24px' }}>Mix your own relaxing nature soundtrack. Toggle ambient tracks on/off:</p>
+                <h3 style={{ color: 'var(--ink)', margin: '0 0 6px 0', fontSize: '20px', fontWeight: 'bold' }}>🌲 Nature Sound Exploration</h3>
+                <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '24px' }}>Mix your own relaxing nature soundtrack. Toggle ambient tracks on/off:</p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '320px', margin: '0 auto 24px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: 'var(--surface-2)', borderRadius: '14px', border: '1px solid var(--line)' }}>
                     <span style={{ fontSize: '14px', fontWeight: '600' }}>🌧️ Soothing Forest Rain</span>
                     <button 
                       type="button"
                       onClick={toggleRain} 
-                      style={{ padding: '8px 16px', background: playingRain ? '#ef4444' : '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                      style={{ padding: '8px 16px', background: playingRain ? 'var(--danger-fill)' : 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
                     >
                       {playingRain ? 'Mute' : 'Listen'}
                     </button>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: 'var(--surface-2)', borderRadius: '14px', border: '1px solid var(--line)' }}>
                     <span style={{ fontSize: '14px', fontWeight: '600' }}>🌊 Gentle Ocean Waves</span>
                     <button 
                       type="button"
                       onClick={toggleWaves} 
-                      style={{ padding: '8px 16px', background: playingWaves ? '#ef4444' : '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                      style={{ padding: '8px 16px', background: playingWaves ? 'var(--danger-fill)' : 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
                     >
                       {playingWaves ? 'Mute' : 'Listen'}
                     </button>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: 'var(--surface-2)', borderRadius: '14px', border: '1px solid var(--line)' }}>
                     <span style={{ fontSize: '14px', fontWeight: '600' }}>🍃 Whispering Pines Wind</span>
                     <button 
                       type="button"
                       onClick={toggleWind} 
-                      style={{ padding: '8px 16px', background: playingWind ? '#ef4444' : '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                      style={{ padding: '8px 16px', background: playingWind ? 'var(--danger-fill)' : 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
                     >
                       {playingWind ? 'Mute' : 'Listen'}
                     </button>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', background: 'var(--surface-2)', borderRadius: '14px', border: '1px solid var(--line)' }}>
                     <span style={{ fontSize: '14px', fontWeight: '600' }}>🔥 Crackling Campfire</span>
                     <button 
                       type="button"
                       onClick={toggleCampfire} 
-                      style={{ padding: '8px 16px', background: playingCampfire ? '#ef4444' : '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                      style={{ padding: '8px 16px', background: playingCampfire ? 'var(--danger-fill)' : 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
                     >
                       {playingCampfire ? 'Mute' : 'Listen'}
                     </button>
                   </div>
                 </div>
 
-                <div style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>
+                <div style={{ fontSize: '11px', color: 'var(--ink-4)', fontStyle: 'italic' }}>
                   Adjust your speakers, sit back, and feel the natural calm.
                 </div>
               </div>
@@ -8798,30 +8969,30 @@ export default function MoodTracker() {
 
       {/* Supportive Crisis Warning Popup */}
       {showCrisisAlert && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', zIndex: 6000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div style={{ background: 'white', borderRadius: '24px', maxWidth: '500px', width: '100%', padding: '32px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(4px)', zIndex: 6000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: '24px', maxWidth: '500px', width: '100%', padding: '32px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', textAlign: 'center' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>💙</div>
-            <h2 style={{ color: '#1e293b', marginBottom: '12px', fontWeight: 'bold' }}>We are here for you</h2>
-            <p style={{ color: '#475569', fontSize: '14px', lineHeight: '1.6', marginBottom: '24px' }}>
+            <h2 style={{ color: 'var(--ink)', marginBottom: '12px', fontWeight: 'bold' }}>We are here for you</h2>
+            <p style={{ color: 'var(--ink-2)', fontSize: '14px', lineHeight: '1.6', marginBottom: '24px' }}>
               We notice you are feeling down today. Please remember that you do not have to go through this alone. MindSpace offers free, private, and professional support services.
             </p>
 
-            <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '16px', textAlign: 'left', marginBottom: '24px', borderLeft: '4px solid #ef4444', border: '1px solid #f1f5f9', borderLeftWidth: '4px' }}>
-              <div style={{ fontWeight: 'bold', fontSize: '12px', color: '#ef4444', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>📞 Emergency Hotlines (Sri Lanka)</div>
-              <div style={{ fontSize: '13px', color: '#1e293b', marginBottom: '6px' }}>🗣️ <strong>National Helpline:</strong> Call 1926</div>
-              <div style={{ fontSize: '13px', color: '#1e293b' }}>🤝 <strong>Sumithrayo Support:</strong> Call 011 268 2535</div>
+            <div style={{ background: 'var(--surface-2)', padding: '16px', borderRadius: '16px', textAlign: 'left', marginBottom: '24px', borderLeft: '4px solid var(--danger)', border: '1px solid var(--line)', borderLeftWidth: '4px' }}>
+              <div style={{ fontWeight: 'bold', fontSize: '12px', color: 'var(--danger)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>📞 Emergency Hotlines (Sri Lanka)</div>
+              <div style={{ fontSize: '13px', color: 'var(--ink)', marginBottom: '6px' }}>🗣️ <strong>National Helpline:</strong> Call 1926</div>
+              <div style={{ fontSize: '13px', color: 'var(--ink)' }}>🤝 <strong>Sumithrayo Support:</strong> Call 011 268 2535</div>
             </div>
 
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
               <button 
                 onClick={() => { setShowCrisisAlert(false); navigate('/chat'); }}
-                style={{ padding: '12px 20px', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', boxShadow: '0 4px 10px rgba(118, 75, 162, 0.2)' }}
+                style={{ padding: '12px 20px', background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px', boxShadow: '0 4px 10px color-mix(in srgb, var(--primary) 20%, transparent)', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
               >
                 💬 Chat with Aura
               </button>
               <button 
                 onClick={() => setShowCrisisAlert(false)}
-                style={{ padding: '12px 20px', background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
+                style={{ padding: '12px 20px', background: 'var(--surface-3)', color: 'var(--ink-2)', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}
               >
                 Close
               </button>
@@ -8838,7 +9009,7 @@ export default function MoodTracker() {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(15, 23, 42, 0.92)',
+          background: 'var(--overlay)',
           backdropFilter: 'blur(10px)',
           zIndex: 999999,
           display: 'flex',
@@ -8858,9 +9029,8 @@ export default function MoodTracker() {
             position: 'relative'
           }}>
             {/* Header Bar */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
               <h3 style={{ margin: 0, color: 'white', fontSize: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <BackButton onClick={() => setActive3DGame(null)} variant="dark" />
                 {active3DGame === 'starfield' && '🌌 3D Cosmic Starfield & Nebula Weaver'}
                 {active3DGame === 'water' && '🌊 3D Kinetic Water Ripples & Lotus'}
                 {active3DGame === 'sakura' && '🌸 3D Sakura Blossom Sanctuary'}
@@ -8877,9 +9047,9 @@ export default function MoodTracker() {
                   style={{
                     padding: '6px 12px',
                     borderRadius: '10px',
-                    background: is3DAudioMuted ? 'rgba(239,68,68,0.2)' : 'rgba(16,185,129,0.2)',
-                    border: is3DAudioMuted ? '1px solid #ef4444' : '1px solid #10b981',
-                    color: is3DAudioMuted ? '#f87171' : '#34d399',
+                    background: is3DAudioMuted ? 'color-mix(in srgb, var(--danger) 20%, transparent)' : 'color-mix(in srgb, var(--success) 20%, transparent)',
+                    border: is3DAudioMuted ? '1px solid var(--danger)' : '1px solid var(--success)',
+                    color: is3DAudioMuted ? 'var(--danger)' : 'var(--success)',
                     fontSize: '12px',
                     fontWeight: 'bold',
                     cursor: 'pointer',
@@ -8888,7 +9058,6 @@ export default function MoodTracker() {
                 >
                   {is3DAudioMuted ? '🔇 Audio Off' : '🔊 3D Audio On'}
                 </button>
-                <FullscreenButton variant="dark" />
                 <button
                   type="button"
                   onClick={() => setActive3DGame(null)}
@@ -8902,13 +9071,13 @@ export default function MoodTracker() {
             {/* 3D WebGL Canvas Container */}
             <div 
               ref={threeContainerRef} 
-              style={{ width: '100%', height: '380px', background: '#020617', position: 'relative', cursor: 'grab', touchAction: 'none' }} 
+              style={{ width: '100%', height: '380px', background: 'var(--primary-fill)', position: 'relative', cursor: 'grab', touchAction: 'none' }} 
             />
 
             {/* PROMINENT AMBIENT SOUND CONTROLLER */}
             <div style={{
               padding: '12px 20px',
-              background: 'rgba(30, 41, 59, 0.8)',
+              background: 'color-mix(in srgb, var(--sky) 80%, transparent)',
               borderTop: '1px solid rgba(255,255,255,0.1)',
               display: 'flex',
               alignItems: 'center',
@@ -8916,7 +9085,7 @@ export default function MoodTracker() {
               flexWrap: 'wrap',
               gap: '10px'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#38bdf8', fontSize: '13px', fontWeight: 'bold' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)', fontSize: '13px', fontWeight: 'bold' }}>
                 <span>🎵 3D Zen Soundscape:</span>
                 <span style={{ color: 'white', background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '8px' }}>
                   {active3DGame === 'starfield' && '🌌 432 Hz Stardust Space Harp'}
@@ -8939,15 +9108,14 @@ export default function MoodTracker() {
                   style={{
                     padding: '6px 14px',
                     borderRadius: '10px',
-                    background: 'linear-gradient(135deg, #10b981, #059669)',
+                    background: 'linear-gradient(135deg, var(--success-fill), var(--success-fill))',
                     color: 'white',
                     border: 'none',
                     fontSize: '12px',
                     fontWeight: 'bold',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-                    touchAction: 'manipulation'
-                  }}
+                    boxShadow: '0 4px 12px color-mix(in srgb, var(--success) 30%, transparent)',
+                    touchAction: 'manipulation', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
                 >
                   🔔 Play Touch Chime
                 </button>
@@ -8958,9 +9126,9 @@ export default function MoodTracker() {
                   style={{
                     padding: '6px 14px',
                     borderRadius: '10px',
-                    background: is3DAudioMuted ? 'rgba(239,68,68,0.25)' : 'rgba(99,102,241,0.25)',
-                    border: is3DAudioMuted ? '1px solid #ef4444' : '1px solid #818cf8',
-                    color: is3DAudioMuted ? '#f87171' : '#a5b4fc',
+                    background: is3DAudioMuted ? 'color-mix(in srgb, var(--danger) 25%, transparent)' : 'color-mix(in srgb, var(--primary) 25%, transparent)',
+                    border: is3DAudioMuted ? '1px solid var(--danger)' : '1px solid var(--primary)',
+                    color: is3DAudioMuted ? 'var(--danger)' : 'var(--primary)',
                     fontSize: '12px',
                     fontWeight: 'bold',
                     cursor: 'pointer',
@@ -8973,12 +9141,12 @@ export default function MoodTracker() {
             </div>
 
             {/* Footer Instructions */}
-            <div style={{ padding: '14px 24px', background: 'rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontSize: '12.5px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ padding: '14px 24px', background: 'rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.1)', color: 'var(--ink-4)', fontSize: '12.5px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
               <span>👆 Drag across screen to rotate 3D camera 360°</span>
               <button
                 type="button"
                 onClick={() => setActive3DGame(null)}
-                style={{ padding: '8px 16px', borderRadius: '10px', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: 'white', border: 'none', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', touchAction: 'manipulation' }}
+                style={{ padding: '8px 16px', borderRadius: '10px', background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', color: 'white', border: 'none', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', touchAction: 'manipulation', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
               >
                 Done Relaxing ✨
               </button>
@@ -8987,23 +9155,76 @@ export default function MoodTracker() {
         </div>
       )}
 
+      {/* CRAZYGAMES FULLSCREEN EMBED MODAL */}
+      {activeCrazyGameModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'var(--overlay)',
+          backdropFilter: 'blur(10px)',
+          zIndex: 999999,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}>
+          <div style={{
+            width: '100%',
+            maxWidth: '850px',
+            height: '85vh',
+            background: '#0f172a',
+            borderRadius: '24px',
+            border: '1px solid rgba(255,255,255,0.15)',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7)',
+            overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            {/* Header Bar */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+              <h3 style={{ margin: 0, color: 'white', fontSize: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                🎮 {activeCrazyGameModal.title}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setActiveCrazyGameModal(null)}
+                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Embedded Iframe Player */}
+            <iframe
+              src={activeCrazyGameModal.embedUrl}
+              title={activeCrazyGameModal.title}
+              style={{ flex: 1, width: '100%', border: 'none', background: '#000' }}
+              allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope"
+            />
+          </div>
+        </div>
+      )}
+
       {/* NATIVE POP-IT 3D FIDGET MODAL */}
       {showPopItModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)',
+          background: 'var(--overlay)', backdropFilter: 'blur(8px)',
           zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
         }}>
           <div style={{
-            background: 'linear-gradient(135deg, #1e1b4b, #312e81)', borderRadius: '24px',
+            background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', borderRadius: '24px',
             maxWidth: '520px', width: '100%', padding: '28px', border: '1px solid rgba(255,255,255,0.2)',
-            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)', textAlign: 'center', color: 'white'
-          }}>
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)', textAlign: 'center', color: 'white', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <BackButton onClick={() => setShowPopItModal(false)} variant="dark" /> 🧸 Native Pop-It 3D Fidget Toy
+                🧸 Native Pop-It 3D Fidget Toy
               </h3>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><FullscreenButton variant="dark" /><button onClick={() => setShowPopItModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button></span>
+              <button onClick={() => setShowPopItModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
             </div>
 
             {/* 6x6 Rainbow Pop-It Board */}
@@ -9037,7 +9258,7 @@ export default function MoodTracker() {
               <button onClick={resetPopItBoard} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.15)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
                 🔄 Flip Pop-It Board
               </button>
-              <button onClick={() => setShowPopItModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
+              <button onClick={() => setShowPopItModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, var(--success-fill), var(--success-fill))', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
                 Done Relaxing ✨
               </button>
             </div>
@@ -9049,22 +9270,21 @@ export default function MoodTracker() {
       {showWaterSortModal && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)',
+          background: 'var(--overlay)', backdropFilter: 'blur(8px)',
           zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
         }}>
           <div style={{
-            background: 'linear-gradient(135deg, #020617, #1e1b4b)', borderRadius: '24px',
+            background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', borderRadius: '24px',
             maxWidth: '520px', width: '100%', padding: '28px', border: '1px solid rgba(255,255,255,0.2)',
-            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)', textAlign: 'center', color: 'white'
-          }}>
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)', textAlign: 'center', color: 'white', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <BackButton onClick={() => setShowWaterSortModal(false)} variant="dark" /> 🧪 Water Sort Liquid Puzzle
+                🧪 Water Sort Liquid Puzzle
               </h3>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><FullscreenButton variant="dark" /><button onClick={() => setShowWaterSortModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button></span>
+              <button onClick={() => setShowWaterSortModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
             </div>
 
-            <p style={{ fontSize: '12.5px', color: '#94a3b8', margin: '0 0 20px 0' }}>
+            <p style={{ fontSize: '12.5px', color: 'var(--ink-4)', margin: '0 0 20px 0' }}>
               Tap a source tube, then tap a destination tube to sort liquids by color:
             </p>
 
@@ -9079,7 +9299,7 @@ export default function MoodTracker() {
                     style={{
                       width: '56px',
                       height: '180px',
-                      border: isSelected ? '3px solid #818cf8' : '2px solid rgba(255,255,255,0.3)',
+                      border: isSelected ? '3px solid var(--primary)' : '2px solid rgba(255,255,255,0.3)',
                       borderRadius: '0 0 28px 28px',
                       background: 'rgba(255,255,255,0.05)',
                       display: 'flex',
@@ -9088,7 +9308,7 @@ export default function MoodTracker() {
                       cursor: 'pointer',
                       transform: isSelected ? 'translateY(-12px)' : 'none',
                       transition: 'all 0.2s ease',
-                      boxShadow: isSelected ? '0 10px 20px rgba(129, 140, 248, 0.4)' : 'none',
+                      boxShadow: isSelected ? '0 10px 20px color-mix(in srgb, var(--primary) 40%, transparent)' : 'none',
                       touchAction: 'manipulation'
                     }}
                   >
@@ -9109,7 +9329,7 @@ export default function MoodTracker() {
             </div>
 
             {waterSortWon && (
-              <div style={{ background: 'rgba(16, 185, 129, 0.2)', border: '1px solid #10b981', padding: '12px', borderRadius: '12px', color: '#34d399', fontWeight: 'bold', marginBottom: '16px' }}>
+              <div style={{ background: 'color-mix(in srgb, var(--success) 20%, transparent)', border: '1px solid var(--success)', padding: '12px', borderRadius: '12px', color: 'var(--success)', fontWeight: 'bold', marginBottom: '16px' }}>
                 🎉 Fantastic! You solved the Water Liquid Puzzle!
               </div>
             )}
@@ -9118,7 +9338,7 @@ export default function MoodTracker() {
               <button onClick={resetWaterSortGame} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.15)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
                 🔄 Restart Puzzle
               </button>
-              <button onClick={() => setShowWaterSortModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
+              <button onClick={() => setShowWaterSortModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
                 Done Playing ✨
               </button>
             </div>
@@ -9128,21 +9348,21 @@ export default function MoodTracker() {
 
       {/* NATIVE DESIGNVILLE MERGE MODAL */}
       {showMergeModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div style={{ background: 'linear-gradient(135deg, #1e1b4b, #312e81)', borderRadius: '24px', maxWidth: '520px', width: '100%', padding: '28px', border: '1px solid rgba(255,255,255,0.2)', color: 'white', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(8px)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', borderRadius: '24px', maxWidth: '520px', width: '100%', padding: '28px', border: '1px solid rgba(255,255,255,0.2)', color: 'white', textAlign: 'center', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', textAlign: 'left' }}><BackButton onClick={() => setShowMergeModal(false)} variant="dark" /> 🏡 DesignVille: Merge & Decorate</h3>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><FullscreenButton variant="dark" /><button onClick={() => setShowMergeModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button></span>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>🏡 DesignVille: Merge & Decorate</h3>
+              <button onClick={() => setShowMergeModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
             </div>
-            <p style={{ fontSize: '12.5px', color: '#94a3b8', marginBottom: '20px' }}>Tap matching items of the same level to merge and upgrade furniture:</p>
+            <p style={{ fontSize: '12.5px', color: 'var(--ink-4)', marginBottom: '20px' }}>Tap matching items of the same level to merge and upgrade furniture:</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', background: 'rgba(255,255,255,0.08)', padding: '16px', borderRadius: '20px', marginBottom: '20px' }}>
               {mergeGrid.map((item, idx) => (
                 <div
                   key={item.id}
                   onClick={() => handleMergeClick(idx)}
                   style={{
-                    background: mergeSelected === idx ? 'rgba(99, 102, 241, 0.5)' : 'rgba(255,255,255,0.1)',
-                    border: mergeSelected === idx ? '2px solid #818cf8' : '1px solid rgba(255,255,255,0.15)',
+                    background: mergeSelected === idx ? 'color-mix(in srgb, var(--primary) 50%, transparent)' : 'rgba(255,255,255,0.1)',
+                    border: mergeSelected === idx ? '2px solid var(--primary)' : '1px solid rgba(255,255,255,0.15)',
                     borderRadius: '16px', padding: '14px 6px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'all 0.2s ease', touchAction: 'manipulation'
                   }}
                 >
@@ -9151,7 +9371,7 @@ export default function MoodTracker() {
                 </div>
               ))}
             </div>
-            <button onClick={() => setShowMergeModal(false)} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
+            <button onClick={() => setShowMergeModal(false)} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, var(--success-fill), var(--success-fill))', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
               Done Decorating ✨
             </button>
           </div>
@@ -9160,14 +9380,14 @@ export default function MoodTracker() {
 
       {/* NATIVE FIND DIFFERENCES MODAL */}
       {showDiffModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div style={{ background: 'linear-gradient(135deg, #020617, #1e1b4b)', borderRadius: '24px', maxWidth: '540px', width: '100%', padding: '28px', border: '1px solid rgba(255,255,255,0.2)', color: 'white', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(8px)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', borderRadius: '24px', maxWidth: '540px', width: '100%', padding: '28px', border: '1px solid rgba(255,255,255,0.2)', color: 'white', textAlign: 'center', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', textAlign: 'left' }}><BackButton onClick={() => setShowDiffModal(false)} variant="dark" /> 🔍 Spot the Differences (Found {foundDiffs.length}/4)</h3>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><FullscreenButton variant="dark" /><button onClick={() => setShowDiffModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button></span>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>🔍 Spot the Differences (Found {foundDiffs.length}/4)</h3>
+              <button onClick={() => setShowDiffModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
             </div>
-            <p style={{ fontSize: '12.5px', color: '#94a3b8', marginBottom: '20px' }}>Tap hidden items on the picture to find all differences:</p>
-            <div style={{ position: 'relative', width: '100%', height: '220px', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', borderRadius: '20px', overflow: 'hidden', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <p style={{ fontSize: '12.5px', color: 'var(--ink-4)', marginBottom: '20px' }}>Tap hidden items on the picture to find all differences:</p>
+            <div style={{ position: 'relative', width: '100%', height: '220px', background: 'linear-gradient(135deg, var(--sky-fill), var(--primary-fill))', borderRadius: '20px', overflow: 'hidden', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ fontSize: '64px', opacity: 0.3 }}>🍎 ☀️ 🐦 🌸</div>
               {[
                 { id: 1, left: '20%', top: '30%', label: '🍎' },
@@ -9182,8 +9402,8 @@ export default function MoodTracker() {
                     onClick={() => handleSpotDiffClick(diff.id)}
                     style={{
                       position: 'absolute', left: diff.left, top: diff.top,
-                      fontSize: '28px', background: isFound ? 'rgba(16, 185, 129, 0.4)' : 'transparent',
-                      border: isFound ? '2px solid #10b981' : 'none', borderRadius: '50%', width: '48px', height: '48px',
+                      fontSize: '28px', background: isFound ? 'color-mix(in srgb, var(--success) 40%, transparent)' : 'transparent',
+                      border: isFound ? '2px solid var(--success)' : 'none', borderRadius: '50%', width: '48px', height: '48px',
                       cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', touchAction: 'manipulation'
                     }}
                   >
@@ -9192,7 +9412,7 @@ export default function MoodTracker() {
                 )
               })}
             </div>
-            <button onClick={() => setShowDiffModal(false)} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
+            <button onClick={() => setShowDiffModal(false)} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
               Done Playing ✨
             </button>
           </div>
@@ -9201,13 +9421,13 @@ export default function MoodTracker() {
 
       {/* NATIVE STONE GRASS MOWER MODAL */}
       {showMowerModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-          <div style={{ background: 'linear-gradient(135deg, #064e3b, #022c22)', borderRadius: '24px', maxWidth: '520px', width: '100%', padding: '28px', border: '1px solid rgba(255,255,255,0.2)', color: 'white', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(8px)', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+          <div style={{ background: 'linear-gradient(135deg, var(--success-fill), var(--primary-fill))', borderRadius: '24px', maxWidth: '520px', width: '100%', padding: '28px', border: '1px solid rgba(255,255,255,0.2)', color: 'white', textAlign: 'center', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', textAlign: 'left' }}><BackButton onClick={() => setShowMowerModal(false)} variant="dark" /> 🚜 Stone Grass Lawn Mower</h3>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><FullscreenButton variant="dark" /><button onClick={() => setShowMowerModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button></span>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>🚜 Stone Grass Lawn Mower</h3>
+              <button onClick={() => setShowMowerModal(false)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold' }}>✕</button>
             </div>
-            <p style={{ fontSize: '12.5px', color: '#6ee7b7', marginBottom: '20px' }}>Tap or drag over grass tiles to cut lawn grass:</p>
+            <p style={{ fontSize: '12.5px', color: 'var(--success)', marginBottom: '20px' }}>Tap or drag over grass tiles to cut lawn grass:</p>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '8px', background: 'rgba(0,0,0,0.3)', padding: '16px', borderRadius: '20px', marginBottom: '20px' }}>
               {grassTiles.map((hasGrass, idx) => (
                 <div
@@ -9216,7 +9436,7 @@ export default function MoodTracker() {
                   onMouseEnter={() => handleMowGrass(idx)}
                   style={{
                     height: '48px', borderRadius: '12px',
-                    background: hasGrass ? '#15803d' : '#854d0e',
+                    background: hasGrass ? 'var(--success-fill)' : 'var(--sun-fill)',
                     border: '1px solid rgba(255,255,255,0.1)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px',
                     cursor: 'pointer', transition: 'all 0.15s ease', touchAction: 'none'
@@ -9230,7 +9450,7 @@ export default function MoodTracker() {
               <button onClick={resetMowerGame} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'rgba(255,255,255,0.15)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
                 🔄 Regrow Lawn
               </button>
-              <button onClick={() => setShowMowerModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer' }}>
+              <button onClick={() => setShowMowerModal(false)} style={{ flex: 1, padding: '12px', borderRadius: '12px', background: 'linear-gradient(135deg, var(--success-fill), var(--success-fill))', color: 'white', border: 'none', fontWeight: '700', cursor: 'pointer', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
                 Done Mowing ✨
               </button>
             </div>
@@ -9245,14 +9465,16 @@ export default function MoodTracker() {
         }
         .game-card:hover {
           transform: translateY(-5px);
-          box-shadow: 0 12px 24px -10px rgba(0,0,0,0.1);
-          border-color: #6366f1 !important;
+          box-shadow:0 12px 24px -10px rgba(0,0,0,0.1);
+          border-color:var(--primary) !important;
         }
         @keyframes fadeIn {
           from { opacity: 0; transform: scale(0.95); }
           to { opacity: 1; transform: scale(1); }
         }
       `}</style>
-    </div>
+    
+      {localGame && <LocalGameModal game={localGame} onClose={() => setLocalGame(null)} />}
+</div>
   )
 }

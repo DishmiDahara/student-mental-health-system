@@ -3,53 +3,56 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import API_URL from '../config'
 import ThemeToggle from './ThemeToggle'
+import Icon from './ui/Icon'
+import { Logo } from './ui/Brand'
 
+/**
+ * App chrome. Renders:
+ *  - desktop: a side rail (icon-only on tablets)
+ *  - mobile: a slim top bar + bottom tab bar + "More" sheet
+ * Notifications (announcements), profile photo, theme and logout all live here.
+ */
 export default function Navbar() {
   const navigate = useNavigate()
   const location = useLocation()
-  
+
   const [user, setUser] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [profilePhoto, setProfilePhoto] = useState('')
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState({ text: '', type: '' })
-  
+
   const [announcements, setAnnouncements] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
   const [hasNewNotifications, setHasNewNotifications] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 1024 : false)
-  const dropdownRef = useRef(null)
-
-  const triggerNavTransition = (targetPath) => {
-    navigate(targetPath)
-  }
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 1024)
-    }
-    handleResize()
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
+  const [moreOpen, setMoreOpen] = useState(false)
+  const railBellRef = useRef(null)
+  const topBellRef = useRef(null)
 
   const token = localStorage.getItem('token')
 
+  // Load the signed-in user (re-read on navigation + after the profile modal closes)
   useEffect(() => {
-    // Load user from localStorage
     const savedUser = localStorage.getItem('user')
     if (savedUser) {
-      const parsed = JSON.parse(savedUser)
-      setUser(parsed)
-      setProfilePhoto(parsed.profilePhoto || '')
+      try {
+        const parsed = JSON.parse(savedUser)
+        setUser(parsed)
+        setProfilePhoto(parsed.profilePhoto || '')
+      } catch { /* ignore corrupt value */ }
+    } else {
+      setUser(null)
     }
-  }, [isModalOpen])
+  }, [isModalOpen, location.pathname])
 
   useEffect(() => {
-    if (token) {
-      fetchAnnouncements()
-    }
+    setMoreOpen(false)
+    setShowNotifications(false)
+  }, [location.pathname])
+
+  useEffect(() => {
+    if (token) fetchAnnouncements()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
   const fetchAnnouncements = async () => {
@@ -58,13 +61,9 @@ export default function Navbar() {
         headers: { Authorization: `Bearer ${token}` }
       })
       setAnnouncements(res.data)
-      
-      // Check if there are new announcements compared to localStorage
       if (res.data.length > 0) {
         const lastSeenId = localStorage.getItem('lastSeenAnnouncementId')
-        if (lastSeenId !== res.data[0]._id) {
-          setHasNewNotifications(true)
-        }
+        if (lastSeenId !== res.data[0]._id) setHasNewNotifications(true)
       }
     } catch (err) {
       console.error('Error fetching announcements in Navbar:', err)
@@ -80,21 +79,18 @@ export default function Navbar() {
 
   const toggleNotifications = () => {
     setShowNotifications(!showNotifications)
-    if (!showNotifications && announcements.length > 0) {
-      markAllAsRead()
-    }
+    if (!showNotifications && announcements.length > 0) markAllAsRead()
   }
 
+  // Close the notification popover when clicking elsewhere
   useEffect(() => {
     function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setShowNotifications(false)
-      }
+      const inRail = railBellRef.current && railBellRef.current.contains(event.target)
+      const inTop = topBellRef.current && topBellRef.current.contains(event.target)
+      if (!inRail && !inTop) setShowNotifications(false)
     }
     document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   const handleLogout = () => {
@@ -106,20 +102,15 @@ export default function Navbar() {
   const handleFileChange = (e) => {
     const file = e.target.files[0]
     if (!file) return
-    
-    // Check file type/format
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png']
     if (!allowedTypes.includes(file.type)) {
-      setMessage({ text: '⚠️ Only JPG, JPEG, and PNG formats are allowed.', type: 'error' })
+      setMessage({ text: 'Only JPG, JPEG, and PNG formats are allowed.', type: 'error' })
       return
     }
-
-    // Check file size (e.g. limit to 2MB)
     if (file.size > 2 * 1024 * 1024) {
-      setMessage({ text: '⚠️ File is too large. Limit is 2MB.', type: 'error' })
+      setMessage({ text: 'File is too large. Limit is 2MB.', type: 'error' })
       return
     }
-
     const reader = new FileReader()
     reader.onloadend = () => {
       setProfilePhoto(reader.result)
@@ -131,19 +122,15 @@ export default function Navbar() {
   const handleSaveProfile = async () => {
     setUploading(true)
     setMessage({ text: '', type: '' })
-
     try {
-      const res = await axios.put(`${API_URL}/api/auth/me/profile`, 
+      const res = await axios.put(`${API_URL}/api/auth/me/profile`,
         { profilePhoto },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      
-      // Update local storage and user state
       const updatedUser = { ...user, profilePhoto: res.data.profilePhoto }
       localStorage.setItem('user', JSON.stringify(updatedUser))
       setUser(updatedUser)
-      
-      setMessage({ text: '✅ Profile photo updated successfully!', type: 'success' })
+      setMessage({ text: 'Profile photo updated successfully!', type: 'success' })
       setTimeout(() => {
         setIsModalOpen(false)
         setMessage({ text: '', type: '' })
@@ -159,559 +146,261 @@ export default function Navbar() {
 
   const nameInitial = user.name ? user.name.charAt(0).toUpperCase() : 'U'
   const isAdmin = user.role === 'admin' || user.role === 'counsellor'
+  const path = location.pathname
+
+  const groups = [
+    {
+      label: 'Today',
+      items: [
+        { to: '/dashboard', icon: 'home', label: 'Home' },
+        { to: '/mood', icon: 'smile', label: 'Mood' }
+      ]
+    },
+    {
+      label: 'Support',
+      items: [
+        { to: '/chat', icon: 'feather', label: 'AI Aura' },
+        { to: '/anonymous-chat', icon: 'users', label: 'Peer Chat' },
+        { to: '/booking', icon: 'calendar', label: 'Bookings' }
+      ]
+    },
+    {
+      label: 'Grow',
+      items: [
+        { to: '/resources', icon: 'book', label: 'Resources' },
+        ...(user.role === 'student' ? [{ to: '/apply-counselor', icon: 'briefcase', label: 'Apply as Counselor' }] : []),
+        ...(isAdmin ? [{ to: '/admin', icon: 'shield', label: user.role === 'counsellor' ? 'Counsellor Console' : 'Admin Console' }] : [])
+      ]
+    }
+  ]
+
+  const go = (to) => { setMoreOpen(false); navigate(to) }
+
+  const tabs = [
+    { to: '/dashboard', icon: 'home', label: 'Home' },
+    { to: '/mood', icon: 'smile', label: 'Mood' },
+    { to: '/chat', icon: 'feather', label: 'Aura' },
+    { to: '/booking', icon: 'calendar', label: 'Sessions' }
+  ]
+  const moreActive = !tabs.some(t => t.to === path) && path !== '/'
+
+  const notificationsPanel = showNotifications && (
+    <div className="popover" role="dialog" aria-label="Announcements">
+      <div className="popover-head">
+        <div className="row gap-8">
+          <strong className="serif" style={{ fontSize: 17 }}>Announcements</strong>
+          {announcements.length > 0 && <span className="chip chip-primary" style={{ padding: '2px 9px' }}>{announcements.length}</span>}
+        </div>
+        {announcements.length > 0 && (
+          <button className="btn btn-ghost btn-sm" onClick={markAllAsRead}>Mark read</button>
+        )}
+      </div>
+      <div className="popover-body">
+        {announcements.length === 0 ? (
+          <div className="center" style={{ padding: '36px 20px' }}>
+            <div className="tile tile-lg" style={{ margin: '0 auto 12px' }}><Icon name="bell" size={24} /></div>
+            <strong>You're all caught up</strong>
+            <p className="small muted mt-8">No active system announcements right now.</p>
+          </div>
+        ) : (
+          announcements.map((ann) => (
+            <div key={ann._id} className="popover-item">
+              <strong style={{ display: 'block', fontSize: 14.5, marginBottom: 4 }}>{ann.title}</strong>
+              <p className="small muted" style={{ lineHeight: 1.5 }}>{ann.content}</p>
+              <span className="tiny muted" style={{ display: 'block', marginTop: 8 }}>
+                {new Date(ann.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+
+  const helpCard = (
+    <div className="rail-help">
+      <strong>Need someone now?</strong>
+      <p>You don't have to carry this alone. Reach our staff, or call the 24/7 national helpline.</p>
+      <div className="col gap-8">
+        <button className="btn btn-primary btn-sm btn-block" onClick={() => go('/anonymous-chat')}>
+          <Icon name="message" size={16} /> Message staff
+        </button>
+        <a className="btn btn-outline btn-sm btn-block" href="tel:1926">
+          <Icon name="phone" size={16} /> Call 1926
+        </a>
+      </div>
+    </div>
+  )
 
   return (
-    <div className="navbar-header" style={{ 
-      background: 'var(--nav-bg, rgba(15, 23, 42, 0.65))', 
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
-      borderBottom: '1px solid var(--nav-border, rgba(255, 255, 255, 0.15))',
-      padding: '12px 24px', 
-      position: 'sticky', 
-      top: 0, 
-      zIndex: 1000, 
-      boxShadow: '0 8px 32px rgba(0,0,0,0.15)' 
-    }}>
-      <div style={{
-        maxWidth: '1320px',
-        width: '100%',
-        margin: '0 auto',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: '16px'
-      }}>
-      
-      {/* Brand logo */}
-      <h1 onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/dashboard', ['🧠', '✨', '💖', '🌿', '🌈', '🌟', '🕊️', '🧘‍♀️']); }} style={{ 
-        background: 'linear-gradient(135deg, #c084fc, #818cf8, #38bdf8)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        fontSize: '24px', 
-        margin: 0, 
-        cursor: 'pointer', 
-        display: 'flex', 
-        alignItems: 'center', 
-        gap: '8px', 
-        fontWeight: '800', 
-        fontFamily: '"Outfit", "Inter", sans-serif', 
-        whiteSpace: 'nowrap',
-        filter: 'drop-shadow(0 2px 8px rgba(192, 132, 252, 0.3))'
-      }}>
-        <span style={{ WebkitTextFillColor: 'initial' }}>🧠</span> MindSpace
-      </h1>
-      
-      {/* Desktop Nav Actions */}
-      {!isMobile && (
-        <div className="desktop-nav-menu" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          {/* 1. Mood Button */}
-          <button 
-            onClick={() => triggerNavTransition('/mood', ['😊', '😌', '🥰', '💖', '🎭', '🧘‍♀️', '🌸', '✨', '🌻', '🤩', '😃', '🌿', '☁️', '🌈', '☀️', '💧', '🛌', '⚡'])} 
-            className="ms-nav-btn"
-            style={{ padding: '9px 16px', background: location.pathname === '/mood' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'var(--nav-btn-bg, #f3f4f6)', color: location.pathname === '/mood' ? 'white' : 'var(--nav-btn-color, #4b5563)', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
-          >
-            Mood
-          </button>
-          
-          {/* 2. Peer Chat Button */}
-          <button 
-            onClick={() => triggerNavTransition('/anonymous-chat', ['💬', '👥', '💌', '💭', '🤝', '🗨️', '✨', '💜', '🗣️', '🔒', '🛡️', '🫂', '🕊️', '💌', '🌟'])} 
-            className="ms-nav-btn"
-            style={{ padding: '9px 16px', background: location.pathname === '/anonymous-chat' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'var(--nav-btn-bg, #f3f4f6)', color: location.pathname === '/anonymous-chat' ? 'white' : 'var(--nav-btn-color, #4b5563)', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
-          >
-            Peer Chat
-          </button>
-          
-          {/* 3. AI Aura Button */}
-          <button 
-            onClick={() => triggerNavTransition('/chat', ['🤖', '✨', '⚡', '🔮', '🧠', '🌌', '💫', '💎', '💡', '🚀', '🔮', '🌌', '🪐', '💫', '🤖'])} 
-            className="ms-nav-btn"
-            style={{ padding: '9px 16px', background: location.pathname === '/chat' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'var(--nav-btn-bg, #f3f4f6)', color: location.pathname === '/chat' ? 'white' : 'var(--nav-btn-color, #4b5563)', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
-          >
-            AI Aura
-          </button>
+    <>
+      {/* ---------------- Desktop / tablet rail ---------------- */}
+      <aside className="rail" aria-label="Primary">
+        <button className="rail-brand" onClick={() => navigate('/dashboard')} aria-label="MindSpace home">
+          <Logo size={42} />
+          <span className="brand-text">
+            <span className="brand-name">MindSpace</span>
+            <span className="brand-tag">STUDENT WELLBEING</span>
+          </span>
+        </button>
 
-          {/* 4. Resources Button */}
-          <button 
-            onClick={() => triggerNavTransition('/resources', ['📚', '📖', '🎧', '🧘‍♀️', '💡', '🌱', '🌿', '✨', '🎵', '📜', '🧩', '🎨', '🌊', '🍃', '🌸'])} 
-            className="ms-nav-btn"
-            style={{ padding: '9px 16px', background: location.pathname === '/resources' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'var(--nav-btn-bg, #f3f4f6)', color: location.pathname === '/resources' ? 'white' : 'var(--nav-btn-color, #4b5563)', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
-          >
-            Resources
-          </button>
+        <nav className="rail-scroll">
+          {groups.map(g => (
+            <div className="rail-group" key={g.label}>
+              <div className="rail-label">{g.label}</div>
+              {g.items.map(item => (
+                <button
+                  key={item.to}
+                  className={`nav-item ${path === item.to ? 'is-active' : ''}`}
+                  onClick={() => go(item.to)}
+                  title={item.label}
+                  aria-current={path === item.to ? 'page' : undefined}
+                >
+                  <Icon name={item.icon} size={20} />
+                  <span className="nav-text">{item.label}</span>
+                </button>
+              ))}
+            </div>
+          ))}
+        </nav>
 
-          {/* 5. Bookings Button */}
-          <button 
-            onClick={() => triggerNavTransition('/booking', ['📅', '⏰', '🗓️', '🩺', '🤝', '🌟', '🤍', '🧑‍⚕️', '📋', '💼', '📍', '💬', '🕒', '✅'])} 
-            className="ms-nav-btn"
-            style={{ padding: '9px 16px', background: location.pathname === '/booking' ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'var(--nav-btn-bg, #f3f4f6)', color: location.pathname === '/booking' ? 'white' : 'var(--nav-btn-color, #4b5563)', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px' }}
-          >
-            Bookings
-          </button>
+        {helpCard}
 
-          {/* 6. Apply as Counselor Button */}
-          {user.role === 'student' && (
-            <button 
-              onClick={() => triggerNavTransition('/apply-counselor', ['🤝', '🌟', '🎖️', '💼', '🏆', '💙', '✨', '📜', '🎓', '✍️', '🖊️', '📄', '🚀', '👑'])} 
-              className="ms-nav-btn"
-              style={{ padding: '9px 16px', background: location.pathname === '/apply-counselor' ? 'linear-gradient(135deg, #0284c7, #0ea5e9)' : 'var(--nav-btn-bg, #e0f2fe)', color: location.pathname === '/apply-counselor' ? 'white' : 'var(--nav-btn-color, #0369a1)', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px' }}
-            >
-              Apply as Counselor
+        <div className="rail-foot">
+          <a className="icon-btn rail-sos" href="tel:1926" title="Need help now? Call 1926 (24/7)" aria-label="Call the 1926 helpline">
+            <Icon name="phone" size={19} />
+          </a>
+          <button className="rail-user" onClick={() => setIsModalOpen(true)} title="Profile settings">
+            <span className="avatar">
+              {user.profilePhoto ? <img src={user.profilePhoto} alt="" /> : nameInitial}
+            </span>
+            <span className="rail-user-meta" style={{ minWidth: 0 }}>
+              <span className="rail-user-name" style={{ display: 'block' }}>{user.name}</span>
+              <span className="rail-user-role">{user.role}</span>
+            </span>
+          </button>
+          <div ref={railBellRef} style={{ position: 'relative' }}>
+            <button className={`icon-btn ${showNotifications ? 'is-on' : ''}`} onClick={toggleNotifications} title="Announcements" aria-label="Announcements">
+              <Icon name="bell" size={20} />
+              {hasNewNotifications && <span className="badge-dot" />}
             </button>
-          )}
-          
-          {/* Admin / Counselor Console Button */}
-          {isAdmin && (
-            <button 
-              onClick={() => triggerNavTransition('/admin', ['🛠️', '📊', '🛡️', '⚙️', '📋', '📈', '🔑', '⚡', '👨‍⚕️', '📊'])} 
-              className="ms-nav-btn"
-              style={{ padding: '9px 16px', background: location.pathname === '/admin' ? 'linear-gradient(135deg, #4f46e5, #7c3aed)' : 'var(--nav-btn-bg, #e0e7ff)', color: location.pathname === '/admin' ? 'white' : 'var(--nav-btn-color, #4f46e5)', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px' }}
-            >
-              {user?.role === 'counsellor' ? 'Counsellor Console' : 'Admin Console'}
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Right Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        {/* Theme Toggle Button */}
-        <ThemeToggle />
-
-        {/* Notifications Bell Dropdown */}
-        <div ref={dropdownRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <button 
-            onClick={toggleNotifications}
-            style={{
-              background: showNotifications ? 'var(--accent-bg, rgba(99, 102, 241, 0.15))' : 'transparent',
-              border: 'none',
-              borderRadius: '50%',
-              width: '38px',
-              height: '38px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              color: showNotifications ? 'var(--accent, #4f46e5)' : 'var(--nav-btn-color, #f1f5f9)',
-              transition: 'all 0.2s',
-              position: 'relative',
-              outline: 'none'
-            }}
-            title="System Announcements"
-            className="navbar-bell-btn"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" style={{ width: '20px', height: '20px' }}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
-            </svg>
-            {hasNewNotifications && (
-              <span className="bell-badge" style={{
-                position: 'absolute',
-                top: '6px',
-                right: '6px',
-                background: '#ef4444',
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                boxShadow: '0 0 0 2px white'
-              }} />
+            {showNotifications && (
+              <div className="only-desktop" style={{ position: 'absolute', left: 'calc(100% + 14px)', bottom: -6 }}>
+                {notificationsPanel}
+              </div>
             )}
-          </button>
-
-          {showNotifications && (
-            <div style={{
-              position: 'absolute',
-              top: '48px',
-              right: 0,
-              width: '320px',
-              background: 'var(--glass-card-bg, rgba(255, 255, 255, 0.98))',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              border: '1px solid var(--glass-card-border, #e2e8f0)',
-              borderRadius: '16px',
-              boxShadow: 'var(--glass-shadow, 0 10px 30px rgba(0, 0, 0, 0.15))',
-              zIndex: 2000,
-              overflow: 'hidden',
-              animation: 'navFadeIn 0.2s ease-out'
-            }}>
-              {/* Header */}
-              <div style={{
-                padding: '14px 18px',
-                borderBottom: '1px solid var(--glass-card-border, #f1f5f9)',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                background: 'var(--card-inner, #fcfdff)'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontWeight: '800', fontSize: '14px', color: 'var(--text-h, #1e293b)' }}>Announcements</span>
-                  {announcements.length > 0 && (
-                    <span style={{
-                      background: 'var(--accent-bg, #e0e7ff)',
-                      color: 'var(--accent, #4f46e5)',
-                      fontSize: '11px',
-                      padding: '2px 8px',
-                      borderRadius: '10px',
-                      fontWeight: 'bold'
-                    }}>
-                      {announcements.length}
-                    </span>
-                  )}
-                </div>
-                {announcements.length > 0 && (
-                  <button 
-                    onClick={markAllAsRead}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--accent, #4f46e5)',
-                      fontSize: '12px',
-                      fontWeight: '600',
-                      cursor: 'pointer',
-                      padding: 0,
-                      outline: 'none'
-                    }}
-                    className="navbar-mark-read-btn"
-                  >
-                    Mark all as read
-                  </button>
-                )}
-              </div>
-
-              {/* Body */}
-              <div style={{ maxHeight: '300px', overflowY: 'auto' }} className="custom-scrollbar">
-                {announcements.length === 0 ? (
-                  <div style={{ padding: '32px 20px', textAlign: 'center', color: 'var(--text-muted, #64748b)' }}>
-                    <p style={{ margin: 0, fontSize: '13.5px', fontWeight: '500' }}>You're all caught up!</p>
-                    <p style={{ margin: '4px 0 0', fontSize: '11.5px', color: 'var(--text-muted, #94a3b8)' }}>No active system announcements.</p>
-                  </div>
-                ) : (
-                  announcements.map((ann, idx) => (
-                    <div 
-                      key={ann._id} 
-                      style={{
-                        padding: '14px 18px',
-                        borderBottom: idx === announcements.length - 1 ? 'none' : '1px solid var(--glass-card-border, #f1f5f9)',
-                        transition: 'background 0.2s',
-                        cursor: 'default',
-                        textAlign: 'left'
-                      }}
-                      className="announcement-item"
-                    >
-                      <h4 style={{ margin: '0 0 4px', color: 'var(--text-h, #1f2937)', fontSize: '13.5px', fontWeight: 'bold', lineHeight: '1.3', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
-                        {ann.title}
-                      </h4>
-                      <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--text-sub, #4b5563)', lineHeight: '1.45', wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}>
-                        {ann.content}
-                      </p>
-                      <div style={{
-                        marginTop: '8px',
-                        fontSize: '10.5px',
-                        color: 'var(--text-muted, #94a3b8)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}>
-                        <span>{new Date(ann.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* User profile avatar / settings trigger */}
-        <div 
-          onClick={() => setIsModalOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '2px', borderRadius: '20px', transition: 'background 0.2s' }}
-          title="Profile Settings"
-        >
-          {user.profilePhoto ? (
-            <img 
-              src={user.profilePhoto} 
-              alt={user.name} 
-              style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #6366f1', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }} 
-            />
-          ) : (
-            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px', border: '2px solid white', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-              {nameInitial}
-            </div>
-          )}
-        </div>
-
-        {!isMobile && (
-          <button 
-            onClick={handleLogout} 
-            className="desktop-logout-btn"
-            style={{ padding: '9px 16px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13.5px', transition: 'all 0.2s' }}
-          >
-            Logout
-          </button>
-        )}
-
-        {/* Mobile Hamburger Toggle Button (☰) */}
-        {isMobile && (
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="mobile-hamburger-btn"
-            style={{
-              background: 'var(--nav-btn-bg, #f1f5f9)',
-              border: '1px solid var(--nav-border, rgba(255, 255, 255, 0.15))',
-              borderRadius: '10px',
-              padding: '8px 12px',
-              fontSize: '20px',
-              cursor: 'pointer',
-              color: 'var(--text-h, #1e293b)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              lineHeight: 1
-            }}
-            title="Toggle Menu"
-          >
-            {mobileMenuOpen ? '✕' : '☰'}
-          </button>
-        )}
-      </div>
-      </div>
-
-      {/* Mobile Drawer Menu (Slide Down on ☰ click) */}
-      {mobileMenuOpen && (
-        <div 
-          style={{
-            width: '100%',
-            background: 'var(--glass-card-bg, #ffffff)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            borderTop: '1px solid var(--glass-card-border, #f1f5f9)',
-            padding: '16px 0 8px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px'
-          }} 
-          className="mobile-drawer-menu"
-        >
-          <button 
-            onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/mood', ['😊', '😌', '🥰', '💖', '🎭', '🧘‍♀️', '🌸', '✨', '🌻', '🤩', '😃', '🌿', '☁️', '🌈', '☀️', '💧', '🛌', '⚡']); }} 
-            style={{ padding: '12px 16px', background: location.pathname === '/mood' ? 'var(--accent-bg, #e0e7ff)' : 'var(--card-inner, #f8fafc)', color: location.pathname === '/mood' ? 'var(--accent, #4f46e5)' : 'var(--text, #4b5563)', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
-          >
-            <span>😊</span> Mood Journal
-          </button>
-
-          <button 
-            onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/anonymous-chat', ['💬', '👥', '💌', '💭', '🤝', '🗨️', '✨', '💜', '🗣️', '🔒', '🛡️', '🫂', '🕊️', '💌', '🌟']); }} 
-            style={{ padding: '12px 16px', background: location.pathname === '/anonymous-chat' ? 'var(--accent-bg, #e0e7ff)' : 'var(--card-inner, #f8fafc)', color: location.pathname === '/anonymous-chat' ? 'var(--accent, #4f46e5)' : 'var(--text, #4b5563)', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
-          >
-            <span>👥</span> Peer Support Chat
-          </button>
-
-          <button 
-            onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/chat', ['🤖', '✨', '⚡', '🔮', '🧠', '🌌', '💫', '💎', '💡', '🚀', '🔮', '🌌', '🪐', '💫', '🤖']); }} 
-            style={{ padding: '12px 16px', background: location.pathname === '/chat' ? 'var(--accent-bg, #e0e7ff)' : 'var(--card-inner, #f8fafc)', color: location.pathname === '/chat' ? 'var(--accent, #4f46e5)' : 'var(--text, #4b5563)', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
-          >
-            <span>💬</span> AI Aura Assistant
-          </button>
-
-          <button 
-            onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/resources', ['📚', '📖', '🎧', '🧘‍♀️', '💡', '🌱', '🌿', '✨', '🎵', '📜', '🧩', '🎨', '🌊', '🍃', '🌸']); }} 
-            style={{ padding: '12px 16px', background: location.pathname === '/resources' ? 'var(--accent-bg, #e0e7ff)' : 'var(--card-inner, #f8fafc)', color: location.pathname === '/resources' ? 'var(--accent, #4f46e5)' : 'var(--text, #4b5563)', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
-          >
-            <span>📚</span> Resources & Breathing
-          </button>
-
-          <button 
-            onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/booking', ['📅', '⏰', '🗓️', '🩺', '🤝', '🌟', '🤍', '🧑‍⚕️', '📋', '💼', '📍', '💬', '🕒', '✅']); }} 
-            style={{ padding: '12px 16px', background: location.pathname === '/booking' ? 'var(--accent-bg, #e0e7ff)' : 'var(--card-inner, #f8fafc)', color: location.pathname === '/booking' ? 'var(--accent, #4f46e5)' : 'var(--text, #4b5563)', border: 'none', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
-          >
-            <span>📅</span> Bookings & Counseling
-          </button>
-
-          {user.role === 'student' && (
-            <button 
-              onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/apply-counselor', ['🤝', '🌟', '🎖️', '💼', '🏆', '💙', '✨', '📜', '🎓', '✍️', '🖊️', '📄', '🚀', '👑']); }} 
-              style={{ padding: '12px 16px', background: location.pathname === '/apply-counselor' ? '#0284c7' : 'var(--card-inner, #e0f2fe)', color: location.pathname === '/apply-counselor' ? 'white' : 'var(--text-h, #0369a1)', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
-            >
-              <span>🤝</span> Apply as Counselor
-            </button>
-          )}
-          
-          {isAdmin && (
-            <button 
-              onClick={() => { setMobileMenuOpen(false); triggerNavTransition('/admin', ['🛠️', '📊', '🛡️', '⚙️', '📋', '📈', '🔑', '⚡', '👨‍⚕️', '📊']); }} 
-              style={{ padding: '12px 16px', background: location.pathname === '/admin' ? '#4f46e5' : 'var(--card-inner, #e0e7ff)', color: location.pathname === '/admin' ? 'white' : 'var(--text-h, #4f46e5)', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
-            >
-              <span>🛠️</span> {user?.role === 'counsellor' ? 'Counsellor Console' : 'Admin Console'}
-            </button>
-          )}
-
-          <button 
-            onClick={() => { setMobileMenuOpen(false); setIsModalOpen(true); }} 
-            style={{ padding: '12px 16px', background: 'var(--card-inner, #f1f5f9)', color: 'var(--text, #334155)', border: '1px solid var(--glass-card-border, transparent)', borderRadius: '10px', fontWeight: '600', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
-          >
-            <span>👤</span> My Profile Settings
-          </button>
-
-          <div style={{ padding: '2px 0' }}>
-            <ThemeToggle showLabel={true} style={{ width: '100%', justifyContent: 'flex-start', borderRadius: '10px', padding: '12px 16px' }} />
           </div>
+          <ThemeToggle />
+        </div>
+      </aside>
 
-          <button 
-            onClick={() => { setMobileMenuOpen(false); handleLogout(); }} 
-            style={{ padding: '12px 16px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '10px', fontWeight: 'bold', fontSize: '14px', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '10px' }}
-          >
-            <span>🚪</span> Logout
+      {/* ---------------- Mobile top bar ---------------- */}
+      <header className="topbar">
+        <button className="row gap-8" style={{ background: 'none', border: 0, cursor: 'pointer', padding: 0 }} onClick={() => navigate('/dashboard')} aria-label="MindSpace home">
+          <Logo size={34} />
+          <span className="brand-name">MindSpace</span>
+        </button>
+        <div className="row gap-4">
+          <ThemeToggle />
+          <div ref={topBellRef}>
+            <button className={`icon-btn ${showNotifications ? 'is-on' : ''}`} onClick={toggleNotifications} aria-label="Announcements">
+              <Icon name="bell" size={20} />
+              {hasNewNotifications && <span className="badge-dot" />}
+            </button>
+            <div className="only-mobile">{notificationsPanel}</div>
+          </div>
+          <button className="avatar avatar-sm" style={{ cursor: 'pointer' }} onClick={() => setIsModalOpen(true)} aria-label="Profile settings">
+            {user.profilePhoto ? <img src={user.profilePhoto} alt="" /> : nameInitial}
           </button>
         </div>
+      </header>
+
+      {/* ---------------- Mobile tab bar ---------------- */}
+      <nav className="tabbar" aria-label="Primary">
+        {tabs.map(t => (
+          <button key={t.to} className={`tab-item ${path === t.to ? 'is-active' : ''}`} onClick={() => go(t.to)} aria-current={path === t.to ? 'page' : undefined}>
+            <span className="pill"><Icon name={t.icon} size={21} /></span>
+            {t.label}
+          </button>
+        ))}
+        <button className={`tab-item ${moreActive || moreOpen ? 'is-active' : ''}`} onClick={() => setMoreOpen(true)}>
+          <span className="pill"><Icon name="grid" size={21} /></span>
+          More
+        </button>
+      </nav>
+
+      {/* ---------------- Mobile "More" sheet ---------------- */}
+      {moreOpen && (
+        <>
+          <div className="sheet-overlay" onClick={() => setMoreOpen(false)} />
+          <div className="sheet" role="dialog" aria-label="More">
+            <div className="sheet-grip" />
+            <div className="row" style={{ padding: '0 6px 14px' }}>
+              <span className="avatar">{user.profilePhoto ? <img src={user.profilePhoto} alt="" /> : nameInitial}</span>
+              <div className="grow">
+                <strong style={{ display: 'block' }}>{user.name}</strong>
+                <span className="small muted" style={{ textTransform: 'capitalize' }}>{user.role}</span>
+              </div>
+              <button className="btn btn-soft btn-sm" onClick={() => { setMoreOpen(false); setIsModalOpen(true) }}>Profile</button>
+            </div>
+            <div className="col gap-4">
+              {groups.flatMap(g => g.items).filter(i => !tabs.some(t => t.to === i.to)).map(item => (
+                <button key={item.to} className={`nav-item ${path === item.to ? 'is-active' : ''}`} onClick={() => go(item.to)}>
+                  <Icon name={item.icon} size={20} /> <span className="nav-text">{item.label}</span>
+                </button>
+              ))}
+            </div>
+            {helpCard}
+            <button className="btn btn-danger-soft btn-block" onClick={() => { setMoreOpen(false); handleLogout() }}>
+              <Icon name="logout" size={18} /> Log out
+            </button>
+          </div>
+        </>
       )}
 
-      {/* --- PROFILE MODAL --- */}
+      {/* ---------------- Profile modal ---------------- */}
       {isModalOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: 'var(--glass-card-bg, #ffffff)', padding: '32px', borderRadius: '24px', width: '380px', border: '1px solid var(--glass-card-border, #e2e8f0)', boxShadow: 'var(--glass-shadow, 0 25px 50px -12px rgba(0, 0, 0, 0.25))', position: 'relative' }}>
-            
-            <button 
-              onClick={() => { setIsModalOpen(false); setMessage({ text: '', type: '' }); }} 
-              style={{ position: 'absolute', top: '16px', right: '16px', border: 'none', background: 'var(--card-inner, #f1f5f9)', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px', color: 'var(--text-sub, #64748b)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              ✕
+        <div className="overlay" onClick={() => { setIsModalOpen(false); setMessage({ text: '', type: '' }) }}>
+          <div className="modal" style={{ maxWidth: 440 }} onClick={e => e.stopPropagation()} role="dialog" aria-label="My profile">
+            <button className="modal-close" aria-label="Close" onClick={() => { setIsModalOpen(false); setMessage({ text: '', type: '' }) }}>
+              <Icon name="x" size={18} />
             </button>
-
-            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-              <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', color: 'var(--text-h, #1e293b)', fontWeight: 'bold' }}>My Profile</h3>
-              <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted, #64748b)' }}>Update your profile photo</p>
-            </div>
+            <h3 className="h-title" style={{ fontSize: 26 }}>My profile</h3>
+            <p className="muted small mt-8">Update your profile photo</p>
 
             {message.text && (
-              <div style={{ 
-                background: message.type === 'success' ? '#ecfdf5' : '#fef2f2', 
-                color: message.type === 'success' ? '#047857' : '#b91c1c', 
-                padding: '10px 14px', 
-                borderRadius: '10px', 
-                fontSize: '13px', 
-                marginBottom: '16px',
-                textAlign: 'center',
-                fontWeight: '500'
-              }}>
-                {message.text}
+              <div className={`alert ${message.type === 'success' ? 'alert-success' : 'alert-danger'} mt-16`}>
+                <Icon name={message.type === 'success' ? 'checkCircle' : 'alert'} size={18} />
+                <span>{message.text}</span>
               </div>
             )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-              {/* Profile Photo Display */}
-              <div style={{ position: 'relative' }}>
-                {profilePhoto ? (
-                  <img src={profilePhoto} alt="Profile" style={{ width: '110px', height: '110px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #6366f1', boxShadow: '0 4px 10px rgba(99, 102, 241, 0.15)' }} />
-                ) : (
-                  <div style={{ width: '110px', height: '110px', borderRadius: '50%', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '36px', border: '3px solid #6366f1', boxShadow: '0 4px 10px rgba(99, 102, 241, 0.15)' }}>
-                    {nameInitial}
-                  </div>
-                )}
+            <div className="center mt-24">
+              <div className="avatar avatar-lg" style={{ margin: '0 auto', width: 112, height: 112, fontSize: 40 }}>
+                {profilePhoto ? <img src={profilePhoto} alt="Profile" /> : nameInitial}
               </div>
-
-              {/* File input (Device Upload, No URL) */}
-              <div style={{ width: '100%' }}>
-                <label style={{ display: 'block', fontSize: '12.5px', fontWeight: '600', color: 'var(--text-sub, #475569)', marginBottom: '6px', textAlign: 'center' }}>Upload new photo:</label>
-                <input 
-                  type="file" 
-                  accept="image/png, image/jpeg, image/jpg" 
-                  onChange={handleFileChange}
-                  style={{ width: '100%', padding: '8px', border: '1px dashed var(--glass-card-border, #cbd5e1)', borderRadius: '8px', fontSize: '12px', outline: 'none', background: 'var(--card-inner, #f8fafc)', color: 'var(--text, #1e293b)', cursor: 'pointer' }}
-                />
-              </div>
+              <label className="btn btn-soft btn-sm mt-16" style={{ cursor: 'pointer' }}>
+                <Icon name="camera" size={16} /> Choose photo
+                <input type="file" accept="image/png, image/jpeg, image/jpg" onChange={handleFileChange} style={{ display: 'none' }} />
+              </label>
+              <p className="tiny muted mt-8">JPG or PNG, up to 2MB</p>
             </div>
 
-            {/* Readonly info */}
-            <div style={{ background: 'var(--card-inner, #f8fafc)', padding: '16px', borderRadius: '16px', marginBottom: '24px', border: '1px solid var(--glass-card-border, #f1f5f9)', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted, #64748b)' }}>Name:</span>
-                <strong style={{ color: 'var(--text-h, #1e293b)' }}>{user.name}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted, #64748b)' }}>Email:</span>
-                <strong style={{ color: 'var(--text-h, #1e293b)' }}>{user.email}</strong>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted, #64748b)' }}>System Role:</span>
-                <strong style={{ color: '#6366f1', textTransform: 'capitalize' }}>{user.role}</strong>
-              </div>
+            <div className="card card-soft card-pad-sm mt-24 col gap-8">
+              <div className="row-between small"><span className="muted">Name</span><strong>{user.name}</strong></div>
+              <div className="row-between small"><span className="muted">Email</span><strong style={{ wordBreak: 'break-all', textAlign: 'right' }}>{user.email}</strong></div>
+              <div className="row-between small"><span className="muted">Role</span><strong style={{ color: 'var(--primary)', textTransform: 'capitalize' }}>{user.role}</strong></div>
             </div>
 
-            <button 
-              onClick={handleSaveProfile}
-              disabled={uploading}
-              style={{ width: '100%', padding: '12px', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(118, 75, 162, 0.2)' }}
-            >
-              {uploading ? 'Saving Photo...' : 'Save Profile Photo'}
+            <button className="btn btn-primary btn-lg btn-block mt-24" onClick={handleSaveProfile} disabled={uploading}>
+              {uploading ? 'Saving…' : 'Save profile photo'}
+            </button>
+            <button className="btn btn-ghost btn-block mt-8" onClick={handleLogout}>
+              <Icon name="logout" size={17} /> Log out
             </button>
           </div>
         </div>
       )}
-
-      <style>{`
-        .ms-nav-btn {
-          transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-          position: relative !important;
-          outline: none !important;
-          user-select: none !important;
-        }
-        .ms-nav-btn:hover {
-          transform: translateY(-2px) scale(1.04) !important;
-          box-shadow: 0 6px 20px rgba(79, 70, 229, 0.25) !important;
-        }
-        .ms-nav-btn:active {
-          transform: scale(0.92) translateY(1px) !important;
-          box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4) !important;
-          animation: msRipple 0.3s ease-out !important;
-        }
-        @keyframes msRipple {
-          0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.6); }
-          100% { box-shadow: 0 0 0 12px rgba(99, 102, 241, 0); }
-        }
-        .navbar-bell-btn:hover {
-          background-color: #f3f4f6 !important;
-          color: #4f46e5 !important;
-        }
-        .navbar-mark-read-btn:hover {
-          text-decoration: underline;
-          color: #4338ca !important;
-        }
-        .announcement-item:hover {
-          background-color: #f8fafc;
-        }
-        @keyframes navFadeIn {
-          from { opacity: 0; transform: translateY(-8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .bell-badge {
-          animation: pulseBadge 2s infinite;
-        }
-        @keyframes pulseBadge {
-          0% {
-            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-          }
-          70% {
-            box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
-          }
-          100% {
-            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
-          }
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #cbd5e1;
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #94a3b8;
-        }
-      `}</style>
-
-    </div>
+    </>
   )
 }

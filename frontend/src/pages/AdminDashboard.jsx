@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import io from 'socket.io-client'
 import API_URL from '../config'
-import ThemeToggle from '../components/ThemeToggle'
+import Icon from '../components/ui/Icon'
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, BarChart, Bar, Legend 
@@ -779,213 +779,69 @@ export default function AdminDashboard() {
   }))
 
   return (
-    <div className="admin-dashboard-container" style={{ minHeight: '100vh', background: '#0f172a', color: '#e2e8f0', display: 'flex', flexDirection: isMobile ? 'column' : 'row' }}>
-      
-      {/* Sidebar Navigation Panel (Desktop Only) */}
-      {!isMobile && (
-        <div className="no-print admin-sidebar" style={{ width: '280px', background: '#1e293b', borderRight: '1px solid #334155', display: 'flex', flexDirection: 'column', padding: '24px 0', flexShrink: 0 }}>
-          <div style={{ padding: '0 24px', marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <h1 style={{ color: '#6366f1', fontSize: '24px', margin: 0, fontWeight: 'bold' }}>🧠 MindSpace</h1>
-              <span style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                {currentUser?.role === 'admin' ? 'Admin Console' : 'Counselor Console'}
-              </span>
+    <div className="admin-dashboard-container admin-layout">
+
+      {/* Console section navigator (vertical on desktop, scrollable pills on mobile) */}
+      {(() => {
+        const menuItems = [{ id: 'analytics', label: 'Mood Analytics' }]
+        if (currentUser?.role === 'admin') {
+          menuItems.push({ id: 'users', label: 'User Accounts' })
+          menuItems.push({ id: 'resources', label: 'Resources (Articles)' })
+        }
+        menuItems.push({ id: 'recommendation', label: 'Curate Games/Tips' })
+        if (currentUser?.role === 'admin') {
+          menuItems.push({ id: 'chats', label: 'Private Live Help' })
+          menuItems.push({ id: 'feedback', label: 'Complaints & Feedback' })
+          menuItems.push({ id: 'announcements', label: 'Post Announcements' })
+          menuItems.push({ id: 'monitoring', label: 'Activity Logs' })
+          menuItems.push({ id: 'moderator', label: 'Peer Chat Moderator' })
+          menuItems.push({ id: 'emergency', label: 'Emergency Alarms' })
+        }
+        menuItems.push({ id: 'bookings', label: 'Appointment Bookings' })
+        if (currentUser?.role === 'admin') {
+          menuItems.push({ id: 'reporting', label: 'Report Exporter' })
+          menuItems.push({
+            id: 'counselorapps',
+            label: 'Counselor Approvals',
+            badgeCount: counselorApps.filter(app => app.status === 'pending').length
+          })
+          menuItems.push({ id: 'payments', label: 'Counselor Payments' })
+        } else {
+          menuItems.push({ id: 'payments', label: 'My Earnings' })
+        }
+        const iconFor = {
+          analytics: 'bars', users: 'users', resources: 'book', recommendation: 'heart', chats: 'message',
+          feedback: 'inbox', announcements: 'megaphone', monitoring: 'activity', moderator: 'shield',
+          emergency: 'alert', bookings: 'calendar', reporting: 'download', counselorapps: 'userCheck', payments: 'dollar'
+        }
+        return (
+          <nav className="admin-nav no-print" aria-label="Console sections">
+            <div className="admin-nav-head">
+              <span className="eyebrow" style={{ marginBottom: 4 }}>{currentUser?.role === 'admin' ? 'Admin console' : 'Counselor console'}</span>
             </div>
-            <ThemeToggle />
-          </div>
-
-          <div className="admin-sidebar-menu" style={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1, overflowY: 'auto' }}>
-            {(() => {
-              const menuItems = [
-                { id: 'analytics', label: 'Mood Analytics' }
-              ]
-              if (currentUser?.role === 'admin') {
-                menuItems.push({ id: 'users', label: 'User Accounts' })
-                menuItems.push({ id: 'resources', label: 'Resources (Articles)' })
-              }
-              menuItems.push({ id: 'recommendation', label: 'Curate Games/Tips' })
-              if (currentUser?.role === 'admin') {
-                menuItems.push({ id: 'chats', label: 'Private Live Help' })
-                menuItems.push({ id: 'feedback', label: 'Complaints & Feedback' })
-                menuItems.push({ id: 'announcements', label: 'Post Announcements' })
-                menuItems.push({ id: 'monitoring', label: 'Activity Logs' })
-                menuItems.push({ id: 'moderator', label: 'Peer Chat Moderator' })
-                menuItems.push({ id: 'emergency', label: 'Emergency Alarms' })
-              }
-              menuItems.push({ id: 'bookings', label: 'Appointment Bookings' })
-              if (currentUser?.role === 'admin') {
-                menuItems.push({ id: 'reporting', label: 'Report Exporter' })
-                menuItems.push({ 
-                  id: 'counselorapps', 
-                  label: 'Counselor Approvals',
-                  badgeCount: counselorApps.filter(app => app.status === 'pending').length
-                })
-                menuItems.push({ id: 'payments', label: 'Counselor Payments' })
-              } else {
-                menuItems.push({ id: 'payments', label: 'My Earnings' })
-              }
-
-              return menuItems.map((item, index) => {
-                const labelNumber = index + 1
-                if (item.id === 'counselorapps') {
-                  return (
-                    <button 
-                      key={item.id}
-                      onClick={() => setActiveTab('counselorapps')} 
-                      style={{
-                        ...getSidebarButtonStyle(activeTab === 'counselorapps', true),
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}
-                    >
-                      <span>{labelNumber}. {item.label}</span>
-                      {item.badgeCount > 0 && (
-                        <span style={{
-                          background: '#ef4444',
-                          color: 'white',
-                          fontSize: '11px',
-                          padding: '2px 8px',
-                          borderRadius: '10px',
-                          fontWeight: 'bold',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                          marginRight: '12px'
-                        }}>
-                          {item.badgeCount}
-                        </span>
-                      )}
-                    </button>
-                  )
-                }
-
-                return (
-                  <button 
-                    key={item.id}
-                    onClick={() => setActiveTab(item.id)} 
-                    style={getSidebarButtonStyle(activeTab === item.id)}
-                  >
-                    {labelNumber}. {item.label}
-                  </button>
-                )
-              })
-            })()}
-          </div>
-
-          <div style={{ padding: '24px', borderTop: '1px solid #334155', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <ThemeToggle showLabel={true} style={{ width: '100%', justifyContent: 'center' }} />
-            <button onClick={() => navigate('/dashboard')} style={{ width: '100%', padding: '10px', background: '#334155', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>User Dashboard</button>
-          </div>
-        </div>
-      )}
-
-      {/* Mobile Top Header & Hamburger Menu (Mobile Only) */}
-      {isMobile && (
-        <div style={{ background: '#1e293b', borderBottom: '1px solid #334155', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px', sticky: 'top', top: 0, zIndex: 100 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <h1 style={{ color: '#6366f1', fontSize: '18px', margin: 0, fontWeight: 'bold' }}>🧠 MindSpace</h1>
-              <span style={{ fontSize: '10.5px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                {currentUser?.role === 'admin' ? 'Admin Console' : 'Counselor Console'}
-              </span>
+            <div className="admin-nav-list">
+              {menuItems.map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`admin-nav-item ${activeTab === item.id ? 'is-active' : ''} ${item.id === 'emergency' ? 'is-alert' : ''}`}
+                  aria-current={activeTab === item.id ? 'page' : undefined}
+                >
+                  <Icon name={iconFor[item.id] || 'grid'} size={18} />
+                  <span className="admin-nav-label">{item.label}</span>
+                  {item.badgeCount > 0 && <span className="admin-nav-badge">{item.badgeCount}</span>}
+                </button>
+              ))}
             </div>
-
-            <button
-              onClick={() => setAdminMobileMenuOpen(!adminMobileMenuOpen)}
-              style={{
-                background: '#4f46e5',
-                color: 'white',
-                border: 'none',
-                borderRadius: '10px',
-                padding: '8px 14px',
-                fontWeight: 'bold',
-                fontSize: '14px',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <span>{adminMobileMenuOpen ? '✕' : '☰'}</span> Menu
+            <button className="btn btn-ghost btn-sm admin-nav-back" onClick={() => navigate('/dashboard')}>
+              <Icon name="arrowLeft" size={16} /> User dashboard
             </button>
-          </div>
-
-          {/* Collapsible Mobile Menu Drawer */}
-          {adminMobileMenuOpen && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingTop: '12px', borderTop: '1px solid #334155', maxHeight: '70vh', overflowY: 'auto' }}>
-              {(() => {
-                const menuItems = [
-                  { id: 'analytics', label: 'Mood Analytics' }
-                ]
-                if (currentUser?.role === 'admin') {
-                  menuItems.push({ id: 'users', label: 'User Accounts' })
-                  menuItems.push({ id: 'resources', label: 'Resources (Articles)' })
-                }
-                menuItems.push({ id: 'recommendation', label: 'Curate Games/Tips' })
-                if (currentUser?.role === 'admin') {
-                  menuItems.push({ id: 'chats', label: 'Private Live Help' })
-                  menuItems.push({ id: 'feedback', label: 'Complaints & Feedback' })
-                  menuItems.push({ id: 'announcements', label: 'Post Announcements' })
-                  menuItems.push({ id: 'monitoring', label: 'Activity Logs' })
-                  menuItems.push({ id: 'moderator', label: 'Peer Chat Moderator' })
-                  menuItems.push({ id: 'emergency', label: 'Emergency Alarms' })
-                }
-                menuItems.push({ id: 'bookings', label: 'Appointment Bookings' })
-                if (currentUser?.role === 'admin') {
-                  menuItems.push({ id: 'reporting', label: 'Report Exporter' })
-                  menuItems.push({ 
-                    id: 'counselorapps', 
-                    label: 'Counselor Approvals',
-                    badgeCount: counselorApps.filter(app => app.status === 'pending').length
-                  })
-                  menuItems.push({ id: 'payments', label: 'Counselor Payments' })
-                } else {
-                  menuItems.push({ id: 'payments', label: 'My Earnings' })
-                }
-
-                return menuItems.map((item, index) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setActiveTab(item.id);
-                      setAdminMobileMenuOpen(false);
-                    }}
-                    style={{
-                      padding: '12px 16px',
-                      background: activeTab === item.id ? '#6366f1' : '#0f172a',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '10px',
-                      fontWeight: activeTab === item.id ? 'bold' : '500',
-                      textAlign: 'left',
-                      fontSize: '13.5px',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}
-                  >
-                    <span>{index + 1}. {item.label}</span>
-                    {item.badgeCount > 0 && (
-                      <span style={{ background: '#ef4444', color: 'white', fontSize: '11px', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>
-                        {item.badgeCount}
-                      </span>
-                    )}
-                  </button>
-                ))
-              })()}
-
-              <button
-                onClick={() => { setAdminMobileMenuOpen(false); navigate('/dashboard'); }}
-                style={{ padding: '12px 16px', background: '#334155', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px', marginTop: '6px' }}
-              >
-                ← Return to User Dashboard
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+          </nav>
+        )
+      })()}
 
       {/* Main Content Pane */}
-      <div className="admin-main-content" style={{ flex: 1, padding: '40px', overflowY: 'auto', minWidth: 0 }}>
+      <div className="admin-main-content" style={{ minWidth: 0 }}>
         
         {/* Dashboard Header with Welcome and Notification Bell */}
         <div style={{
@@ -993,15 +849,15 @@ export default function AdminDashboard() {
           justifyContent: 'space-between',
           alignItems: 'center',
           marginBottom: '32px',
-          borderBottom: '1px solid #334155',
+          borderBottom: '1px solid var(--line)',
           paddingBottom: '20px'
         }}>
           <div>
-            <h1 style={{ color: 'white', fontSize: '26px', margin: '0 0 4px', fontWeight: 'bold' }}>
+            <h1 style={{ color: 'var(--ink)', fontSize: '26px', margin: '0 0 4px', fontWeight: 'bold' }}>
               Welcome Back, {currentUser?.name || 'Counselor'} 👋
             </h1>
-            <p style={{ color: '#94a3b8', fontSize: '13.5px', margin: 0 }}>
-              System role: <span style={{ color: '#818cf8', fontWeight: 'bold', textTransform: 'capitalize' }}>{currentUser?.role}</span>
+            <p style={{ color: 'var(--ink-3)', fontSize: '13.5px', margin: 0 }}>
+              System role: <span style={{ color: 'var(--primary)', fontWeight: 'bold', textTransform: 'capitalize' }}>{currentUser?.role}</span>
             </p>
           </div>
 
@@ -1015,11 +871,11 @@ export default function AdminDashboard() {
                 <button 
                   onClick={() => setIsNotificationOpen(!isNotificationOpen)}
                   style={{
-                    background: '#1e293b',
-                    border: '1px solid #334155',
+                    background: 'var(--surface)',
+                    border: '1px solid var(--line)',
                     borderRadius: '12px',
                     padding: '10px 14px',
-                    color: 'white',
+                    color: 'var(--ink)',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
@@ -1035,7 +891,7 @@ export default function AdminDashboard() {
                       position: 'absolute',
                       top: '-5px',
                       right: '-5px',
-                      background: '#ef4444',
+                      background: 'var(--danger-fill)',
                       color: 'white',
                       fontSize: '10px',
                       width: '18px',
@@ -1058,8 +914,8 @@ export default function AdminDashboard() {
                     top: '48px',
                     right: 0,
                     width: '340px',
-                    background: '#1e293b',
-                    border: '1px solid #475569',
+                    background: 'var(--surface)',
+                    border: '1px solid var(--line)',
                     borderRadius: '16px',
                     boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
                     zIndex: 2000,
@@ -1068,17 +924,17 @@ export default function AdminDashboard() {
                   }}>
                     <div style={{
                       padding: '14px 18px',
-                      borderBottom: '1px solid #334155',
+                      borderBottom: '1px solid var(--line)',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      background: '#1e1b4b'
+                      background: 'var(--primary-fill)'
                     }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#cbd5e1' }}>System Notifications</span>
+                      <span style={{ fontWeight: 'bold', fontSize: '13px', color: 'var(--ink-2)' }}>System Notifications</span>
                       <span style={{
                         fontSize: '11px',
-                        background: '#312e81',
-                        color: '#a5b4fc',
+                        background: 'var(--primary-fill)',
+                        color: 'var(--primary)',
                         padding: '2px 8px',
                         borderRadius: '8px',
                         fontWeight: 'bold'
@@ -1091,13 +947,13 @@ export default function AdminDashboard() {
                       {/* Section 1: Counselor Apps */}
                       {pendingAppCount > 0 && (
                         <div>
-                          <div style={{ background: '#0f172a', padding: '6px 18px', fontSize: '10.5px', color: '#818cf8', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          <div style={{ background: 'var(--bg)', padding: '6px 18px', fontSize: '10.5px', color: 'var(--primary)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                             Applications ({pendingAppCount})
                           </div>
                           {counselorApps.filter(app => app.status === 'pending').map(app => (
                             <div key={app._id} style={{
                               padding: '12px 18px',
-                              borderBottom: '1px solid #334155',
+                              borderBottom: '1px solid var(--line)',
                               display: 'flex',
                               flexDirection: 'column',
                               gap: '4px',
@@ -1110,19 +966,19 @@ export default function AdminDashboard() {
                             }}
                             >
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <span style={{ fontWeight: 'bold', fontSize: '12.5px', color: 'white' }}>{app.fullName}</span>
-                                <span style={{ fontSize: '9.5px', color: '#94a3b8' }}>
+                                <span style={{ fontWeight: 'bold', fontSize: '12.5px', color: 'var(--ink)' }}>{app.fullName}</span>
+                                <span style={{ fontSize: '9.5px', color: 'var(--ink-3)' }}>
                                   {new Date(app.createdAt).toLocaleDateString()}
                                 </span>
                               </div>
-                              <span style={{ fontSize: '11.5px', color: '#cbd5e1' }}>
+                              <span style={{ fontSize: '11.5px', color: 'var(--ink-2)' }}>
                                 Applied as a Counselor ({app.specialization?.join(', ')})
                               </span>
                               <div style={{
                                 alignSelf: 'flex-start',
                                 marginTop: '4px',
                                 fontSize: '10.5px',
-                                color: '#818cf8',
+                                color: 'var(--primary)',
                                 fontWeight: 'bold',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -1138,24 +994,24 @@ export default function AdminDashboard() {
                       {/* Section 2: System Announcements */}
                       {announcements.length > 0 && (
                         <div>
-                          <div style={{ background: '#0f172a', padding: '6px 18px', fontSize: '10.5px', color: '#fbbf24', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          <div style={{ background: 'var(--bg)', padding: '6px 18px', fontSize: '10.5px', color: 'var(--warn)', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                             Announcements ({announcements.length})
                           </div>
                           {announcements.map(ann => (
                             <div key={ann._id} style={{
                               padding: '12px 18px',
-                              borderBottom: '1px solid #334155',
+                              borderBottom: '1px solid var(--line)',
                               display: 'flex',
                               flexDirection: 'column',
                               gap: '4px'
                             }}>
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
-                                <span style={{ fontWeight: 'bold', fontSize: '12.5px', color: '#fbbf24', wordBreak: 'break-word', overflowWrap: 'break-word', flex: 1 }}>{ann.title}</span>
-                                <span style={{ fontSize: '9px', background: '#334155', color: '#fbbf24', padding: '1px 5px', borderRadius: '6px', textTransform: 'uppercase', fontWeight: 'bold', flexShrink: 0 }}>
+                                <span style={{ fontWeight: 'bold', fontSize: '12.5px', color: 'var(--warn)', wordBreak: 'break-word', overflowWrap: 'break-word', flex: 1 }}>{ann.title}</span>
+                                <span style={{ fontSize: '9px', background: 'var(--surface-3)', color: 'var(--warn)', padding: '1px 5px', borderRadius: '6px', textTransform: 'uppercase', fontWeight: 'bold', flexShrink: 0 }}>
                                   {ann.targetRole}
                                 </span>
                               </div>
-                              <p style={{ margin: 0, fontSize: '11.5px', color: '#cbd5e1', lineHeight: '1.4', wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}>
+                              <p style={{ margin: 0, fontSize: '11.5px', color: 'var(--ink-2)', lineHeight: '1.4', wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}>
                                 {ann.content}
                               </p>
                             </div>
@@ -1164,7 +1020,7 @@ export default function AdminDashboard() {
                       )}
 
                       {totalNotificationCount === 0 && (
-                        <div style={{ padding: '32px 24px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+                        <div style={{ padding: '32px 24px', textAlign: 'center', color: 'var(--ink-3)', fontSize: '13px' }}>
                           No pending notifications or active announcements.
                         </div>
                       )}
@@ -1180,9 +1036,9 @@ export default function AdminDashboard() {
         <div style={{ position: 'fixed', top: '24px', right: '24px', zIndex: 9999, display: 'flex', flexDirection: 'column', gap: '12px', maxWidth: '360px', width: '100%' }}>
           {notifications.map(n => (
             <div key={n.id} style={{
-              background: 'rgba(30, 41, 59, 0.95)',
+              background: 'color-mix(in srgb, var(--sky) 95%, transparent)',
               backdropFilter: 'blur(12px)',
-              border: '1px solid rgba(99, 102, 241, 0.4)',
+              border: '1px solid color-mix(in srgb, var(--primary) 40%, transparent)',
               borderRadius: '16px',
               padding: '16px 20px',
               color: 'white',
@@ -1193,17 +1049,17 @@ export default function AdminDashboard() {
               animation: 'slideIn 0.3s ease-out'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 'bold', fontSize: '13.5px', color: '#818cf8', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontWeight: 'bold', fontSize: '13.5px', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   🔔 {n.title}
                 </span>
                 <button 
                   onClick={() => setNotifications(prev => prev.filter(item => item.id !== n.id))}
-                  style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '14px', padding: 0 }}
+                  style={{ background: 'none', border: 'none', color: 'var(--ink-3)', cursor: 'pointer', fontSize: '14px', padding: 0 }}
                 >
                   ✕
                 </button>
               </div>
-              <p style={{ margin: 0, fontSize: '12.5px', color: '#cbd5e1', lineHeight: '1.4' }}>{n.message}</p>
+              <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--ink-2)', lineHeight: '1.4' }}>{n.message}</p>
               <button 
                 onClick={() => {
                   setActiveTab('counselorapps')
@@ -1213,7 +1069,7 @@ export default function AdminDashboard() {
                   alignSelf: 'flex-start',
                   marginTop: '8px',
                   padding: '6px 12px',
-                  background: '#6366f1',
+                  background: 'var(--primary-fill)',
                   border: 'none',
                   borderRadius: '6px',
                   color: 'white',
@@ -1251,16 +1107,16 @@ export default function AdminDashboard() {
         {/* TAB 1: Mood Analytics */}
         {activeTab === 'analytics' && (
           <div>
-            <h2 style={{ color: 'white', marginBottom: '8px' }}>📊 Mood Analytics & Student Tracking</h2>
-            <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '24px' }}>Overview campus wellness metrics or select a specific student for a detailed report.</p>
+            <h2 style={{ color: 'var(--ink)', marginBottom: '8px' }}>📊 Mood Analytics & Student Tracking</h2>
+            <p style={{ color: 'var(--ink-3)', fontSize: '14px', marginBottom: '24px' }}>Overview campus wellness metrics or select a specific student for a detailed report.</p>
 
             {/* Student selection panel */}
-            <div style={{ background: '#1e293b', padding: '20px', borderRadius: '16px', border: '1px solid #334155', marginBottom: '24px', display: 'flex', gap: '16px', alignItems: 'center' }}>
-              <label style={{ fontWeight: 'bold', fontSize: '13.5px', color: 'white' }}>🔍 Search Student Report:</label>
+            <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)', marginBottom: '24px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+              <label style={{ fontWeight: 'bold', fontSize: '13.5px', color: 'var(--ink)' }}>🔍 Search Student Report:</label>
               <select 
                 value={selectedStudentId} 
                 onChange={(e) => handleStudentSelect(e.target.value)}
-                style={{ background: '#0f172a', border: '1px solid #475569', color: 'white', padding: '10px 16px', borderRadius: '8px', fontSize: '13.5px', flex: 1, outline: 'none' }}
+                style={{ background: 'var(--bg)', border: '1px solid var(--line)', color: 'var(--ink)', padding: '10px 16px', borderRadius: '8px', fontSize: '13.5px', flex: 1, outline: 'none' }}
               >
                 <option value="">-- Select student for detailed counselor overview --</option>
                 {users.filter(u => u.role === 'student').map(student => (
@@ -1272,10 +1128,10 @@ export default function AdminDashboard() {
             {selectedStudentId && studentCounselData ? (
               <div style={{ animation: 'fadeIn 0.4s' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                  <h3 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 'bold' }}>📊 Counselor View: {studentCounselData.student?.name}</h3>
+                  <h3 style={{ color: 'var(--ink)', margin: 0, fontSize: '18px', fontWeight: 'bold' }}>📊 Counselor View: {studentCounselData.student?.name}</h3>
                   <button 
                     onClick={() => { setSelectedStudentId(''); setStudentCounselData(null); }}
-                    style={{ padding: '8px 16px', background: '#334155', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 'bold' }}
+                    style={{ padding: '8px 16px', background: 'var(--surface-3)', color: 'var(--ink)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '12.5px', fontWeight: 'bold' }}
                   >
                     ← General Overview
                   </button>
@@ -1283,38 +1139,38 @@ export default function AdminDashboard() {
 
                 {/* Statistics Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-                  <div style={{ background: '#1e293b', padding: '20px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold' }}>Average Mood</div>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: '#a78bfa' }}>
+                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold' }}>Average Mood</div>
+                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: 'var(--primary)' }}>
                       {studentCounselData.stats?.averageMood} / 5.0
                     </div>
                   </div>
-                  <div style={{ background: '#1e293b', padding: '20px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold' }}>Active Streak</div>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: '#f97316' }}>
+                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold' }}>Active Streak</div>
+                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: 'var(--sun)' }}>
                       🔥 {studentCounselData.student?.streakCount || 0} Days
                     </div>
                   </div>
-                  <div style={{ background: '#1e293b', padding: '20px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold' }}>Logs this month</div>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: '#10b981' }}>
+                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold' }}>Logs this month</div>
+                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: 'var(--success-ink)' }}>
                       {studentCounselData.student?.monthlyGoalLogs || 0} / 15 Logs
                     </div>
                   </div>
-                  <div style={{ background: '#1e293b', padding: '20px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold' }}>Badges Unlocked</div>
-                    <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '10px', color: '#3b82f6', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold' }}>Badges Unlocked</div>
+                    <div style={{ fontSize: '24px', fontWeight: 'bold', marginTop: '10px', color: 'var(--sky)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       🏆 {studentCounselData.student?.badges?.length || 0} Badges
                     </div>
                   </div>
                 </div>
 
                 {/* AI Weekly Summary */}
-                <div style={{ background: 'linear-gradient(135deg, #1e1b4b, #312e81)', padding: '24px', borderRadius: '20px', border: '1px solid #4338ca', marginBottom: '32px' }}>
-                  <h4 style={{ margin: '0 0 10px 0', color: '#a5b4fc', fontSize: '14.5px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}>
+                <div style={{ background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', padding: '24px', borderRadius: '20px', border: '1px solid var(--primary)', marginBottom: '32px' }}>
+                  <h4 style={{ margin: '0 0 10px 0', color: 'var(--primary)', fontSize: '14.5px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}>
                     <span>✨</span> AI Weekly Wellness Summary
                   </h4>
-                  <p style={{ margin: 0, color: '#e0e7ff', fontSize: '13.5px', lineHeight: '1.6' }}>
+                  <p style={{ margin: 0, color: 'var(--primary-ink)', fontSize: '13.5px', lineHeight: '1.6' }}>
                     {studentCounselData.stats?.weeklySummary}
                   </p>
                 </div>
@@ -1323,53 +1179,53 @@ export default function AdminDashboard() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '32px' }}>
                   
                   {/* Line Chart */}
-                  <div style={{ background: '#1e293b', padding: '24px', borderRadius: '20px', border: '1px solid #334155' }}>
-                    <h4 style={{ color: 'white', fontSize: '14.5px', fontWeight: 'bold', marginBottom: '20px' }}>📈 Mood Trend Over Time</h4>
+                  <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '20px', border: '1px solid var(--line)' }}>
+                    <h4 style={{ color: 'var(--ink)', fontSize: '14.5px', fontWeight: 'bold', marginBottom: '20px' }}>📈 Mood Trend Over Time</h4>
                     <div style={{ width: '100%', height: '220px' }}>
                       <ResponsiveContainer>
                         <LineChart data={studentCounselData.stats?.weeklyTrend || []}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                          <XAxis dataKey="date" stroke="#94a3b8" style={{ fontSize: '11px' }} />
-                          <YAxis stroke="#94a3b8" domain={[1, 5]} style={{ fontSize: '11px' }} ticks={[1, 2, 3, 4, 5]} />
-                          <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155' }} />
-                          <Line type="monotone" dataKey="mood" stroke="#6366f1" strokeWidth={3} />
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--line-strong)" />
+                          <XAxis dataKey="date" stroke="var(--ink-3)" style={{ fontSize: '11px' }} />
+                          <YAxis stroke="var(--ink-3)" domain={[1, 5]} style={{ fontSize: '11px' }} ticks={[1, 2, 3, 4, 5]} />
+                          <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--line)' }} />
+                          <Line type="monotone" dataKey="mood" stroke="var(--primary)" strokeWidth={3} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
                   </div>
 
                   {/* Sleep vs Mood Chart */}
-                  <div style={{ background: '#1e293b', padding: '24px', borderRadius: '20px', border: '1px solid #334155' }}>
-                    <h4 style={{ color: 'white', fontSize: '14.5px', fontWeight: 'bold', marginBottom: '20px' }}>🛌 Sleep Hours vs Mood Score</h4>
+                  <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '20px', border: '1px solid var(--line)' }}>
+                    <h4 style={{ color: 'var(--ink)', fontSize: '14.5px', fontWeight: 'bold', marginBottom: '20px' }}>🛌 Sleep Hours vs Mood Score</h4>
                     <div style={{ width: '100%', height: '220px' }}>
                       <ResponsiveContainer>
                         <LineChart data={studentCounselData.stats?.sleepVsMood || []}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                          <XAxis dataKey="date" stroke="#94a3b8" style={{ fontSize: '10px' }} />
-                          <YAxis stroke="#94a3b8" yAxisId="left" orientation="left" stroke="#3b82f6" style={{ fontSize: '10px' }} />
-                          <YAxis stroke="#94a3b8" yAxisId="right" orientation="right" stroke="#10b981" style={{ fontSize: '10px' }} />
-                          <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155' }} />
-                          <Line yAxisId="left" type="monotone" dataKey="sleep" stroke="#3b82f6" strokeWidth={2} />
-                          <Line yAxisId="right" type="monotone" dataKey="mood" stroke="#10b981" strokeWidth={2} />
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--line-strong)" />
+                          <XAxis dataKey="date" stroke="var(--ink-3)" style={{ fontSize: '10px' }} />
+                          <YAxis stroke="var(--ink-3)" yAxisId="left" orientation="left" stroke="var(--sky)" style={{ fontSize: '10px' }} />
+                          <YAxis stroke="var(--ink-3)" yAxisId="right" orientation="right" stroke="var(--success)" style={{ fontSize: '10px' }} />
+                          <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--line)' }} />
+                          <Line yAxisId="left" type="monotone" dataKey="sleep" stroke="var(--sky)" strokeWidth={2} />
+                          <Line yAxisId="right" type="monotone" dataKey="mood" stroke="var(--success)" strokeWidth={2} />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
                   </div>
 
                   {/* Trigger Frequency */}
-                  <div style={{ background: '#1e293b', padding: '24px', borderRadius: '20px', border: '1px solid #334155' }}>
-                    <h4 style={{ color: 'white', fontSize: '14.5px', fontWeight: 'bold', marginBottom: '20px' }}>⚠️ Trigger Frequency Chart</h4>
+                  <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '20px', border: '1px solid var(--line)' }}>
+                    <h4 style={{ color: 'var(--ink)', fontSize: '14.5px', fontWeight: 'bold', marginBottom: '20px' }}>⚠️ Trigger Frequency Chart</h4>
                     {studentCounselData.stats?.triggerFrequency?.length === 0 ? (
-                      <p style={{ color: '#94a3b8', fontStyle: 'italic', textAlign: 'center', marginTop: '60px' }}>No triggers logged.</p>
+                      <p style={{ color: 'var(--ink-3)', fontStyle: 'italic', textAlign: 'center', marginTop: '60px' }}>No triggers logged.</p>
                     ) : (
                       <div style={{ width: '100%', height: '220px' }}>
                         <ResponsiveContainer>
                           <BarChart data={studentCounselData.stats?.triggerFrequency || []}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="name" stroke="#94a3b8" style={{ fontSize: '11px' }} />
-                            <YAxis stroke="#94a3b8" style={{ fontSize: '11px' }} allowDecimals={false} />
-                            <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155' }} />
-                            <Bar dataKey="count" fill="#818cf8" radius={[4, 4, 0, 0]} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--line-strong)" />
+                            <XAxis dataKey="name" stroke="var(--ink-3)" style={{ fontSize: '11px' }} />
+                            <YAxis stroke="var(--ink-3)" style={{ fontSize: '11px' }} allowDecimals={false} />
+                            <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--line)' }} />
+                            <Bar dataKey="count" fill="var(--primary)" radius={[4, 4, 0, 0]} />
                           </BarChart>
                         </ResponsiveContainer>
                       </div>
@@ -1377,19 +1233,19 @@ export default function AdminDashboard() {
                   </div>
 
                   {/* Activity vs Mood */}
-                  <div style={{ background: '#1e293b', padding: '24px', borderRadius: '20px', border: '1px solid #334155' }}>
-                    <h4 style={{ color: 'white', fontSize: '14.5px', fontWeight: 'bold', marginBottom: '20px' }}>🏃 Activity vs Average Mood</h4>
+                  <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '20px', border: '1px solid var(--line)' }}>
+                    <h4 style={{ color: 'var(--ink)', fontSize: '14.5px', fontWeight: 'bold', marginBottom: '20px' }}>🏃 Activity vs Average Mood</h4>
                     {studentCounselData.stats?.activityVsMood?.length === 0 ? (
-                      <p style={{ color: '#94a3b8', fontStyle: 'italic', textAlign: 'center', marginTop: '60px' }}>No activities logged.</p>
+                      <p style={{ color: 'var(--ink-3)', fontStyle: 'italic', textAlign: 'center', marginTop: '60px' }}>No activities logged.</p>
                     ) : (
                       <div style={{ width: '100%', height: '220px' }}>
                         <ResponsiveContainer>
                           <BarChart data={studentCounselData.stats?.activityVsMood || []}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                            <XAxis dataKey="name" stroke="#94a3b8" style={{ fontSize: '9px' }} />
-                            <YAxis stroke="#94a3b8" domain={[0, 5]} style={{ fontSize: '11px' }} />
-                            <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155' }} />
-                            <Bar dataKey="avgMood" fill="#34d399" radius={[4, 4, 0, 0]} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--line-strong)" />
+                            <XAxis dataKey="name" stroke="var(--ink-3)" style={{ fontSize: '9px' }} />
+                            <YAxis stroke="var(--ink-3)" domain={[0, 5]} style={{ fontSize: '11px' }} />
+                            <Tooltip contentStyle={{ background: 'var(--surface)', border: '1px solid var(--line)' }} />
+                            <Bar dataKey="avgMood" fill="var(--success)" radius={[4, 4, 0, 0]} />
                           </BarChart>
                         </ResponsiveContainer>
                       </div>
@@ -1401,13 +1257,13 @@ export default function AdminDashboard() {
                 {/* Weather, Music, and Exam stress analysis lists */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '32px' }}>
                   
-                  <div style={{ background: '#1e293b', padding: '20px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <h5 style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold' }}>☀️ Weather vs Average Mood</h5>
+                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <h5 style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold' }}>☀️ Weather vs Average Mood</h5>
                     {studentCounselData.stats?.weatherVsMood?.length === 0 ? (
-                      <span style={{ color: '#64748b', fontSize: '12px', fontStyle: 'italic' }}>No data logged.</span>
+                      <span style={{ color: 'var(--ink-3)', fontSize: '12px', fontStyle: 'italic' }}>No data logged.</span>
                     ) : (
                       studentCounselData.stats?.weatherVsMood?.map(w => (
-                        <div key={w.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderBottom: '1px solid #334155', paddingBottom: '6px', marginBottom: '6px' }}>
+                        <div key={w.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderBottom: '1px solid var(--line)', paddingBottom: '6px', marginBottom: '6px' }}>
                           <span>{w.name}</span>
                           <strong>{w.avgMood} / 5.0</strong>
                         </div>
@@ -1415,13 +1271,13 @@ export default function AdminDashboard() {
                     )}
                   </div>
 
-                  <div style={{ background: '#1e293b', padding: '20px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <h5 style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold' }}>🎵 Music vs Average Mood</h5>
+                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <h5 style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold' }}>🎵 Music vs Average Mood</h5>
                     {studentCounselData.stats?.musicVsMood?.length === 0 ? (
-                      <span style={{ color: '#64748b', fontSize: '12px', fontStyle: 'italic' }}>No data logged.</span>
+                      <span style={{ color: 'var(--ink-3)', fontSize: '12px', fontStyle: 'italic' }}>No data logged.</span>
                     ) : (
                       studentCounselData.stats?.musicVsMood?.map(m => (
-                        <div key={m.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderBottom: '1px solid #334155', paddingBottom: '6px', marginBottom: '6px' }}>
+                        <div key={m.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', borderBottom: '1px solid var(--line)', paddingBottom: '6px', marginBottom: '6px' }}>
                           <span>{m.name}</span>
                           <strong>{m.avgMood} / 5.0</strong>
                         </div>
@@ -1429,8 +1285,8 @@ export default function AdminDashboard() {
                     )}
                   </div>
 
-                  <div style={{ background: '#1e293b', padding: '20px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <h5 style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold' }}>📝 Exam Stress Analysis</h5>
+                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <h5 style={{ margin: '0 0 12px 0', fontSize: '12px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold' }}>📝 Exam Stress Analysis</h5>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', marginTop: '8px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <span>Assessment/Exam periods:</span>
@@ -1446,46 +1302,46 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Mood Logs History */}
-                <div style={{ background: '#1e293b', padding: '24px', borderRadius: '20px', border: '1px solid #334155', marginBottom: '32px' }}>
-                  <h4 style={{ color: 'white', margin: '0 0 16px 0', fontSize: '15.5px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '20px', border: '1px solid var(--line)', marginBottom: '32px' }}>
+                  <h4 style={{ color: 'var(--ink)', margin: '0 0 16px 0', fontSize: '15.5px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span>📋</span> Patient Journal & Mood History Logs
                   </h4>
-                  <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '20px' }}>Historical mood logs, emoji ratings, sleep/lifestyle stats, and personal journal notes recorded by the student.</p>
+                  <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Historical mood logs, emoji ratings, sleep/lifestyle stats, and personal journal notes recorded by the student.</p>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '550px', overflowY: 'auto', paddingRight: '6px' }}>
                     {(!studentCounselData.moods || studentCounselData.moods.length === 0) ? (
-                      <p style={{ color: '#94a3b8', fontStyle: 'italic', margin: '20px 0', textAlign: 'center' }}>No mood logs recorded yet.</p>
+                      <p style={{ color: 'var(--ink-3)', fontStyle: 'italic', margin: '20px 0', textAlign: 'center' }}>No mood logs recorded yet.</p>
                     ) : (
                       studentCounselData.moods.map(log => (
-                        <div key={log.id} style={{ background: '#0f172a', padding: '18px', borderRadius: '16px', border: '1px solid #334155', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
+                        <div key={log.id} style={{ background: 'var(--bg)', padding: '18px', borderRadius: '16px', border: '1px solid var(--line)', boxShadow: '0 4px 12px rgba(0,0,0,0.2)' }}>
                           {/* Header row */}
                           <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '12px', alignItems: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                               <span style={{ fontSize: '28px' }}>{log.emoji}</span>
                               <div>
-                                <strong style={{ color: 'white', fontSize: '15px' }}>{log.label} ({log.value}/5)</strong>
-                                <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
-                                  Trigger: <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>{log.trigger || 'None'}</span>
-                                  {log.isExamPeriod && <span style={{ background: '#7c3aed', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '6px', marginLeft: '8px', fontWeight: 'bold' }}>📝 Exam Period</span>}
+                                <strong style={{ color: 'var(--ink)', fontSize: '15px' }}>{log.label} ({log.value}/5)</strong>
+                                <div style={{ fontSize: '12px', color: 'var(--ink-3)', marginTop: '2px' }}>
+                                  Trigger: <span style={{ color: 'var(--warn)', fontWeight: 'bold' }}>{log.trigger || 'None'}</span>
+                                  {log.isExamPeriod && <span style={{ background: 'var(--primary-fill)', color: 'white', fontSize: '10px', padding: '2px 6px', borderRadius: '6px', marginLeft: '8px', fontWeight: 'bold' }}>📝 Exam Period</span>}
                                 </div>
                               </div>
                             </div>
-                            <span style={{ fontSize: '12px', color: '#818cf8', fontWeight: 'bold', background: 'rgba(99, 102, 241, 0.15)', padding: '6px 12px', borderRadius: '10px', border: '1px solid rgba(99, 102, 241, 0.3)' }}>{log.date}</span>
+                            <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 'bold', background: 'color-mix(in srgb, var(--primary) 15%, transparent)', padding: '6px 12px', borderRadius: '10px', border: '1px solid color-mix(in srgb, var(--primary) 30%, transparent)' }}>{log.date}</span>
                           </div>
 
                           {/* Journal Text Note */}
                           {log.note ? (
-                            <div style={{ background: '#1e293b', padding: '12px 16px', borderRadius: '10px', color: '#e2e8f0', fontSize: '13px', fontStyle: 'italic', marginBottom: '12px', borderLeft: '4px solid #6366f1', lineHeight: '1.5' }}>
+                            <div style={{ background: 'var(--surface)', padding: '12px 16px', borderRadius: '10px', color: 'var(--ink)', fontSize: '13px', fontStyle: 'italic', marginBottom: '12px', borderLeft: '4px solid var(--primary)', lineHeight: '1.5' }}>
                               "{log.note}"
                             </div>
                           ) : (
-                            <div style={{ color: '#64748b', fontSize: '12px', fontStyle: 'italic', marginBottom: '10px' }}>No journal notes written.</div>
+                            <div style={{ color: 'var(--ink-3)', fontSize: '12px', fontStyle: 'italic', marginBottom: '10px' }}>No journal notes written.</div>
                           )}
 
                           {/* Voice Note Recording Audio Player */}
                           {log.voiceNote && (
-                            <div style={{ background: '#1e293b', padding: '14px 16px', borderRadius: '12px', marginBottom: '12px', border: '1px solid #6366f1' }}>
-                              <div style={{ fontSize: '12.5px', color: '#a5b4fc', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '8px' }}>
+                            <div style={{ background: 'var(--surface)', padding: '14px 16px', borderRadius: '12px', marginBottom: '12px', border: '1px solid var(--primary)' }}>
+                              <div style={{ fontSize: '12.5px', color: 'var(--primary)', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', marginBottom: '8px' }}>
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>🎙️ Voice Note Recording:</span>
                                 <button
                                   onClick={() => {
@@ -1493,7 +1349,7 @@ export default function AdminDashboard() {
                                     audio.play().catch(err => alert('Playback error: ' + err.message))
                                   }}
                                   style={{
-                                    background: '#4f46e5',
+                                    background: 'var(--primary-fill)',
                                     color: 'white',
                                     border: 'none',
                                     borderRadius: '8px',
@@ -1512,22 +1368,22 @@ export default function AdminDashboard() {
 
                           {/* Attached Photo */}
                           {log.photo && (
-                            <div style={{ background: '#1e293b', padding: '12px 14px', borderRadius: '12px', marginBottom: '12px', border: '1px solid #334155' }}>
-                              <div style={{ fontSize: '12px', color: '#a5b4fc', fontWeight: 'bold', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <div style={{ background: 'var(--surface)', padding: '12px 14px', borderRadius: '12px', marginBottom: '12px', border: '1px solid var(--line)' }}>
+                              <div style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 'bold', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <span>📷</span> Attached Photo Memory:
                               </div>
-                              <img src={log.photo} alt="Journal Attachment" style={{ maxWidth: '100%', maxHeight: '250px', borderRadius: '10px', border: '1px solid #475569', objectFit: 'cover' }} />
+                              <img src={log.photo} alt="Journal Attachment" style={{ maxWidth: '100%', maxHeight: '250px', borderRadius: '10px', border: '1px solid var(--line)', objectFit: 'cover' }} />
                             </div>
                           )}
 
                           {/* AI Sentiment Analysis */}
                           {log.aiSentiment && log.aiSentiment.label && (
-                            <div style={{ background: '#1e1b4b', padding: '12px 14px', borderRadius: '10px', marginBottom: '12px', border: '1px solid #312e81' }}>
-                              <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#a5b4fc', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <div style={{ background: 'var(--primary-fill)', padding: '12px 14px', borderRadius: '10px', marginBottom: '12px', border: '1px solid var(--primary)' }}>
+                              <div style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 🤖 AI Sentiment Analysis: 
                                 <span style={{ 
-                                  color: log.aiSentiment.label === 'Positive' ? '#34d399' : log.aiSentiment.label === 'Negative' ? '#f87171' : '#cbd5e1',
-                                  background: 'rgba(255,255,255,0.05)',
+                                  color: log.aiSentiment.label === 'Positive' ? 'var(--success)' : log.aiSentiment.label === 'Negative' ? 'var(--danger)' : 'var(--ink-2)',
+                                  background: 'color-mix(in srgb, var(--ink) 5%, transparent)',
                                   padding: '2px 8px',
                                   borderRadius: '6px'
                                 }}>
@@ -1535,29 +1391,29 @@ export default function AdminDashboard() {
                                 </span>
                               </div>
                               {log.aiSentiment.suggestions && log.aiSentiment.suggestions.length > 0 && (
-                                <div style={{ fontSize: '11.5px', color: '#cbd5e1', marginTop: '6px', lineHeight: '1.4' }}>
-                                  💡 <strong style={{ color: '#818cf8' }}>Insight:</strong> {log.aiSentiment.suggestions[0]}
+                                <div style={{ fontSize: '11.5px', color: 'var(--ink-2)', marginTop: '6px', lineHeight: '1.4' }}>
+                                  💡 <strong style={{ color: 'var(--primary)' }}>Insight:</strong> {log.aiSentiment.suggestions[0]}
                                 </div>
                               )}
                             </div>
                           )}
 
                           {/* Lifestyle & Health Stats */}
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', fontSize: '12px', color: '#cbd5e1', background: '#1e293b', padding: '12px', borderRadius: '10px' }}>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px', fontSize: '12px', color: 'var(--ink-2)', background: 'var(--surface)', padding: '12px', borderRadius: '10px' }}>
                             {log.activities && log.activities.length > 0 && (
-                              <div style={{ width: '100%', borderBottom: '1px solid #334155', paddingBottom: '6px', marginBottom: '2px' }}>
-                                <span style={{ color: '#94a3b8', fontWeight: 'bold' }}>Activities:</span> {log.activities.join(', ')}
+                              <div style={{ width: '100%', borderBottom: '1px solid var(--line)', paddingBottom: '6px', marginBottom: '2px' }}>
+                                <span style={{ color: 'var(--ink-3)', fontWeight: 'bold' }}>Activities:</span> {log.activities.join(', ')}
                               </div>
                             )}
-                            <div>🛌 Sleep: <strong style={{ color: '#60a5fa' }}>{log.sleepHours || 0} hrs</strong></div>
-                            <div>💧 Water: <strong style={{ color: '#38bdf8' }}>{log.waterIntake || 0} ml</strong></div>
-                            <div>📱 Screen: <strong style={{ color: '#f472b6' }}>{log.screenTime || 0} hrs</strong></div>
-                            {log.exerciseDuration > 0 && <div>🏃 Exercise: <strong style={{ color: '#4ade80' }}>{log.exerciseDuration} mins</strong></div>}
-                            {log.energyLevel && <div>⚡ Energy: <strong style={{ color: '#fbbf24' }}>{log.energyLevel}/5</strong></div>}
-                            {log.weather && <div>☀️ Weather: <strong style={{ color: '#fbbf24' }}>{log.weather}</strong></div>}
-                            {log.music && <div>🎵 Music: <strong style={{ color: '#c084fc' }}>{log.music}</strong></div>}
+                            <div>🛌 Sleep: <strong style={{ color: 'var(--sky)' }}>{log.sleepHours || 0} hrs</strong></div>
+                            <div>💧 Water: <strong style={{ color: 'var(--primary)' }}>{log.waterIntake || 0} ml</strong></div>
+                            <div>📱 Screen: <strong style={{ color: 'var(--rose)' }}>{log.screenTime || 0} hrs</strong></div>
+                            {log.exerciseDuration > 0 && <div>🏃 Exercise: <strong style={{ color: 'var(--success)' }}>{log.exerciseDuration} mins</strong></div>}
+                            {log.energyLevel && <div>⚡ Energy: <strong style={{ color: 'var(--warn)' }}>{log.energyLevel}/5</strong></div>}
+                            {log.weather && <div>☀️ Weather: <strong style={{ color: 'var(--warn)' }}>{log.weather}</strong></div>}
+                            {log.music && <div>🎵 Music: <strong style={{ color: 'var(--primary)' }}>{log.music}</strong></div>}
                             {log.whatHelped && log.whatHelped.length > 0 && (
-                              <div style={{ width: '100%', marginTop: '4px', fontSize: '11.5px', color: '#a78bfa' }}>
+                              <div style={{ width: '100%', marginTop: '4px', fontSize: '11.5px', color: 'var(--primary)' }}>
                                 💡 What helped: <strong>{log.whatHelped.join(', ')}</strong>
                               </div>
                             )}
@@ -1569,23 +1425,23 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Direct recommendation form */}
-                <div style={{ background: '#1e293b', padding: '32px', borderRadius: '24px', border: '1px solid #334155' }}>
-                  <h4 style={{ color: 'white', margin: '0 0 8px 0', fontSize: '15.5px', fontWeight: 'bold' }}>🎯 Curate Recommendation for {studentCounselData.student?.name}</h4>
-                  <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '20px' }}>Assign a relaxation exercise and tip that displays directly on the student's homepage dashboard.</p>
+                <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', border: '1px solid var(--line)' }}>
+                  <h4 style={{ color: 'var(--ink)', margin: '0 0 8px 0', fontSize: '15.5px', fontWeight: 'bold' }}>🎯 Curate Recommendation for {studentCounselData.student?.name}</h4>
+                  <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Assign a relaxation exercise and tip that displays directly on the student's homepage dashboard.</p>
 
                   {counselMessage && (
-                    <div style={{ background: '#161b33', padding: '12px', border: '1px solid #4f46e5', borderRadius: '8px', color: '#818cf8', fontSize: '13px', marginBottom: '16px', fontWeight: 'bold' }}>
+                    <div style={{ background: 'var(--primary-fill)', padding: '12px', border: '1px solid var(--primary)', borderRadius: '8px', color: 'var(--primary)', fontSize: '13px', marginBottom: '16px', fontWeight: 'bold' }}>
                       {counselMessage}
                     </div>
                   )}
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '16px', marginBottom: '16px', alignItems: 'center' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Curated Game:</label>
+                      <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '6px' }}>Curated Game:</label>
                       <select 
                         value={counselGame} 
                         onChange={(e) => setCounselGame(e.target.value)}
-                        style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none' }}
+                        style={{ width: '100%', padding: '10px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none' }}
                       >
                         <option value="bubbles">Bubble Wrap Popper 🫧</option>
                         <option value="memory">Zen Memory Match 🧩</option>
@@ -1599,13 +1455,13 @@ export default function AdminDashboard() {
                       </select>
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px' }}>Counselor Advice Tip:</label>
+                      <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '6px' }}>Counselor Advice Tip:</label>
                       <input 
                         type="text" 
                         value={counselActivity} 
                         onChange={(e) => setCounselActivity(e.target.value)}
                         placeholder="e.g. Please spend 10 minutes doodling color strokes to clear your anxious focus."
-                        style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none', boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '10px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', boxSizing: 'border-box' }}
                       />
                     </div>
                   </div>
@@ -1613,7 +1469,7 @@ export default function AdminDashboard() {
                   <button 
                     onClick={() => handleCounselAssignRecommendation(studentCounselData.student?._id)}
                     disabled={!counselActivity.trim()}
-                    style={{ padding: '12px 24px', background: counselActivity.trim() ? '#6366f1' : '#475569', color: 'white', border: 'none', borderRadius: '8px', cursor: counselActivity.trim() ? 'pointer' : 'not-allowed', fontWeight: 'bold', fontSize: '13px' }}
+                    style={{ padding: '12px 24px', background: counselActivity.trim() ? 'var(--primary-fill)' : 'var(--line-strong)', color: 'white', border: 'none', borderRadius: '8px', cursor: counselActivity.trim() ? 'pointer' : 'not-allowed', fontWeight: 'bold', fontSize: '13px' }}
                   >
                     Assign Curated Suggestion
                   </button>
@@ -1623,28 +1479,28 @@ export default function AdminDashboard() {
               <div>
                 {/* General dashboard aggregates */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '40px' }}>
-                  <div style={{ background: '#1e293b', padding: '20px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <div style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase' }}>Total Users</div>
-                    <div style={{ fontSize: '32px', fontWeight: 'bold', marginTop: '8px', color: '#6366f1' }}>{users.length}</div>
+                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--ink-3)', textTransform: 'uppercase' }}>Total Users</div>
+                    <div style={{ fontSize: '32px', fontWeight: 'bold', marginTop: '8px', color: 'var(--primary)' }}>{users.length}</div>
                   </div>
-                  <div style={{ background: '#1e293b', padding: '20px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <div style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase' }}>Counselling Bookings</div>
-                    <div style={{ fontSize: '32px', fontWeight: 'bold', marginTop: '8px', color: '#10b981' }}>{bookings.length}</div>
+                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--ink-3)', textTransform: 'uppercase' }}>Counselling Bookings</div>
+                    <div style={{ fontSize: '32px', fontWeight: 'bold', marginTop: '8px', color: 'var(--success-ink)' }}>{bookings.length}</div>
                   </div>
-                  <div style={{ background: '#1e293b', padding: '20px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <div style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase' }}>Active Resources</div>
-                    <div style={{ fontSize: '32px', fontWeight: 'bold', marginTop: '8px', color: '#f59e0b' }}>{resources.length}</div>
+                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--ink-3)', textTransform: 'uppercase' }}>Active Resources</div>
+                    <div style={{ fontSize: '32px', fontWeight: 'bold', marginTop: '8px', color: 'var(--warn)' }}>{resources.length}</div>
                   </div>
-                  <div style={{ background: '#1e293b', padding: '20px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <div style={{ fontSize: '12px', color: '#94a3b8', textTransform: 'uppercase' }}>Avg Mood Rating</div>
-                    <div style={{ fontSize: '32px', fontWeight: 'bold', marginTop: '8px', color: '#a78bfa' }}>3.7 / 5.0</div>
+                  <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--ink-3)', textTransform: 'uppercase' }}>Avg Mood Rating</div>
+                    <div style={{ fontSize: '32px', fontWeight: 'bold', marginTop: '8px', color: 'var(--primary)' }}>3.7 / 5.0</div>
                   </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '40px' }}>
                   {/* Pie graph */}
-                  <div style={{ background: '#1e293b', padding: '24px', borderRadius: '20px', border: '1px solid #334155', display: 'flex', flexDirection: 'column' }}>
-                    <h3 style={{ color: 'white', fontSize: '16px', marginBottom: '16px' }}>📊 Mood Distribution Breakdown</h3>
+                  <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '20px', border: '1px solid var(--line)', display: 'flex', flexDirection: 'column' }}>
+                    <h3 style={{ color: 'var(--ink)', fontSize: '16px', marginBottom: '16px' }}>📊 Mood Distribution Breakdown</h3>
                     <div style={{ width: '100%', height: '200px', position: 'relative' }}>
                       <ResponsiveContainer>
                         <PieChart>
@@ -1677,11 +1533,11 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Individual Records Table */}
-                <div style={{ background: '#1e293b', borderRadius: '20px', border: '1px solid #334155', overflowX: 'auto' }}>
-                  <div style={{ padding: '20px 24px', borderBottom: '1px solid #334155', fontWeight: 'bold' }}>📋 Recent Student Mood Logs</div>
+                <div style={{ background: 'var(--surface)', borderRadius: '20px', border: '1px solid var(--line)', overflowX: 'auto' }}>
+                  <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--line)', fontWeight: 'bold' }}>📋 Recent Student Mood Logs</div>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                     <thead>
-                      <tr style={{ background: '#334155', color: '#cbd5e1' }}>
+                      <tr style={{ background: 'var(--surface-3)', color: 'var(--ink-2)' }}>
                         <th style={{ padding: '12px 20px' }}>Student</th>
                         <th style={{ padding: '12px 20px' }}>Mood Rating</th>
                         <th style={{ padding: '12px 20px' }}>Date</th>
@@ -1690,10 +1546,10 @@ export default function AdminDashboard() {
                     </thead>
                     <tbody>
                       {moodLogs.map(log => (
-                        <tr key={log.id} style={{ borderBottom: '1px solid #334155' }}>
+                        <tr key={log.id} style={{ borderBottom: '1px solid var(--line)' }}>
                           <td style={{ padding: '12px 20px', fontWeight: 'bold' }}>{log.name}</td>
                           <td style={{ padding: '12px 20px' }}>{log.emoji} {log.label} ({log.value}/5)</td>
-                          <td style={{ padding: '12px 20px', color: '#94a3b8' }}>{log.date}</td>
+                          <td style={{ padding: '12px 20px', color: 'var(--ink-3)' }}>{log.date}</td>
                           <td style={{ padding: '12px 20px', fontStyle: 'italic' }}>"{log.note || 'No notes added'}"</td>
                         </tr>
                       ))}
@@ -1708,13 +1564,13 @@ export default function AdminDashboard() {
         {/* TAB 2: User Accounts */}
         {activeTab === 'users' && (
           <div>
-            <h2 style={{ color: 'white', marginBottom: '8px' }}>👤 User Role & Account Status Manager</h2>
-            <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '32px' }}>Assign system permissions, edit account roles, and activate or deactivate user accounts.</p>
+            <h2 style={{ color: 'var(--ink)', marginBottom: '8px' }}>👤 User Role & Account Status Manager</h2>
+            <p style={{ color: 'var(--ink-3)', fontSize: '14px', marginBottom: '32px' }}>Assign system permissions, edit account roles, and activate or deactivate user accounts.</p>
 
-            <div style={{ background: '#1e293b', borderRadius: '20px', overflowX: 'auto', border: '1px solid #334155' }}>
+            <div style={{ background: 'var(--surface)', borderRadius: '20px', overflowX: 'auto', border: '1px solid var(--line)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13.5px' }}>
                 <thead>
-                  <tr style={{ background: '#334155', color: '#cbd5e1' }}>
+                  <tr style={{ background: 'var(--surface-3)', color: 'var(--ink-2)' }}>
                     <th style={{ padding: '16px 24px' }}>Name</th>
                     <th style={{ padding: '16px 24px' }}>Email</th>
                     <th style={{ padding: '16px 24px' }}>Role</th>
@@ -1724,14 +1580,14 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody>
                   {users.map(u => (
-                    <tr key={u._id} style={{ borderBottom: '1px solid #334155' }}>
+                    <tr key={u._id} style={{ borderBottom: '1px solid var(--line)' }}>
                       <td style={{ padding: '16px 24px', fontWeight: 'bold' }}>{u.name}</td>
                       <td style={{ padding: '16px 24px' }}>{u.email}</td>
                       <td style={{ padding: '16px 24px' }}>
                         <select 
                           value={u.role} 
                           onChange={(e) => handleUpdateRole(u._id, e.target.value)}
-                          style={{ background: '#0f172a', border: '1px solid #475569', color: 'white', padding: '6px 12px', borderRadius: '6px', fontSize: '13px' }}
+                          style={{ background: 'var(--bg)', border: '1px solid var(--line)', color: 'var(--ink)', padding: '6px 12px', borderRadius: '6px', fontSize: '13px' }}
                         >
                           <option value="student">Student</option>
                           <option value="counsellor">Counsellor</option>
@@ -1740,8 +1596,8 @@ export default function AdminDashboard() {
                       </td>
                       <td style={{ padding: '16px 24px' }}>
                         <span style={{
-                          background: u.status === 'active' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                          color: u.status === 'active' ? '#10b981' : '#ef4444',
+                          background: u.status === 'active' ? 'color-mix(in srgb, var(--success) 15%, transparent)' : 'color-mix(in srgb, var(--danger) 15%, transparent)',
+                          color: u.status === 'active' ? 'var(--success-ink)' : 'var(--danger)',
                           padding: '4px 10px',
                           borderRadius: '12px',
                           fontSize: '11px',
@@ -1756,7 +1612,7 @@ export default function AdminDashboard() {
                           onClick={() => handleToggleStatus(u._id, u.status)} 
                           style={{ 
                             padding: '6px 12px', 
-                            background: u.status === 'active' ? '#d97706' : '#10b981', 
+                            background: u.status === 'active' ? 'var(--warn-fill)' : 'var(--success-fill)', 
                             color: 'white', 
                             border: 'none', 
                             borderRadius: '6px', 
@@ -1767,7 +1623,7 @@ export default function AdminDashboard() {
                         >
                           {u.status === 'active' ? 'Deactivate' : 'Activate'}
                         </button>
-                        <button onClick={() => handleDeleteUser(u._id)} style={{ padding: '6px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>Delete</button>
+                        <button onClick={() => handleDeleteUser(u._id)} style={{ padding: '6px 12px', background: 'var(--danger-fill)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}>Delete</button>
                       </td>
                     </tr>
                   ))}
@@ -1781,26 +1637,26 @@ export default function AdminDashboard() {
         {activeTab === 'resources' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
             {/* Create / Edit Form */}
-            <div style={{ background: '#1e293b', padding: '32px', borderRadius: '24px', border: '1px solid #334155', height: 'fit-content' }}>
-              <h3 style={{ color: 'white', margin: '0 0 8px' }}>📝 Add Curated Article</h3>
-              <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '20px' }}>Publish a new educational article or mindfulness tip.</p>
+            <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', border: '1px solid var(--line)', height: 'fit-content' }}>
+              <h3 style={{ color: 'var(--ink)', margin: '0 0 8px' }}>📝 Add Curated Article</h3>
+              <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Publish a new educational article or mindfulness tip.</p>
 
               {resMessage && (
-                <div style={{ background: '#334155', padding: '12px', border: '1px solid #475569', borderRadius: '8px', color: '#818cf8', fontSize: '13px', marginBottom: '16px' }}>
+                <div style={{ background: 'var(--surface-3)', padding: '12px', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--primary)', fontSize: '13px', marginBottom: '16px' }}>
                   {resMessage}
                 </div>
               )}
 
               <form onSubmit={handleCreateResource} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Article Title</label>
-                  <input type="text" value={resTitle} onChange={e => setResTitle(e.target.value)} style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none', boxSizing: 'border-box' }} required />
+                  <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '4px' }}>Article Title</label>
+                  <input type="text" value={resTitle} onChange={e => setResTitle(e.target.value)} style={{ width: '100%', padding: '10px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', boxSizing: 'border-box' }} required />
                 </div>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: '12px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Category</label>
-                    <select value={resCategory} onChange={e => setResCategory(e.target.value)} style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none', boxSizing: 'border-box' }}>
+                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '4px' }}>Category</label>
+                    <select value={resCategory} onChange={e => setResCategory(e.target.value)} style={{ width: '100%', padding: '10px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', boxSizing: 'border-box' }}>
                       <option value="Stress">Stress</option>
                       <option value="Anxiety">Anxiety</option>
                       <option value="Sleep">Sleep</option>
@@ -1808,35 +1664,35 @@ export default function AdminDashboard() {
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Read Time (m)</label>
-                    <input type="number" value={resReadTime} onChange={e => setResReadTime(e.target.value)} style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none', boxSizing: 'border-box' }} required />
+                    <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '4px' }}>Read Time (m)</label>
+                    <input type="number" value={resReadTime} onChange={e => setResReadTime(e.target.value)} style={{ width: '100%', padding: '10px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', boxSizing: 'border-box' }} required />
                   </div>
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Content Body</label>
-                  <textarea value={resContent} onChange={e => setResContent(e.target.value)} style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none', height: '140px', resize: 'none', boxSizing: 'border-box' }} required />
+                  <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '4px' }}>Content Body</label>
+                  <textarea value={resContent} onChange={e => setResContent(e.target.value)} style={{ width: '100%', padding: '12px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', height: '140px', resize: 'none', boxSizing: 'border-box' }} required />
                 </div>
 
-                <button type="submit" style={{ width: '100%', padding: '12px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', marginTop: '10px' }}>Publish Article</button>
+                <button type="submit" style={{ width: '100%', padding: '12px', background: 'var(--primary-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', marginTop: '10px' }}>Publish Article</button>
               </form>
             </div>
 
             {/* List of articles */}
-            <div style={{ background: '#1e293b', padding: '32px', borderRadius: '24px', border: '1px solid #334155' }}>
-              <h3 style={{ color: 'white', margin: '0 0 16px' }}>📚 Published Resources</h3>
+            <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', border: '1px solid var(--line)' }}>
+              <h3 style={{ color: 'var(--ink)', margin: '0 0 16px' }}>📚 Published Resources</h3>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '420px', overflowY: 'auto' }}>
                 {resources.map(res => (
-                  <div key={res._id} style={{ padding: '16px', background: '#0f172a', borderRadius: '12px', border: '1px solid #334155' }}>
+                  <div key={res._id} style={{ padding: '16px', background: 'var(--bg)', borderRadius: '12px', border: '1px solid var(--line)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
                       <div>
-                        <h4 style={{ margin: 0, color: 'white', fontSize: '14px' }}>{res.title}</h4>
-                        <span style={{ fontSize: '11px', color: '#6366f1', textTransform: 'uppercase', fontWeight: 'bold' }}>{res.category}</span>
+                        <h4 style={{ margin: 0, color: 'var(--ink)', fontSize: '14px' }}>{res.title}</h4>
+                        <span style={{ fontSize: '11px', color: 'var(--primary)', textTransform: 'uppercase', fontWeight: 'bold' }}>{res.category}</span>
                       </div>
                       <div style={{ display: 'flex', gap: '6px' }}>
-                        <button onClick={() => setEditResource(res)} style={{ padding: '4px 8px', background: '#3b82f6', border: 'none', borderRadius: '4px', color: 'white', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Edit</button>
-                        <button onClick={() => handleDeleteResource(res._id)} style={{ padding: '4px 8px', background: '#ef4444', border: 'none', borderRadius: '4px', color: 'white', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Delete</button>
+                        <button onClick={() => setEditResource(res)} style={{ padding: '4px 8px', background: 'var(--sky-fill)', border: 'none', borderRadius: '4px', color: 'white', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Edit</button>
+                        <button onClick={() => handleDeleteResource(res._id)} style={{ padding: '4px 8px', background: 'var(--danger-fill)', border: 'none', borderRadius: '4px', color: 'white', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>Delete</button>
                       </div>
                     </div>
                   </div>
@@ -1846,20 +1702,20 @@ export default function AdminDashboard() {
 
             {/* Edit modal */}
             {editResource && (
-              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, padding: '20px' }}>
-                <div style={{ background: '#1e293b', borderRadius: '24px', maxWidth: '600px', width: '100%', padding: '32px', border: '1px solid #475569', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
-                  <h3 style={{ color: 'white', marginTop: 0, marginBottom: '20px' }}>✏️ Edit Resource Article</h3>
+              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, padding: '20px' }}>
+                <div style={{ background: 'var(--surface)', borderRadius: '24px', maxWidth: '600px', width: '100%', padding: '32px', border: '1px solid var(--line)', boxShadow: '0 20px 50px rgba(0,0,0,0.3)' }}>
+                  <h3 style={{ color: 'var(--ink)', marginTop: 0, marginBottom: '20px' }}>✏️ Edit Resource Article</h3>
                   
                   <form onSubmit={handleUpdateResource} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Article Title</label>
-                      <input type="text" value={editResource.title} onChange={e => setEditResource({...editResource, title: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none', boxSizing: 'border-box' }} required />
+                      <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '4px' }}>Article Title</label>
+                      <input type="text" value={editResource.title} onChange={e => setEditResource({...editResource, title: e.target.value})} style={{ width: '100%', padding: '10px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', boxSizing: 'border-box' }} required />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px', gap: '12px' }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Category</label>
-                        <select value={editResource.category} onChange={e => setEditResource({...editResource, category: e.target.value})} style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none', boxSizing: 'border-box' }}>
+                        <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '4px' }}>Category</label>
+                        <select value={editResource.category} onChange={e => setEditResource({...editResource, category: e.target.value})} style={{ width: '100%', padding: '10px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', boxSizing: 'border-box' }}>
                           <option value="Stress">Stress</option>
                           <option value="Anxiety">Anxiety</option>
                           <option value="Sleep">Sleep</option>
@@ -1867,19 +1723,19 @@ export default function AdminDashboard() {
                         </select>
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Read Time (m)</label>
-                        <input type="number" value={editResource.readTime} onChange={e => setEditResource({...editResource, readTime: Number(e.target.value)})} style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none', boxSizing: 'border-box' }} required />
+                        <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '4px' }}>Read Time (m)</label>
+                        <input type="number" value={editResource.readTime} onChange={e => setEditResource({...editResource, readTime: Number(e.target.value)})} style={{ width: '100%', padding: '10px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', boxSizing: 'border-box' }} required />
                       </div>
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Content Body</label>
-                      <textarea value={editResource.content} onChange={e => setEditResource({...editResource, content: e.target.value})} style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none', height: '180px', resize: 'none', boxSizing: 'border-box' }} required />
+                      <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '4px' }}>Content Body</label>
+                      <textarea value={editResource.content} onChange={e => setEditResource({...editResource, content: e.target.value})} style={{ width: '100%', padding: '12px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', height: '180px', resize: 'none', boxSizing: 'border-box' }} required />
                     </div>
 
                     <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '10px' }}>
-                      <button type="button" onClick={() => setEditResource(null)} style={{ padding: '10px 20px', background: '#334155', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Cancel</button>
-                      <button type="submit" style={{ padding: '10px 20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Save Changes</button>
+                      <button type="button" onClick={() => setEditResource(null)} style={{ padding: '10px 20px', background: 'var(--surface-3)', color: 'var(--ink)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Cancel</button>
+                      <button type="submit" style={{ padding: '10px 20px', background: 'var(--primary-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Save Changes</button>
                     </div>
                   </form>
                 </div>
@@ -1890,17 +1746,17 @@ export default function AdminDashboard() {
 
         {/* TAB 4: Recommendation Management */}
         {activeTab === 'recommendation' && (
-          <div style={{ maxWidth: '600px', margin: '0 auto', background: '#1e293b', padding: '32px', borderRadius: '24px', border: '1px solid #334155' }}>
-            <h2 style={{ color: 'white', marginBottom: '8px' }}>🎯 Curate Recommendations & Activity Tips</h2>
-            <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '24px' }}>Assign custom relaxation games and advice notes to specific students.</p>
+          <div style={{ maxWidth: '600px', margin: '0 auto', background: 'var(--surface)', padding: '32px', borderRadius: '24px', border: '1px solid var(--line)' }}>
+            <h2 style={{ color: 'var(--ink)', marginBottom: '8px' }}>🎯 Curate Recommendations & Activity Tips</h2>
+            <p style={{ color: 'var(--ink-3)', fontSize: '14px', marginBottom: '24px' }}>Assign custom relaxation games and advice notes to specific students.</p>
 
             <form onSubmit={handleAssignRecommendation} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px' }}>Choose Target Student:</label>
+                <label style={{ display: 'block', fontSize: '13px', color: 'var(--ink-3)', marginBottom: '6px' }}>Choose Target Student:</label>
                 <select 
                   value={recUser} 
                   onChange={e => setRecUser(e.target.value)}
-                  style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none' }}
+                  style={{ width: '100%', padding: '12px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none' }}
                   required
                 >
                   <option value="">-- Select Student --</option>
@@ -1911,11 +1767,11 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px' }}>Recommend Relaxation Game:</label>
+                <label style={{ display: 'block', fontSize: '13px', color: 'var(--ink-3)', marginBottom: '6px' }}>Recommend Relaxation Game:</label>
                 <select 
                   value={recGame} 
                   onChange={e => setRecGame(e.target.value)}
-                  style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none' }}
+                  style={{ width: '100%', padding: '12px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none' }}
                 >
                   <option value="bubbles">Bubble Wrap Popper 🫧</option>
                   <option value="memory">Zen Memory Match 🧩</option>
@@ -1924,17 +1780,17 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px' }}>Personalized Activity Advice:</label>
+                <label style={{ display: 'block', fontSize: '13px', color: 'var(--ink-3)', marginBottom: '6px' }}>Personalized Activity Advice:</label>
                 <textarea 
                   value={recActivity} 
                   onChange={e => setRecActivity(e.target.value)}
                   placeholder="e.g. Try taking a 10-minute walk or do a quick box-breathing exercise."
-                  style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none', height: '100px', resize: 'none', boxSizing: 'border-box' }}
+                  style={{ width: '100%', padding: '12px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', height: '100px', resize: 'none', boxSizing: 'border-box' }}
                   required
                 />
               </div>
 
-              <button type="submit" style={{ padding: '14px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' }}>
+              <button type="submit" style={{ padding: '14px', background: 'var(--primary-fill)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '15px' }}>
                 🤝 Assign Recommendation
               </button>
             </form>
@@ -1944,14 +1800,14 @@ export default function AdminDashboard() {
         {/* TAB 5: Live Support Chats */}
         {activeTab === 'chats' && (
           <div>
-            <h2 style={{ color: 'white', marginBottom: '8px' }}>💬 Live Support Message Board</h2>
-            <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '32px' }}>Respond to direct 1-to-1 help inquiries from students in real time.</p>
+            <h2 style={{ color: 'var(--ink)', marginBottom: '8px' }}>💬 Live Support Message Board</h2>
+            <p style={{ color: 'var(--ink-3)', fontSize: '14px', marginBottom: '32px' }}>Respond to direct 1-to-1 help inquiries from students in real time.</p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '24px', height: '480px' }}>
-              <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '16px', overflowY: 'auto', padding: '12px' }}>
-                <h4 style={{ margin: '0 0 12px', padding: '8px', color: '#cbd5e1', borderBottom: '1px solid #334155' }}>Active Chats</h4>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '16px', overflowY: 'auto', padding: '12px' }}>
+                <h4 style={{ margin: '0 0 12px', padding: '8px', color: 'var(--ink-2)', borderBottom: '1px solid var(--line)' }}>Active Chats</h4>
                 {chatUsers.length === 0 ? (
-                  <p style={{ color: '#64748b', fontSize: '12px', textAlign: 'center', padding: '20px' }}>No active chats.</p>
+                  <p style={{ color: 'var(--ink-3)', fontSize: '12px', textAlign: 'center', padding: '20px' }}>No active chats.</p>
                 ) : (
                   chatUsers.map(cu => (
                     <div 
@@ -1960,14 +1816,14 @@ export default function AdminDashboard() {
                       style={{
                         padding: '12px',
                         borderRadius: '10px',
-                        background: activeStudentId === cu._id ? '#334155' : 'transparent',
+                        background: activeStudentId === cu._id ? 'var(--surface-3)' : 'transparent',
                         cursor: 'pointer',
                         marginBottom: '4px',
                         transition: 'background 0.2s'
                       }}
                     >
-                      <div style={{ fontWeight: 'bold', fontSize: '14px', color: activeStudentId === cu._id ? 'white' : '#e2e8f0' }}>{cu.name}</div>
-                      <div style={{ fontSize: '11px', color: '#94a3b8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '4px' }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '14px', color: activeStudentId === cu._id ? 'white' : 'var(--ink)' }}>{cu.name}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--ink-3)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '4px' }}>
                         {cu.lastMessage}
                       </div>
                     </div>
@@ -1975,10 +1831,10 @@ export default function AdminDashboard() {
                 )}
               </div>
 
-              <div style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '16px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '16px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 {activeStudentId ? (
                   <>
-                    <div style={{ background: '#334155', padding: '16px 24px', borderBottom: '1px solid #475569', color: 'white', fontWeight: 'bold' }}>
+                    <div style={{ background: 'var(--surface-3)', padding: '16px 24px', borderBottom: '1px solid var(--line)', color: 'var(--ink)', fontWeight: 'bold' }}>
                       💬 Chatting with {activeStudentName}
                     </div>
                     
@@ -1991,7 +1847,7 @@ export default function AdminDashboard() {
                             style={{
                               alignSelf: isOwn ? 'flex-end' : 'flex-start',
                               maxWidth: '70%',
-                              background: isOwn ? '#6366f1' : '#0f172a',
+                              background: isOwn ? 'var(--primary-fill)' : 'var(--bg)',
                               color: 'white',
                               padding: '10px 14px',
                               borderRadius: isOwn ? '12px 12px 0 12px' : '12px 12px 12px 0',
@@ -2005,19 +1861,19 @@ export default function AdminDashboard() {
                       <div ref={chatEndRef} />
                     </div>
 
-                    <form onSubmit={handleSendSupport} style={{ padding: '16px', display: 'flex', gap: '10px', borderTop: '1px solid #475569', background: '#0f172a' }}>
+                    <form onSubmit={handleSendSupport} style={{ padding: '16px', display: 'flex', gap: '10px', borderTop: '1px solid var(--line)', background: 'var(--bg)' }}>
                       <input 
                         type="text" 
                         value={chatInput}
                         onChange={e => setChatInput(e.target.value)}
                         placeholder={`Reply to ${activeStudentName}...`}
-                        style={{ flex: 1, padding: '12px', background: '#1e293b', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none' }}
+                        style={{ flex: 1, padding: '12px', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none' }}
                       />
-                      <button type="submit" style={{ padding: '0 20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Send</button>
+                      <button type="submit" style={{ padding: '0 20px', background: 'var(--primary-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Send</button>
                     </form>
                   </>
                 ) : (
-                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontSize: '14px' }}>
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-3)', fontSize: '14px' }}>
                     Select a student from the sidebar to open the chat window.
                   </div>
                 )}
@@ -2029,13 +1885,13 @@ export default function AdminDashboard() {
         {/* TAB 6: Complaints & Feedback */}
         {activeTab === 'feedback' && (
           <div>
-            <h2 style={{ color: 'white', marginBottom: '8px' }}>📋 Student Complaints & Feedback</h2>
-            <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '32px' }}>Review and resolve feedback submitted by student users.</p>
+            <h2 style={{ color: 'var(--ink)', marginBottom: '8px' }}>📋 Student Complaints & Feedback</h2>
+            <p style={{ color: 'var(--ink-3)', fontSize: '14px', marginBottom: '32px' }}>Review and resolve feedback submitted by student users.</p>
 
-            <div style={{ background: '#1e293b', borderRadius: '20px', overflowX: 'auto', border: '1px solid #334155' }}>
+            <div style={{ background: 'var(--surface)', borderRadius: '20px', overflowX: 'auto', border: '1px solid var(--line)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13.5px' }}>
                 <thead>
-                  <tr style={{ background: '#334155', color: '#cbd5e1' }}>
+                  <tr style={{ background: 'var(--surface-3)', color: 'var(--ink-2)' }}>
                     <th style={{ padding: '16px 24px' }}>Student</th>
                     <th style={{ padding: '16px 24px' }}>Subject</th>
                     <th style={{ padding: '16px 24px' }}>Message</th>
@@ -2044,14 +1900,14 @@ export default function AdminDashboard() {
                 <tbody>
                   {feedbacks.length === 0 ? (
                     <tr>
-                      <td colSpan="3" style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>No feedback submissions found.</td>
+                      <td colSpan="3" style={{ padding: '32px', textAlign: 'center', color: 'var(--ink-3)' }}>No feedback submissions found.</td>
                     </tr>
                   ) : (
                     feedbacks.map(f => (
-                      <tr key={f._id} style={{ borderBottom: '1px solid #334155' }}>
+                      <tr key={f._id} style={{ borderBottom: '1px solid var(--line)' }}>
                         <td style={{ padding: '16px 24px', fontWeight: 'bold' }}>{f.student?.name || 'Anonymous Student'}</td>
                         <td style={{ padding: '16px 24px' }}>{f.subject}</td>
-                        <td style={{ padding: '16px 24px', color: '#cbd5e1', fontStyle: 'italic' }}>"{f.message}"</td>
+                        <td style={{ padding: '16px 24px', color: 'var(--ink-2)', fontStyle: 'italic' }}>"{f.message}"</td>
                       </tr>
                     ))
                   )}
@@ -2066,25 +1922,25 @@ export default function AdminDashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
             
             {/* Form */}
-            <div style={{ background: '#1e293b', padding: '32px', borderRadius: '24px', border: '1px solid #334155', height: 'fit-content' }}>
-              <h3 style={{ color: 'white', margin: '0 0 8px' }}>📢 Post System Announcement</h3>
-              <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '20px' }}>Broadcast notifications or messages to target user roles.</p>
+            <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', border: '1px solid var(--line)', height: 'fit-content' }}>
+              <h3 style={{ color: 'var(--ink)', margin: '0 0 8px' }}>📢 Post System Announcement</h3>
+              <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Broadcast notifications or messages to target user roles.</p>
 
               {announceMessage && (
-                <div style={{ background: '#334155', padding: '12px', border: '1px solid #475569', borderRadius: '8px', color: '#818cf8', fontSize: '13px', marginBottom: '16px' }}>
+                <div style={{ background: 'var(--surface-3)', padding: '12px', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--primary)', fontSize: '13px', marginBottom: '16px' }}>
                   {announceMessage}
                 </div>
               )}
 
               <form onSubmit={handleCreateAnnouncement} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Title</label>
-                  <input type="text" value={announceTitle} onChange={e => setAnnounceTitle(e.target.value)} style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none', boxSizing: 'border-box' }} required />
+                  <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '4px' }}>Title</label>
+                  <input type="text" value={announceTitle} onChange={e => setAnnounceTitle(e.target.value)} style={{ width: '100%', padding: '10px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', boxSizing: 'border-box' }} required />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Target Audience</label>
-                  <select value={announceTarget} onChange={e => setAnnounceTarget(e.target.value)} style={{ width: '100%', padding: '10px', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none', boxSizing: 'border-box' }}>
+                  <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '4px' }}>Target Audience</label>
+                  <select value={announceTarget} onChange={e => setAnnounceTarget(e.target.value)} style={{ width: '100%', padding: '10px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', boxSizing: 'border-box' }}>
                     <option value="all">Everyone (All)</option>
                     <option value="student">Students Only</option>
                     <option value="counsellor">Counsellors Only</option>
@@ -2092,28 +1948,28 @@ export default function AdminDashboard() {
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '4px' }}>Announcement Text</label>
-                  <textarea value={announceContent} onChange={e => setAnnounceContent(e.target.value)} style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid #475569', borderRadius: '8px', color: 'white', outline: 'none', height: '100px', resize: 'none', boxSizing: 'border-box' }} required />
+                  <label style={{ display: 'block', fontSize: '12px', color: 'var(--ink-3)', marginBottom: '4px' }}>Announcement Text</label>
+                  <textarea value={announceContent} onChange={e => setAnnounceContent(e.target.value)} style={{ width: '100%', padding: '12px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', height: '100px', resize: 'none', boxSizing: 'border-box' }} required />
                 </div>
 
-                <button type="submit" style={{ width: '100%', padding: '12px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', marginTop: '10px' }}>📢 Broadcast Notice</button>
+                <button type="submit" style={{ width: '100%', padding: '12px', background: 'var(--primary-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', marginTop: '10px' }}>📢 Broadcast Notice</button>
               </form>
             </div>
 
             {/* List */}
-            <div style={{ background: '#1e293b', padding: '32px', borderRadius: '24px', border: '1px solid #334155' }}>
-              <h3 style={{ color: 'white', margin: '0 0 16px' }}>📋 Active Announcements</h3>
+            <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', border: '1px solid var(--line)' }}>
+              <h3 style={{ color: 'var(--ink)', margin: '0 0 16px' }}>📋 Active Announcements</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', maxHeight: '420px', overflowY: 'auto' }}>
                 {announcements.map(ann => (
-                  <div key={ann._id} style={{ padding: '16px', background: '#0f172a', borderRadius: '12px', border: '1px solid #334155' }}>
+                  <div key={ann._id} style={{ padding: '16px', background: 'var(--bg)', borderRadius: '12px', border: '1px solid var(--line)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', gap: '12px' }}>
-                      <h4 style={{ margin: 0, color: 'white', fontSize: '14px', wordBreak: 'break-word', overflowWrap: 'break-word', flex: 1 }}>{ann.title}</h4>
+                      <h4 style={{ margin: 0, color: 'var(--ink)', fontSize: '14px', wordBreak: 'break-word', overflowWrap: 'break-word', flex: 1 }}>{ann.title}</h4>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
-                        <span style={{ fontSize: '10px', background: '#334155', color: '#818cf8', padding: '2px 8px', borderRadius: '10px', textTransform: 'uppercase', fontWeight: 'bold' }}>{ann.targetRole}</span>
+                        <span style={{ fontSize: '10px', background: 'var(--surface-3)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '10px', textTransform: 'uppercase', fontWeight: 'bold' }}>{ann.targetRole}</span>
                         {currentUser?.role === 'admin' && (
                           <button 
                             onClick={() => handleDeleteAnnouncement(ann._id)}
-                            style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', fontSize: '14px', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            style={{ background: 'none', border: 'none', color: 'var(--danger)', cursor: 'pointer', fontSize: '14px', padding: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             title="Delete Announcement"
                           >
                             🗑️
@@ -2121,8 +1977,8 @@ export default function AdminDashboard() {
                         )}
                       </div>
                     </div>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#cbd5e1', lineHeight: '1.4', wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}>{ann.content}</p>
-                    <div style={{ fontSize: '10px', color: '#64748b', marginTop: '8px' }}>{new Date(ann.createdAt).toLocaleString()}</div>
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--ink-2)', lineHeight: '1.4', wordBreak: 'break-word', overflowWrap: 'break-word', whiteSpace: 'pre-wrap' }}>{ann.content}</p>
+                    <div style={{ fontSize: '10px', color: 'var(--ink-3)', marginTop: '8px' }}>{new Date(ann.createdAt).toLocaleString()}</div>
                   </div>
                 ))}
               </div>
@@ -2134,13 +1990,13 @@ export default function AdminDashboard() {
         {/* TAB 8: User Activity Monitoring */}
         {activeTab === 'monitoring' && (
           <div>
-            <h2 style={{ color: 'white', marginBottom: '8px' }}>📈 User Activity Logs & Metrics</h2>
-            <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '32px' }}>Monitor student platform logins, tracking records, and interactive frequencies.</p>
+            <h2 style={{ color: 'var(--ink)', marginBottom: '8px' }}>📈 User Activity Logs & Metrics</h2>
+            <p style={{ color: 'var(--ink-3)', fontSize: '14px', marginBottom: '32px' }}>Monitor student platform logins, tracking records, and interactive frequencies.</p>
 
-            <div style={{ background: '#1e293b', borderRadius: '20px', overflowX: 'auto', border: '1px solid #334155' }}>
+            <div style={{ background: 'var(--surface)', borderRadius: '20px', overflowX: 'auto', border: '1px solid var(--line)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13.5px' }}>
                 <thead>
-                  <tr style={{ background: '#334155', color: '#cbd5e1' }}>
+                  <tr style={{ background: 'var(--surface-3)', color: 'var(--ink-2)' }}>
                     <th style={{ padding: '16px 24px' }}>Student Name</th>
                     <th style={{ padding: '16px 24px' }}>Email Address</th>
                     <th style={{ padding: '16px 24px' }}>Total System Logins</th>
@@ -2150,12 +2006,12 @@ export default function AdminDashboard() {
                 </thead>
                 <tbody>
                   {users.filter(u => u.role === 'student').map(u => (
-                    <tr key={u._id} style={{ borderBottom: '1px solid #334155' }}>
+                    <tr key={u._id} style={{ borderBottom: '1px solid var(--line)' }}>
                       <td style={{ padding: '16px 24px', fontWeight: 'bold' }}>{u.name}</td>
                       <td style={{ padding: '16px 24px' }}>{u.email}</td>
-                      <td style={{ padding: '16px 24px', color: '#6366f1', fontWeight: 'bold' }}>{u.loginCount || 0} times</td>
-                      <td style={{ padding: '16px 24px', color: '#10b981' }}>{u.customRecommendation?.game || 'Default Game'}</td>
-                      <td style={{ padding: '16px 24px', color: '#94a3b8' }}>{new Date(u.updatedAt).toLocaleDateString()}</td>
+                      <td style={{ padding: '16px 24px', color: 'var(--primary)', fontWeight: 'bold' }}>{u.loginCount || 0} times</td>
+                      <td style={{ padding: '16px 24px', color: 'var(--success-ink)' }}>{u.customRecommendation?.game || 'Default Game'}</td>
+                      <td style={{ padding: '16px 24px', color: 'var(--ink-3)' }}>{new Date(u.updatedAt).toLocaleDateString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -2167,26 +2023,26 @@ export default function AdminDashboard() {
         {/* TAB 9: Peer Chat Moderator */}
         {activeTab === 'moderator' && (
           <div>
-            <h2 style={{ color: 'white', marginBottom: '8px' }}>🛡️ Anonymous Peer Chat Moderator</h2>
-            <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '32px' }}>Oversee and moderate content posted in the public student anonymous peer support room.</p>
+            <h2 style={{ color: 'var(--ink)', marginBottom: '8px' }}>🛡️ Anonymous Peer Chat Moderator</h2>
+            <p style={{ color: 'var(--ink-3)', fontSize: '14px', marginBottom: '32px' }}>Oversee and moderate content posted in the public student anonymous peer support room.</p>
 
-            <div style={{ background: '#1e293b', borderRadius: '20px', border: '1px solid #334155', overflow: 'hidden', maxHeight: '500px', overflowY: 'auto' }}>
-              <div style={{ padding: '18px 24px', background: '#334155', fontWeight: 'bold', borderBottom: '1px solid #334155' }}>🛡️ Peer Chat Room Log</div>
+            <div style={{ background: 'var(--surface)', borderRadius: '20px', border: '1px solid var(--line)', overflow: 'hidden', maxHeight: '500px', overflowY: 'auto' }}>
+              <div style={{ padding: '18px 24px', background: 'var(--surface-3)', fontWeight: 'bold', borderBottom: '1px solid var(--line)' }}>🛡️ Peer Chat Room Log</div>
               {peerMessages.length === 0 ? (
-                <p style={{ color: '#94a3b8', padding: '32px', textAlign: 'center' }}>No messages logged in the peer chatroom.</p>
+                <p style={{ color: 'var(--ink-3)', padding: '32px', textAlign: 'center' }}>No messages logged in the peer chatroom.</p>
               ) : (
                 peerMessages.map(msg => (
-                  <div key={msg._id} style={{ padding: '16px 24px', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={msg._id} style={{ padding: '16px 24px', borderBottom: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ flex: 1, paddingRight: '20px' }}>
                       <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '4px' }}>
-                        <span style={{ fontWeight: 'bold', color: '#a78bfa', fontSize: '13px' }}>{msg.senderName}</span>
-                        <span style={{ fontSize: '10px', color: '#64748b' }}>{new Date(msg.createdAt).toLocaleString()}</span>
+                        <span style={{ fontWeight: 'bold', color: 'var(--primary)', fontSize: '13px' }}>{msg.senderName}</span>
+                        <span style={{ fontSize: '10px', color: 'var(--ink-3)' }}>{new Date(msg.createdAt).toLocaleString()}</span>
                       </div>
-                      <p style={{ margin: 0, fontSize: '14px', color: '#cbd5e1' }}>{msg.text}</p>
+                      <p style={{ margin: 0, fontSize: '14px', color: 'var(--ink-2)' }}>{msg.text}</p>
                     </div>
                     <button 
                       onClick={() => handleDeletePeerMessage(msg._id)}
-                      style={{ padding: '6px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}
+                      style={{ padding: '6px 12px', background: 'var(--danger-fill)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}
                     >
                       Delete Message
                     </button>
@@ -2200,29 +2056,29 @@ export default function AdminDashboard() {
         {/* TAB 10: Emergency Support Alerts */}
         {activeTab === 'emergency' && (
           <div>
-            <h2 style={{ color: '#ef4444', marginBottom: '8px' }}>🚨 Emergency Support Alerts</h2>
-            <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '32px' }}>surfaces crisis alerts from student mood tracking values and notes.</p>
+            <h2 style={{ color: 'var(--danger)', marginBottom: '8px' }}>🚨 Emergency Support Alerts</h2>
+            <p style={{ color: 'var(--ink-3)', fontSize: '14px', marginBottom: '32px' }}>surfaces crisis alerts from student mood tracking values and notes.</p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {emergencyAlerts.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px 20px', background: '#1e293b', borderRadius: '16px', border: '1px dashed #334155' }}>
+                <div style={{ textAlign: 'center', padding: '40px 20px', background: 'var(--surface)', borderRadius: '16px', border: '1px dashed var(--line)' }}>
                   <span style={{ fontSize: '32px', display: 'block', marginBottom: '10px' }}>🌟</span>
-                  <p style={{ color: '#94a3b8', margin: 0, fontSize: '14.5px' }}>No active emergency alerts. All student mood logs are within safe thresholds.</p>
+                  <p style={{ color: 'var(--ink-3)', margin: 0, fontSize: '14.5px' }}>No active emergency alerts. All student mood logs are within safe thresholds.</p>
                 </div>
               ) : (
                 emergencyAlerts.map(alertItem => (
-                  <div key={alertItem.id} style={{ background: '#1e293b', borderLeft: '6px solid #ef4444', borderRadius: '12px', padding: '24px', borderTop: '1px solid #334155', borderRight: '1px solid #334155', borderBottom: '1px solid #334155' }}>
+                  <div key={alertItem.id} style={{ background: 'var(--surface)', borderLeft: '6px solid var(--danger)', borderRadius: '12px', padding: '24px', borderTop: '1px solid var(--line)', borderRight: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                       <div>
-                        <h3 style={{ margin: 0, color: 'white', fontSize: '18px' }}>{alertItem.name}</h3>
-                        <span style={{ fontSize: '13px', color: '#ef4444', fontWeight: 'bold' }}>{alertItem.email}</span>
+                        <h3 style={{ margin: 0, color: 'var(--ink)', fontSize: '18px' }}>{alertItem.name}</h3>
+                        <span style={{ fontSize: '13px', color: 'var(--danger)', fontWeight: 'bold' }}>{alertItem.email}</span>
                       </div>
-                      <span style={{ fontSize: '12px', color: '#94a3b8' }}>Logged Date: {alertItem.date}</span>
+                      <span style={{ fontSize: '12px', color: 'var(--ink-3)' }}>Logged Date: {alertItem.date}</span>
                     </div>
 
-                    <div style={{ background: '#0f172a', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid #1e293b' }}>
-                      <div style={{ fontSize: '13px', color: '#94a3b8', textTransform: 'uppercase', marginBottom: '6px' }}>Logged Mood Rating: {alertItem.mood}</div>
-                      <p style={{ color: '#f3f4f6', fontSize: '14px', lineHeight: '1.6', fontStyle: 'italic', margin: 0 }}>
+                    <div style={{ background: 'var(--bg)', padding: '16px', borderRadius: '8px', marginBottom: '16px', border: '1px solid var(--line)' }}>
+                      <div style={{ fontSize: '13px', color: 'var(--ink-3)', textTransform: 'uppercase', marginBottom: '6px' }}>Logged Mood Rating: {alertItem.mood}</div>
+                      <p style={{ color: 'var(--ink)', fontSize: '14px', lineHeight: '1.6', fontStyle: 'italic', margin: 0 }}>
                         "{alertItem.note}"
                       </p>
                     </div>
@@ -2237,13 +2093,13 @@ export default function AdminDashboard() {
                             window.alert('Cannot initiate chat: student ID is not available.')
                           }
                         }} 
-                        style={{ padding: '10px 20px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
+                        style={{ padding: '10px 20px', background: 'var(--danger-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
                       >
                         💬 Message Student Immediately
                       </button>
                       <button 
                         onClick={() => window.alert(`Escalated case to student counseling department for ${alertItem.name}.`)} 
-                        style={{ padding: '10px 20px', background: '#334155', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
+                        style={{ padding: '10px 20px', background: 'var(--surface-3)', color: 'var(--ink)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
                       >
                         📞 Escalate Case
                       </button>
@@ -2258,15 +2114,15 @@ export default function AdminDashboard() {
         {/* TAB 11: Appointment Bookings */}
         {activeTab === 'bookings' && (
           <div>
-            <h2 style={{ color: 'white', marginBottom: '8px' }}>📅 Counselling Appointment approvals</h2>
-            <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '32px' }}>Review and approve pending student counseling session requests.</p>
+            <h2 style={{ color: 'var(--ink)', marginBottom: '8px' }}>📅 Counselling Appointment approvals</h2>
+            <p style={{ color: 'var(--ink-3)', fontSize: '14px', marginBottom: '32px' }}>Review and approve pending student counseling session requests.</p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '24px', marginBottom: '40px' }}>
               
-              <div style={{ background: '#1e293b', borderRadius: '20px', overflowX: 'auto', border: '1px solid #334155' }}>
+              <div style={{ background: 'var(--surface)', borderRadius: '20px', overflowX: 'auto', border: '1px solid var(--line)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13.5px' }}>
                   <thead>
-                    <tr style={{ background: '#334155', color: '#cbd5e1' }}>
+                    <tr style={{ background: 'var(--surface-3)', color: 'var(--ink-2)' }}>
                       <th style={{ padding: '16px 24px' }}>Student</th>
                       <th style={{ padding: '16px 24px' }}>Counsellor</th>
                       <th style={{ padding: '16px 24px' }}>Date</th>
@@ -2279,19 +2135,19 @@ export default function AdminDashboard() {
                   <tbody>
                     {bookings.length === 0 ? (
                       <tr>
-                        <td colSpan="7" style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>No session requests logged.</td>
+                        <td colSpan="7" style={{ padding: '32px', textAlign: 'center', color: 'var(--ink-3)' }}>No session requests logged.</td>
                       </tr>
                     ) : (
                       bookings.map(book => (
-                        <tr key={book._id} style={{ borderBottom: '1px solid #334155' }}>
+                        <tr key={book._id} style={{ borderBottom: '1px solid var(--line)' }}>
                           <td style={{ padding: '16px 24px' }}>
-                            <div style={{ fontWeight: 'bold', color: 'white' }}>{book.student?.name || 'Anonymous User'}</div>
+                            <div style={{ fontWeight: 'bold', color: 'var(--ink)' }}>{book.student?.name || 'Anonymous User'}</div>
                             {book.student?._id && (
                               <button 
                                 onClick={() => fetchStudentReport(book.student._id)}
                                 style={{
-                                  background: 'rgba(99, 102, 241, 0.15)',
-                                  color: '#818cf8',
+                                  background: 'color-mix(in srgb, var(--primary) 15%, transparent)',
+                                  color: 'var(--primary)',
                                   border: 'none',
                                   padding: '4px 8px',
                                   borderRadius: '6px',
@@ -2311,11 +2167,11 @@ export default function AdminDashboard() {
                           </td>
                           <td style={{ padding: '16px 24px' }}>{book.counsellorName}</td>
                           <td style={{ padding: '16px 24px' }}>{book.date}</td>
-                          <td style={{ padding: '16px 24px', color: '#94a3b8' }}>{book.timeSlot}</td>
+                          <td style={{ padding: '16px 24px', color: 'var(--ink-3)' }}>{book.timeSlot}</td>
                           <td style={{ padding: '16px 24px' }}>
                             <span style={{
-                              background: book.paymentStatus === 'paid' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                              color: book.paymentStatus === 'paid' ? '#818cf8' : '#ef4444',
+                              background: book.paymentStatus === 'paid' ? 'color-mix(in srgb, var(--primary) 15%, transparent)' : 'color-mix(in srgb, var(--danger) 15%, transparent)',
+                              color: book.paymentStatus === 'paid' ? 'var(--primary)' : 'var(--danger)',
                               padding: '4px 10px',
                               borderRadius: '12px',
                               fontSize: '11px',
@@ -2327,8 +2183,8 @@ export default function AdminDashboard() {
                           </td>
                           <td style={{ padding: '16px 24px' }}>
                             <span style={{
-                              background: book.status === 'approved' ? 'rgba(16, 185, 129, 0.15)' : (book.status === 'cancelled' || book.status === 'rejected') ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                              color: book.status === 'approved' ? '#10b981' : (book.status === 'cancelled' || book.status === 'rejected') ? '#ef4444' : '#f59e0b',
+                              background: book.status === 'approved' ? 'color-mix(in srgb, var(--success) 15%, transparent)' : (book.status === 'cancelled' || book.status === 'rejected') ? 'color-mix(in srgb, var(--danger) 15%, transparent)' : 'color-mix(in srgb, var(--warn) 15%, transparent)',
+                              color: book.status === 'approved' ? 'var(--success-ink)' : (book.status === 'cancelled' || book.status === 'rejected') ? 'var(--danger)' : 'var(--warn)',
                               padding: '4px 10px',
                               borderRadius: '12px',
                               fontSize: '11px',
@@ -2338,26 +2194,26 @@ export default function AdminDashboard() {
                               {book.status}
                             </span>
                             {book.status === 'rejected' && book.rejectionReason && (
-                              <div style={{ fontSize: '11px', color: '#ef4444', fontStyle: 'italic', marginTop: '4px' }}>
+                              <div style={{ fontSize: '11px', color: 'var(--danger)', fontStyle: 'italic', marginTop: '4px' }}>
                                 Reason: "{book.rejectionReason}"
                               </div>
                             )}
                           </td>
                           <td style={{ padding: '16px 24px', textAlign: 'right', display: 'flex', gap: '6px', justifyContent: 'flex-end', alignItems: 'center' }}>
                             {currentUser?.role === 'admin' && (
-                              <span style={{ fontSize: '11.5px', color: '#94a3b8', fontStyle: 'italic', fontWeight: '500' }}>View-Only History</span>
+                              <span style={{ fontSize: '11.5px', color: 'var(--ink-3)', fontStyle: 'italic', fontWeight: '500' }}>View-Only History</span>
                             )}
                             {currentUser?.role === 'counsellor' && book.status === 'pending' && (book.counsellor?._id === currentUser?.id || book.counsellor === currentUser?.id) && (
                               <>
-                                <button onClick={() => handleBookingAction(book._id, 'approved')} style={{ padding: '4px 8px', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>Approve</button>
-                                <button onClick={() => setRejectBookingId(book._id)} style={{ padding: '4px 8px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>Reject</button>
+                                <button onClick={() => handleBookingAction(book._id, 'approved')} style={{ padding: '4px 8px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>Approve</button>
+                                <button onClick={() => setRejectBookingId(book._id)} style={{ padding: '4px 8px', background: 'var(--danger-fill)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}>Reject</button>
                               </>
                             )}
                             {book.status === 'approved' && currentUser?.role === 'counsellor' && (book.counsellor?._id === currentUser?.id || book.counsellor === currentUser?.id) && (
                               <div style={{ display: 'flex', gap: '6px' }}>
                                 <button 
                                   onClick={() => openBookingChat(book)} 
-                                  style={{ padding: '4px 8px', background: 'linear-gradient(135deg, #4facfe, #00f2fe)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}
+                                  style={{ padding: '4px 8px', background: 'linear-gradient(135deg, var(--sky-fill), var(--primary-fill))', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
                                 >
                                   💬 Chat
                                 </button>
@@ -2366,7 +2222,7 @@ export default function AdminDashboard() {
                                     setActiveVideoBooking(book)
                                     setShowVideoModal(true)
                                   }} 
-                                  style={{ padding: '4px 8px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px' }}
+                                  style={{ padding: '4px 8px', background: 'linear-gradient(135deg, var(--success-fill), var(--success-fill))', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', fontSize: '11px', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
                                 >
                                   🎥 Call
                                 </button>
@@ -2381,16 +2237,16 @@ export default function AdminDashboard() {
               </div>
 
               {/* Bar graph of booking statuses */}
-              <div style={{ background: '#1e293b', padding: '20px', borderRadius: '20px', border: '1px solid #334155' }}>
-                <h4 style={{ color: 'white', margin: '0 0 16px' }}>Status Breakdown</h4>
+              <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '20px', border: '1px solid var(--line)' }}>
+                <h4 style={{ color: 'var(--ink)', margin: '0 0 16px' }}>Status Breakdown</h4>
                 <div style={{ width: '100%', height: '220px' }}>
                   <ResponsiveContainer>
                     <BarChart data={getBookingBarData()}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                      <XAxis dataKey="name" stroke="#94a3b8" />
-                      <YAxis stroke="#94a3b8" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--line-strong)" />
+                      <XAxis dataKey="name" stroke="var(--ink-3)" />
+                      <YAxis stroke="var(--ink-3)" />
                       <Tooltip />
-                      <Bar dataKey="Count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="Count" fill="var(--sky)" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -2403,23 +2259,23 @@ export default function AdminDashboard() {
         {/* TAB 12: Report Generation */}
         {activeTab === 'reporting' && (
           <div>
-            <h2 className="no-print" style={{ color: 'white', marginBottom: '8px' }}>📄 MindSpace Official Report Generator</h2>
-            <p className="no-print" style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '32px' }}>Configure your custom metrics sheet, preview, and print/export the official administrative reports.</p>
+            <h2 className="no-print" style={{ color: 'var(--ink)', marginBottom: '8px' }}>📄 MindSpace Official Report Generator</h2>
+            <p className="no-print" style={{ color: 'var(--ink-3)', fontSize: '14px', marginBottom: '32px' }}>Configure your custom metrics sheet, preview, and print/export the official administrative reports.</p>
 
             {/* Config Panel */}
-            <div className="no-print" style={{ background: '#1e293b', padding: '24px', borderRadius: '20px', border: '1px solid #334155', marginBottom: '32px' }}>
+            <div className="no-print" style={{ background: 'var(--surface)', padding: '24px', borderRadius: '20px', border: '1px solid var(--line)', marginBottom: '32px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-                <h3 style={{ color: 'white', fontSize: '16px', margin: 0 }}>Configure Report Sections</h3>
+                <h3 style={{ color: 'var(--ink)', fontSize: '16px', margin: 0 }}>Configure Report Sections</h3>
                 <div style={{ display: 'flex', gap: '12px' }}>
                   <button 
                     onClick={() => setSelectedReportSections({ mood: true, booking: true, usage: true })}
-                    style={{ background: '#334155', color: '#cbd5e1', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' }}
+                    style={{ background: 'var(--surface-3)', color: 'var(--ink-2)', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' }}
                   >
                     Select All
                   </button>
                   <button 
                     onClick={() => setSelectedReportSections({ mood: false, booking: false, usage: false })}
-                    style={{ background: '#334155', color: '#cbd5e1', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' }}
+                    style={{ background: 'var(--surface-3)', color: 'var(--ink-2)', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 'bold' }}
                   >
                     Clear All
                   </button>
@@ -2437,7 +2293,7 @@ export default function AdminDashboard() {
                     key={item.key}
                     onClick={() => setSelectedReportSections(prev => ({ ...prev, [item.key]: !prev[item.key] }))}
                     style={{
-                      background: selectedReportSections[item.key] ? '#1e1b4b' : '#0f172a',
+                      background: selectedReportSections[item.key] ? 'var(--primary-fill)' : 'var(--bg)',
                       border: `2px solid ${selectedReportSections[item.key] ? '#6366f1' : '#334155'}`,
                       borderRadius: '12px',
                       padding: '16px',
@@ -2457,9 +2313,9 @@ export default function AdminDashboard() {
                     <div>
                       <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '4px' }}>
                         <span style={{ fontSize: '16px' }}>{item.icon}</span>
-                        <h4 style={{ color: 'white', margin: 0, fontSize: '14px', fontWeight: 'bold' }}>{item.title}</h4>
+                        <h4 style={{ color: 'var(--ink)', margin: 0, fontSize: '14px', fontWeight: 'bold' }}>{item.title}</h4>
                       </div>
-                      <p style={{ color: '#94a3b8', margin: 0, fontSize: '11px', lineHeight: '1.4' }}>{item.desc}</p>
+                      <p style={{ color: 'var(--ink-3)', margin: 0, fontSize: '11px', lineHeight: '1.4' }}>{item.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -2471,7 +2327,7 @@ export default function AdminDashboard() {
                   disabled={!selectedReportSections.mood && !selectedReportSections.booking && !selectedReportSections.usage}
                   style={{
                     padding: '12px 24px',
-                    background: (!selectedReportSections.mood && !selectedReportSections.booking && !selectedReportSections.usage) ? '#475569' : '#6366f1',
+                    background: (!selectedReportSections.mood && !selectedReportSections.booking && !selectedReportSections.usage) ? 'var(--line-strong)' : 'var(--primary-fill)',
                     color: 'white',
                     border: 'none',
                     borderRadius: '8px',
@@ -2490,22 +2346,22 @@ export default function AdminDashboard() {
 
             {/* Print Sheet Container */}
             {(!selectedReportSections.mood && !selectedReportSections.booking && !selectedReportSections.usage) ? (
-              <div className="no-print" style={{ background: '#1e293b', padding: '40px 20px', borderRadius: '16px', border: '1px dashed #334155', textAlign: 'center' }}>
+              <div className="no-print" style={{ background: 'var(--surface)', padding: '40px 20px', borderRadius: '16px', border: '1px dashed var(--line)', textAlign: 'center' }}>
                 <span style={{ fontSize: '32px', display: 'block', marginBottom: '10px' }}>📊</span>
-                <p style={{ color: '#94a3b8', margin: 0, fontSize: '14.5px' }}>Please select at least one report section from the configuration cards above to generate a preview.</p>
+                <p style={{ color: 'var(--ink-3)', margin: 0, fontSize: '14.5px' }}>Please select at least one report section from the configuration cards above to generate a preview.</p>
               </div>
             ) : (
-              <div style={{ background: 'white', color: '#1f2937', padding: '40px', borderRadius: '8px', border: '1px solid #cbd5e1', fontFamily: 'serif', maxWidth: '800px', margin: '0 auto', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+              <div style={{ background: 'var(--surface)', color: 'var(--ink)', padding: '40px', borderRadius: '8px', border: '1px solid var(--line-strong)', fontFamily: 'serif', maxWidth: '800px', margin: '0 auto', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                 
                 {/* Report Header */}
-                <div style={{ textAlign: 'center', borderBottom: '2px double #1f2937', paddingBottom: '20px', marginBottom: '32px' }}>
-                  <h1 style={{ fontSize: '28px', color: '#1f2937', margin: '0 0 4px', fontFamily: 'Georgia, serif' }}>SLIATE MindSpace Counselling Support</h1>
-                  <p style={{ margin: 0, fontSize: '12px', color: '#4b5563', textTransform: 'uppercase', letterSpacing: '1px' }}>Advanced Technological Institute, Dehiwala</p>
+                <div style={{ textAlign: 'center', borderBottom: '2px double var(--line)', paddingBottom: '20px', marginBottom: '32px' }}>
+                  <h1 style={{ fontSize: '28px', color: 'var(--ink)', margin: '0 0 4px', fontFamily: 'Georgia, serif' }}>SLIATE MindSpace Counselling Support</h1>
+                  <p style={{ margin: 0, fontSize: '12px', color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '1px' }}>Advanced Technological Institute, Dehiwala</p>
                   <p style={{ margin: '4px 0 0', fontSize: '13px', fontWeight: 'bold' }}>OFFICIAL ADMINISTRATIVE METRICS REPORT</p>
                 </div>
 
                 {/* Report Meta Info */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', fontSize: '13px', marginBottom: '32px', borderBottom: '1px solid #e5e7eb', paddingBottom: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', fontSize: '13px', marginBottom: '32px', borderBottom: '1px solid var(--line-strong)', paddingBottom: '16px' }}>
                   <div>
                     <strong>Report Scope:</strong>{' '}
                     {[
@@ -2522,34 +2378,34 @@ export default function AdminDashboard() {
                 {/* REPORT SECTIONS */}
                 {selectedReportSections.mood && (
                   <div style={{ marginBottom: '40px' }}>
-                    <h3 style={{ fontSize: '16px', borderBottom: '1px solid #cbd5e1', paddingBottom: '6px', color: '#1e3a8a', fontFamily: 'Georgia, serif' }}>
+                    <h3 style={{ fontSize: '16px', borderBottom: '1px solid var(--line-strong)', paddingBottom: '6px', color: 'var(--sky-ink)', fontFamily: 'Georgia, serif' }}>
                       Section 1: Student Mental Health Index & Mood Trends
                     </h3>
-                    <p style={{ fontSize: '13.5px', lineHeight: '1.6', color: '#374151', margin: '8px 0 16px' }}>
+                    <p style={{ fontSize: '13.5px', lineHeight: '1.6', color: 'var(--ink-3)', margin: '8px 0 16px' }}>
                       Maps the psychological logs gathered through student mood selections. Lower mood entries are monitored to trigger emergency counseling assistance.
                     </p>
                     
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
                       <thead>
-                        <tr style={{ background: '#f3f4f6', borderBottom: '2px solid #cbd5e1', textAlign: 'left' }}>
-                          <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Student Profile</th>
-                          <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Recent Score</th>
-                          <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Date</th>
-                          <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Journal Notes</th>
+                        <tr style={{ background: 'var(--surface)', borderBottom: '2px solid var(--line-strong)', textAlign: 'left' }}>
+                          <th style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Student Profile</th>
+                          <th style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Recent Score</th>
+                          <th style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Date</th>
+                          <th style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Journal Notes</th>
                         </tr>
                       </thead>
                       <tbody>
                         {moodLogs.length === 0 ? (
                           <tr>
-                            <td colSpan="4" style={{ padding: '12px', textAlign: 'center', color: '#64748b' }}>No student mood logs recorded.</td>
+                            <td colSpan="4" style={{ padding: '12px', textAlign: 'center', color: 'var(--ink-3)' }}>No student mood logs recorded.</td>
                           </tr>
                         ) : (
                           moodLogs.map(m => (
-                            <tr key={m.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                              <td style={{ padding: '8px', border: '1px solid #e2e8f0', fontWeight: 'bold' }}>{m.name}</td>
-                              <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{m.label} ({m.value}/5)</td>
-                              <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{m.date}</td>
-                              <td style={{ padding: '8px', border: '1px solid #e2e8f0', fontStyle: 'italic' }}>"{m.note || 'No notes added'}"</td>
+                            <tr key={m.id} style={{ borderBottom: '1px solid var(--line-strong)' }}>
+                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)', fontWeight: 'bold' }}>{m.name}</td>
+                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>{m.label} ({m.value}/5)</td>
+                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>{m.date}</td>
+                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)', fontStyle: 'italic' }}>"{m.note || 'No notes added'}"</td>
                             </tr>
                           ))
                         )}
@@ -2560,36 +2416,36 @@ export default function AdminDashboard() {
 
                 {selectedReportSections.booking && (
                   <div style={{ marginBottom: '40px' }}>
-                    <h3 style={{ fontSize: '16px', borderBottom: '1px solid #cbd5e1', paddingBottom: '6px', color: '#1e3a8a', fontFamily: 'Georgia, serif' }}>
+                    <h3 style={{ fontSize: '16px', borderBottom: '1px solid var(--line-strong)', paddingBottom: '6px', color: 'var(--sky-ink)', fontFamily: 'Georgia, serif' }}>
                       Section 2: Counselling Session Bookings Ledger
                     </h3>
-                    <p style={{ fontSize: '13.5px', lineHeight: '1.6', color: '#374151', margin: '8px 0 16px' }}>
+                    <p style={{ fontSize: '13.5px', lineHeight: '1.6', color: 'var(--ink-3)', margin: '8px 0 16px' }}>
                       The ledger outlines counselor appointment bookings recorded. Status indicates approvals by administrative counsellors.
                     </p>
 
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
                       <thead>
-                        <tr style={{ background: '#f3f4f6', borderBottom: '2px solid #cbd5e1', textAlign: 'left' }}>
-                          <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Student Profile</th>
-                          <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Counsellor</th>
-                          <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Schedule</th>
-                          <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Payment Status</th>
-                          <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Status</th>
+                        <tr style={{ background: 'var(--surface)', borderBottom: '2px solid var(--line-strong)', textAlign: 'left' }}>
+                          <th style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Student Profile</th>
+                          <th style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Counsellor</th>
+                          <th style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Schedule</th>
+                          <th style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Payment Status</th>
+                          <th style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Status</th>
                         </tr>
                       </thead>
                       <tbody>
                         {bookings.length === 0 ? (
                           <tr>
-                            <td colSpan="5" style={{ padding: '16px', textAlign: 'center', color: '#64748b' }}>No booking transactions recorded.</td>
+                            <td colSpan="5" style={{ padding: '16px', textAlign: 'center', color: 'var(--ink-3)' }}>No booking transactions recorded.</td>
                           </tr>
                         ) : (
                           bookings.map(b => (
-                            <tr key={b._id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                              <td style={{ padding: '8px', border: '1px solid #e2e8f0', fontWeight: 'bold' }}>{b.student?.name || 'Anonymous User'}</td>
-                              <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{b.counsellorName}</td>
-                              <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{b.date} • {b.timeSlot}</td>
-                              <td style={{ padding: '8px', border: '1px solid #e2e8f0', textTransform: 'uppercase', fontWeight: 'bold' }}>{b.paymentStatus || 'unpaid'}</td>
-                              <td style={{ padding: '8px', border: '1px solid #e2e8f0', textTransform: 'uppercase', fontWeight: 'bold' }}>{b.status}</td>
+                            <tr key={b._id} style={{ borderBottom: '1px solid var(--line-strong)' }}>
+                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)', fontWeight: 'bold' }}>{b.student?.name || 'Anonymous User'}</td>
+                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>{b.counsellorName}</td>
+                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>{b.date} • {b.timeSlot}</td>
+                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)', textTransform: 'uppercase', fontWeight: 'bold' }}>{b.paymentStatus || 'unpaid'}</td>
+                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)', textTransform: 'uppercase', fontWeight: 'bold' }}>{b.status}</td>
                             </tr>
                           ))
                         )}
@@ -2600,34 +2456,34 @@ export default function AdminDashboard() {
 
                 {selectedReportSections.usage && (
                   <div style={{ marginBottom: '40px' }}>
-                    <h3 style={{ fontSize: '16px', borderBottom: '1px solid #cbd5e1', paddingBottom: '6px', color: '#1e3a8a', fontFamily: 'Georgia, serif' }}>
+                    <h3 style={{ fontSize: '16px', borderBottom: '1px solid var(--line-strong)', paddingBottom: '6px', color: 'var(--sky-ink)', fontFamily: 'Georgia, serif' }}>
                       Section 3: Student Platform Engagement Logs
                     </h3>
-                    <p style={{ fontSize: '13.5px', lineHeight: '1.6', color: '#374151', margin: '8px 0 16px' }}>
+                    <p style={{ fontSize: '13.5px', lineHeight: '1.6', color: 'var(--ink-3)', margin: '8px 0 16px' }}>
                       Platform activity metrics mapping total logins, active statuses, and account settings.
                     </p>
 
                     <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
                       <thead>
-                        <tr style={{ background: '#f3f4f6', borderBottom: '2px solid #cbd5e1', textAlign: 'left' }}>
-                          <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Student Name</th>
-                          <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Email Address</th>
-                          <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Logins Count</th>
-                          <th style={{ padding: '8px', border: '1px solid #e2e8f0' }}>Account Status</th>
+                        <tr style={{ background: 'var(--surface)', borderBottom: '2px solid var(--line-strong)', textAlign: 'left' }}>
+                          <th style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Student Name</th>
+                          <th style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Email Address</th>
+                          <th style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Logins Count</th>
+                          <th style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Account Status</th>
                         </tr>
                       </thead>
                       <tbody>
                         {users.filter(u => u.role === 'student').length === 0 ? (
                           <tr>
-                            <td colSpan="4" style={{ padding: '16px', textAlign: 'center', color: '#64748b' }}>No student records found.</td>
+                            <td colSpan="4" style={{ padding: '16px', textAlign: 'center', color: 'var(--ink-3)' }}>No student records found.</td>
                           </tr>
                         ) : (
                           users.filter(u => u.role === 'student').map(u => (
-                            <tr key={u._id} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                              <td style={{ padding: '8px', border: '1px solid #e2e8f0', fontWeight: 'bold' }}>{u.name}</td>
-                              <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{u.email}</td>
-                              <td style={{ padding: '8px', border: '1px solid #e2e8f0' }}>{u.loginCount || 0} times</td>
-                              <td style={{ padding: '8px', border: '1px solid #e2e8f0', textTransform: 'uppercase', fontWeight: 'bold' }}>{u.status}</td>
+                            <tr key={u._id} style={{ borderBottom: '1px solid var(--line-strong)' }}>
+                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)', fontWeight: 'bold' }}>{u.name}</td>
+                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>{u.email}</td>
+                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>{u.loginCount || 0} times</td>
+                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)', textTransform: 'uppercase', fontWeight: 'bold' }}>{u.status}</td>
                             </tr>
                           ))
                         )}
@@ -2637,13 +2493,13 @@ export default function AdminDashboard() {
                 )}
 
                 {/* Report Footer */}
-                <div style={{ marginTop: '64px', borderTop: '1px solid #cbd5e1', paddingTop: '32px', display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                <div style={{ marginTop: '64px', borderTop: '1px solid var(--line-strong)', paddingTop: '32px', display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ borderBottom: '1px solid #1f2937', width: '180px', marginBottom: '4px' }}></div>
+                    <div style={{ borderBottom: '1px solid var(--line)', width: '180px', marginBottom: '4px' }}></div>
                     <span>Project Supervisor Signature</span>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ borderBottom: '1px solid #1f2937', width: '180px', marginBottom: '4px' }}></div>
+                    <div style={{ borderBottom: '1px solid var(--line)', width: '180px', marginBottom: '4px' }}></div>
                     <span>Admin Authority Sign</span>
                   </div>
                 </div>
@@ -2656,13 +2512,13 @@ export default function AdminDashboard() {
         {/* TAB 13: Counselor Applications Approvals */}
         {activeTab === 'counselorapps' && (
           <div>
-            <h2 style={{ color: 'white', marginBottom: '8px' }}>🤝 Counselor Application Approvals</h2>
-            <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '32px' }}>Review profiles and verify submitted licenses/NIC details to promote users to counsellors.</p>
+            <h2 style={{ color: 'var(--ink)', marginBottom: '8px' }}>🤝 Counselor Application Approvals</h2>
+            <p style={{ color: 'var(--ink-3)', fontSize: '14px', marginBottom: '32px' }}>Review profiles and verify submitted licenses/NIC details to promote users to counsellors.</p>
 
-            <div style={{ background: '#1e293b', borderRadius: '20px', overflowX: 'auto', border: '1px solid #334155' }}>
+            <div style={{ background: 'var(--surface)', borderRadius: '20px', overflowX: 'auto', border: '1px solid var(--line)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13.5px' }}>
                 <thead>
-                  <tr style={{ background: '#334155', color: '#cbd5e1' }}>
+                  <tr style={{ background: 'var(--surface-3)', color: 'var(--ink-2)' }}>
                     <th style={{ padding: '16px 24px' }}>Applicant Name</th>
                     <th style={{ padding: '16px 24px' }}>Email Address</th>
                     <th style={{ padding: '16px 24px' }}>Specialization</th>
@@ -2674,19 +2530,19 @@ export default function AdminDashboard() {
                 <tbody>
                   {counselorApps.length === 0 ? (
                     <tr>
-                      <td colSpan="6" style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>No counselor applications submitted.</td>
+                      <td colSpan="6" style={{ padding: '32px', textAlign: 'center', color: 'var(--ink-3)' }}>No counselor applications submitted.</td>
                     </tr>
                   ) : (
                     counselorApps.map(app => (
-                      <tr key={app._id} style={{ borderBottom: '1px solid #334155' }}>
+                      <tr key={app._id} style={{ borderBottom: '1px solid var(--line)' }}>
                         <td style={{ padding: '16px 24px', fontWeight: 'bold' }}>{app.fullName}</td>
                         <td style={{ padding: '16px 24px' }}>{app.email}</td>
-                        <td style={{ padding: '16px 24px', color: '#cbd5e1' }}>{app.specialization?.join(', ')}</td>
-                        <td style={{ padding: '16px 24px', color: '#94a3b8' }}>{new Date(app.createdAt).toLocaleDateString()}</td>
+                        <td style={{ padding: '16px 24px', color: 'var(--ink-2)' }}>{app.specialization?.join(', ')}</td>
+                        <td style={{ padding: '16px 24px', color: 'var(--ink-3)' }}>{new Date(app.createdAt).toLocaleDateString()}</td>
                         <td style={{ padding: '16px 24px' }}>
                           <span style={{
-                            background: app.status === 'approved' ? 'rgba(16, 185, 129, 0.15)' : app.status === 'rejected' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                            color: app.status === 'approved' ? '#10b981' : app.status === 'rejected' ? '#ef4444' : '#f59e0b',
+                            background: app.status === 'approved' ? 'color-mix(in srgb, var(--success) 15%, transparent)' : app.status === 'rejected' ? 'color-mix(in srgb, var(--danger) 15%, transparent)' : 'color-mix(in srgb, var(--warn) 15%, transparent)',
+                            color: app.status === 'approved' ? 'var(--success-ink)' : app.status === 'rejected' ? 'var(--danger)' : 'var(--warn)',
                             padding: '4px 10px',
                             borderRadius: '12px',
                             fontSize: '11px',
@@ -2699,7 +2555,7 @@ export default function AdminDashboard() {
                         <td style={{ padding: '16px 24px', textAlign: 'right' }}>
                           <button 
                             onClick={() => setActiveAppReview(app)}
-                            style={{ padding: '6px 12px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}
+                            style={{ padding: '6px 12px', background: 'var(--primary-fill)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}
                           >
                             🔎 Review Profile
                           </button>
@@ -2713,114 +2569,114 @@ export default function AdminDashboard() {
 
             {/* Profile Review Modal */}
             {activeAppReview && (
-              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, padding: '20px' }}>
-                <div style={{ background: '#1e293b', borderRadius: '24px', maxWidth: '650px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '32px', border: '1px solid #475569', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', position: 'relative' }}>
+              <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000, padding: '20px' }}>
+                <div style={{ background: 'var(--surface)', borderRadius: '24px', maxWidth: '650px', width: '100%', maxHeight: '90vh', overflowY: 'auto', padding: '32px', border: '1px solid var(--line)', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', position: 'relative' }}>
                   
                   <button 
                     onClick={() => setActiveAppReview(null)} 
-                    style={{ position: 'absolute', top: '20px', right: '20px', border: 'none', background: '#334155', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px', color: 'white' }}
+                    style={{ position: 'absolute', top: '20px', right: '20px', border: 'none', background: 'var(--surface-3)', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px', color: 'var(--ink)' }}
                   >
                     ✕
                   </button>
 
-                  <div style={{ display: 'flex', gap: '20px', alignItems: 'center', borderBottom: '1px solid #334155', paddingBottom: '20px', marginBottom: '20px' }}>
-                    <img src={activeAppReview.profilePhoto || 'https://via.placeholder.com/150'} alt="Profile" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #6366f1' }} />
+                  <div style={{ display: 'flex', gap: '20px', alignItems: 'center', borderBottom: '1px solid var(--line)', paddingBottom: '20px', marginBottom: '20px' }}>
+                    <img src={activeAppReview.profilePhoto || 'https://via.placeholder.com/150'} alt="Profile" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '2px solid var(--primary)' }} />
                     <div>
-                      <h3 style={{ color: 'white', margin: '0 0 6px', fontSize: '20px' }}>{activeAppReview.fullName}</h3>
-                      <span style={{ fontSize: '13px', color: '#818cf8', fontWeight: 'bold' }}>Applying for Counselor Role</span>
+                      <h3 style={{ color: 'var(--ink)', margin: '0 0 6px', fontSize: '20px' }}>{activeAppReview.fullName}</h3>
+                      <span style={{ fontSize: '13px', color: 'var(--primary)', fontWeight: 'bold' }}>Applying for Counselor Role</span>
                     </div>
                   </div>
 
                   {/* 10 Details Breakdown */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', fontSize: '13.5px', color: '#cbd5e1', marginBottom: '24px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', fontSize: '13.5px', color: 'var(--ink-2)', marginBottom: '24px' }}>
                     <div>
-                      <strong style={{ color: '#94a3b8', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>1. Full Name</strong>
+                      <strong style={{ color: 'var(--ink-3)', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>1. Full Name</strong>
                       {activeAppReview.fullName}
                     </div>
                     <div>
-                      <strong style={{ color: '#94a3b8', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>2. NIC / Passport Number</strong>
+                      <strong style={{ color: 'var(--ink-3)', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>2. NIC / Passport Number</strong>
                       {activeAppReview.nic}
                     </div>
                     <div>
-                      <strong style={{ color: '#94a3b8', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>3. Profile Status</strong>
-                      <span style={{ textTransform: 'uppercase', fontWeight: 'bold', color: activeAppReview.status === 'approved' ? '#10b981' : activeAppReview.status === 'rejected' ? '#ef4444' : '#f59e0b' }}>
+                      <strong style={{ color: 'var(--ink-3)', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>3. Profile Status</strong>
+                      <span style={{ textTransform: 'uppercase', fontWeight: 'bold', color: activeAppReview.status === 'approved' ? 'var(--success-ink)' : activeAppReview.status === 'rejected' ? 'var(--danger)' : 'var(--warn)' }}>
                         {activeAppReview.status}
                       </span>
                     </div>
                     <div>
-                      <strong style={{ color: '#94a3b8', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>4. Email Address</strong>
+                      <strong style={{ color: 'var(--ink-3)', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>4. Email Address</strong>
                       {activeAppReview.email}
                     </div>
                     <div>
-                      <strong style={{ color: '#94a3b8', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>5. Phone Number</strong>
+                      <strong style={{ color: 'var(--ink-3)', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>5. Phone Number</strong>
                       {activeAppReview.phone}
                     </div>
                     <div>
-                      <strong style={{ color: '#94a3b8', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>6. Educational Qualifications</strong>
+                      <strong style={{ color: 'var(--ink-3)', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>6. Educational Qualifications</strong>
                       {activeAppReview.qualifications?.join(', ')}
                     </div>
                     <div>
-                      <strong style={{ color: '#94a3b8', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>7. Registration / License Number</strong>
+                      <strong style={{ color: 'var(--ink-3)', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>7. Registration / License Number</strong>
                       {activeAppReview.licenseNumber || 'Not available'}
                     </div>
                     <div>
-                      <strong style={{ color: '#94a3b8', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>8. Professional Membership</strong>
+                      <strong style={{ color: 'var(--ink-3)', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>8. Professional Membership</strong>
                       {activeAppReview.membership || 'None'}
                     </div>
                     <div>
-                      <strong style={{ color: '#94a3b8', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>9. Work Experience</strong>
+                      <strong style={{ color: 'var(--ink-3)', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>9. Work Experience</strong>
                       {activeAppReview.experienceYears} Years ({activeAppReview.experienceInstitutions})
                     </div>
                     <div>
-                      <strong style={{ color: '#94a3b8', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>10. Specializations</strong>
+                      <strong style={{ color: 'var(--ink-3)', display: 'block', fontSize: '11px', textTransform: 'uppercase' }}>10. Specializations</strong>
                       {activeAppReview.specialization?.join(', ')}
                     </div>
                   </div>
 
                   {/* Counselor ID Card Verification Docs */}
-                  <div style={{ borderTop: '1px solid #334155', paddingTop: '20px', marginBottom: '20px' }}>
-                    <strong style={{ color: 'white', display: 'block', fontSize: '14px', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  <div style={{ borderTop: '1px solid var(--line)', paddingTop: '20px', marginBottom: '20px' }}>
+                    <strong style={{ color: 'var(--ink)', display: 'block', fontSize: '14px', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                       📁 Counselor ID Card Verification (Both Sides)
                     </strong>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                      <div style={{ background: '#0f172a', padding: '12px', borderRadius: '12px', border: '1px solid #334155' }}>
-                        <span style={{ color: '#94a3b8', fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '8px', textTransform: 'uppercase' }}>Front Side</span>
+                      <div style={{ background: 'var(--bg)', padding: '12px', borderRadius: '12px', border: '1px solid var(--line)' }}>
+                        <span style={{ color: 'var(--ink-3)', fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '8px', textTransform: 'uppercase' }}>Front Side</span>
                         {activeAppReview.counsellorIdFront ? (
                           <img src={activeAppReview.counsellorIdFront} alt="ID Front" style={{ width: '100%', borderRadius: '6px', maxHeight: '180px', objectFit: 'contain' }} />
                         ) : (
-                          <div style={{ color: '#64748b', fontSize: '12px', padding: '20px', textAlign: 'center' }}>No Front ID uploaded</div>
+                          <div style={{ color: 'var(--ink-3)', fontSize: '12px', padding: '20px', textAlign: 'center' }}>No Front ID uploaded</div>
                         )}
                       </div>
-                      <div style={{ background: '#0f172a', padding: '12px', borderRadius: '12px', border: '1px solid #334155' }}>
-                        <span style={{ color: '#94a3b8', fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '8px', textTransform: 'uppercase' }}>Back Side</span>
+                      <div style={{ background: 'var(--bg)', padding: '12px', borderRadius: '12px', border: '1px solid var(--line)' }}>
+                        <span style={{ color: 'var(--ink-3)', fontSize: '11px', fontWeight: 'bold', display: 'block', marginBottom: '8px', textTransform: 'uppercase' }}>Back Side</span>
                         {activeAppReview.counsellorIdBack ? (
                           <img src={activeAppReview.counsellorIdBack} alt="ID Back" style={{ width: '100%', borderRadius: '6px', maxHeight: '180px', objectFit: 'contain' }} />
                         ) : (
-                          <div style={{ color: '#64748b', fontSize: '12px', padding: '20px', textAlign: 'center' }}>No Back ID uploaded</div>
+                          <div style={{ color: 'var(--ink-3)', fontSize: '12px', padding: '20px', textAlign: 'center' }}>No Back ID uploaded</div>
                         )}
                       </div>
                     </div>
                   </div>
 
                   {/* Actions inside modal */}
-                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid #334155', paddingTop: '20px' }}>
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--line)', paddingTop: '20px' }}>
                     {activeAppReview.status === 'pending' && (
                       <>
                         <button 
                           onClick={() => handleApplicationStatus(activeAppReview._id, 'approved')}
-                          style={{ padding: '12px 24px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                          style={{ padding: '12px 24px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                         >
                           ✅ Approve Application
                         </button>
                         <button 
                           onClick={() => handleApplicationStatus(activeAppReview._id, 'rejected')}
-                          style={{ padding: '12px 24px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                          style={{ padding: '12px 24px', background: 'var(--danger-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                         >
                           ❌ Reject Application
                         </button>
                       </>
                     )}
-                    <button onClick={() => setActiveAppReview(null)} style={{ padding: '12px 24px', background: '#334155', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>Close</button>
+                    <button onClick={() => setActiveAppReview(null)} style={{ padding: '12px 24px', background: 'var(--surface-3)', color: 'var(--ink)', border: 'none', borderRadius: '8px', cursor: 'pointer' }}>Close</button>
                   </div>
 
                 </div>
@@ -2835,46 +2691,46 @@ export default function AdminDashboard() {
             {currentUser?.role === 'admin' ? (
               // ADMIN VIEW: Counselor Payments
               <div>
-                <h2 style={{ color: 'white', marginBottom: '8px' }}>💸 Counselor Session Payments</h2>
-                <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '32px' }}>Track session payments owed to counselors and manage payouts.</p>
+                <h2 style={{ color: 'var(--ink)', marginBottom: '8px' }}>💸 Counselor Session Payments</h2>
+                <p style={{ color: 'var(--ink-3)', fontSize: '14px', marginBottom: '32px' }}>Track session payments owed to counselors and manage payouts.</p>
 
                 {/* Stat Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-                  <div style={{ background: '#1e293b', padding: '24px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Total Owed Payouts</div>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: '#fbbf24' }}>
+                  <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Total Owed Payouts</div>
+                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: 'var(--warn)' }}>
                       LKR {payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0).toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--ink-3)', marginTop: '4px' }}>
                       {payments.filter(p => p.status === 'pending').length} pending payouts
                     </div>
                   </div>
                   
-                  <div style={{ background: '#1e293b', padding: '24px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Total Paid Out</div>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: '#10b981' }}>
+                  <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Total Paid Out</div>
+                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: 'var(--success-ink)' }}>
                       LKR {payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0).toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--ink-3)', marginTop: '4px' }}>
                       {payments.filter(p => p.status === 'paid').length} completed payouts
                     </div>
                   </div>
 
-                  <div style={{ background: '#1e293b', padding: '24px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Default Session Rate</div>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: '#6366f1' }}>
+                  <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Default Session Rate</div>
+                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: 'var(--primary)' }}>
                       LKR 1,500
                     </div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--ink-3)', marginTop: '4px' }}>
                       Fixed counselor rate per booking
                     </div>
                   </div>
                 </div>
                 {/* Table */}
-                <div style={{ background: '#1e293b', borderRadius: '20px', overflowX: 'auto', border: '1px solid #334155' }}>
+                <div style={{ background: 'var(--surface)', borderRadius: '20px', overflowX: 'auto', border: '1px solid var(--line)' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13.5px' }}>
                     <thead>
-                      <tr style={{ background: '#334155', color: '#cbd5e1' }}>
+                      <tr style={{ background: 'var(--surface-3)', color: 'var(--ink-2)' }}>
                         <th style={{ padding: '16px 24px' }}>Counselor Name</th>
                         <th style={{ padding: '16px 24px' }}>Student</th>
                         <th style={{ padding: '16px 24px' }}>Date & Slot</th>
@@ -2886,33 +2742,33 @@ export default function AdminDashboard() {
                     <tbody>
                       {payments.length === 0 ? (
                         <tr>
-                          <td colSpan="6" style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>No payment records found. Payments are created when a booking is approved.</td>
+                          <td colSpan="6" style={{ padding: '32px', textAlign: 'center', color: 'var(--ink-3)' }}>No payment records found. Payments are created when a booking is approved.</td>
                         </tr>
                       ) : (
                         payments.map(pay => (
-                          <tr key={pay._id} style={{ borderBottom: '1px solid #334155' }}>
+                          <tr key={pay._id} style={{ borderBottom: '1px solid var(--line)' }}>
                             <td style={{ padding: '16px 24px' }}>
-                              <div style={{ fontWeight: 'bold', color: 'white' }}>{pay.counsellor?.name || 'Deleted User'}</div>
+                              <div style={{ fontWeight: 'bold', color: 'var(--ink)' }}>{pay.counsellor?.name || 'Deleted User'}</div>
                               {pay.counsellor?.bankDetails?.bankName ? (
-                                <div style={{ fontSize: '11px', color: '#818cf8', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                <div style={{ fontSize: '11px', color: 'var(--primary)', marginTop: '4px', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                   <span>🏦 {pay.counsellor.bankDetails.bankName} ({pay.counsellor.bankDetails.branchName})</span>
                                   <span>No: {pay.counsellor.bankDetails.accountNumber} • {pay.counsellor.bankDetails.accountHolderName}</span>
                                 </div>
                               ) : (
-                                <div style={{ fontSize: '11px', color: '#f59e0b', fontStyle: 'italic', marginTop: '4px' }}>
+                                <div style={{ fontSize: '11px', color: 'var(--warn)', fontStyle: 'italic', marginTop: '4px' }}>
                                   ⚠️ No Bank Settlement Details Saved
                                 </div>
                               )}
                             </td>
                             <td style={{ padding: '16px 24px' }}>{pay.student?.name || 'N/A'}</td>
-                            <td style={{ padding: '16px 24px', color: '#cbd5e1' }}>
+                            <td style={{ padding: '16px 24px', color: 'var(--ink-2)' }}>
                               {pay.booking ? `${pay.booking.date} | ${pay.booking.timeSlot}` : 'N/A'}
                             </td>
-                            <td style={{ padding: '16px 24px', color: '#6366f1', fontWeight: 'bold' }}>LKR {pay.amount.toLocaleString()}</td>
+                            <td style={{ padding: '16px 24px', color: 'var(--primary)', fontWeight: 'bold' }}>LKR {pay.amount.toLocaleString()}</td>
                             <td style={{ padding: '16px 24px' }}>
                               <span style={{
-                                background: pay.status === 'paid' ? 'rgba(16, 185, 129, 0.15)' : pay.status === 'cancelled' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                                color: pay.status === 'paid' ? '#10b981' : pay.status === 'cancelled' ? '#ef4444' : '#f59e0b',
+                                background: pay.status === 'paid' ? 'color-mix(in srgb, var(--success) 15%, transparent)' : pay.status === 'cancelled' ? 'color-mix(in srgb, var(--danger) 15%, transparent)' : 'color-mix(in srgb, var(--warn) 15%, transparent)',
+                                color: pay.status === 'paid' ? 'var(--success-ink)' : pay.status === 'cancelled' ? 'var(--danger)' : 'var(--warn)',
                                 padding: '4px 10px',
                                 borderRadius: '12px',
                                 fontSize: '11px',
@@ -2926,16 +2782,16 @@ export default function AdminDashboard() {
                               {pay.status === 'pending' ? (
                                 <button 
                                   onClick={() => handleMarkAsPaid(pay._id)}
-                                  style={{ padding: '6px 12px', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}
+                                  style={{ padding: '6px 12px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '12px' }}
                                 >
                                   💸 Mark as Paid
                                 </button>
                               ) : pay.status === 'paid' ? (
-                                <span style={{ color: '#94a3b8', fontSize: '11px', fontStyle: 'italic' }}>
+                                <span style={{ color: 'var(--ink-3)', fontSize: '11px', fontStyle: 'italic' }}>
                                   Paid on {new Date(pay.paidAt).toLocaleDateString()}
                                 </span>
                               ) : (
-                                <span style={{ color: '#ef4444', fontSize: '11.5px', fontWeight: 'bold' }}>Cancelled</span>
+                                <span style={{ color: 'var(--danger)', fontSize: '11.5px', fontWeight: 'bold' }}>Cancelled</span>
                               )}
                             </td>
                           </tr>
@@ -2948,47 +2804,47 @@ export default function AdminDashboard() {
             ) : (
               // COUNSELOR VIEW: Counselor Earnings
               <div>
-                <h2 style={{ color: 'white', marginBottom: '8px' }}>💰 My Earnings & Payout Summary</h2>
-                <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '32px' }}>Track your session payout logs and earned amounts paid by MindSpace administration.</p>
+                <h2 style={{ color: 'var(--ink)', marginBottom: '8px' }}>💰 My Earnings & Payout Summary</h2>
+                <p style={{ color: 'var(--ink-3)', fontSize: '14px', marginBottom: '32px' }}>Track your session payout logs and earned amounts paid by MindSpace administration.</p>
 
                 {/* Stat Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-                  <div style={{ background: '#1e293b', padding: '24px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Pending Earnings</div>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: '#fbbf24' }}>
+                  <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Pending Earnings</div>
+                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: 'var(--warn)' }}>
                       LKR {payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0).toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--ink-3)', marginTop: '4px' }}>
                       Waiting for Admin payout
                     </div>
                   </div>
                   
-                  <div style={{ background: '#1e293b', padding: '24px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Completed Payouts</div>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: '#10b981' }}>
+                  <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Completed Payouts</div>
+                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: 'var(--success-ink)' }}>
                       LKR {payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0).toLocaleString()}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--ink-3)', marginTop: '4px' }}>
                       Successfully paid to account
                     </div>
                   </div>
 
-                  <div style={{ background: '#1e293b', padding: '24px', borderRadius: '16px', border: '1px solid #334155' }}>
-                    <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Total Approved Sessions</div>
-                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: '#6366f1' }}>
+                  <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Total Approved Sessions</div>
+                    <div style={{ fontSize: '28px', fontWeight: 'bold', marginTop: '8px', color: 'var(--primary)' }}>
                       {payments.filter(p => p.status !== 'cancelled').length} Sessions
                     </div>
-                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--ink-3)', marginTop: '4px' }}>
                       LKR 1,500 base rate per session
                     </div>
                   </div>
                 </div>
 
                 {/* Table */}
-                <div style={{ background: '#1e293b', borderRadius: '20px', overflowX: 'auto', border: '1px solid #334155' }}>
+                <div style={{ background: 'var(--surface)', borderRadius: '20px', overflowX: 'auto', border: '1px solid var(--line)' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13.5px' }}>
                     <thead>
-                      <tr style={{ background: '#334155', color: '#cbd5e1' }}>
+                      <tr style={{ background: 'var(--surface-3)', color: 'var(--ink-2)' }}>
                         <th style={{ padding: '16px 24px' }}>Student Participant</th>
                         <th style={{ padding: '16px 24px' }}>Date & Time Slot</th>
                         <th style={{ padding: '16px 24px' }}>Session Status</th>
@@ -2999,19 +2855,19 @@ export default function AdminDashboard() {
                     <tbody>
                       {payments.length === 0 ? (
                         <tr>
-                          <td colSpan="5" style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>No counseling bookings with payouts logged yet. Payouts generate when you approve student requests.</td>
+                          <td colSpan="5" style={{ padding: '32px', textAlign: 'center', color: 'var(--ink-3)' }}>No counseling bookings with payouts logged yet. Payouts generate when you approve student requests.</td>
                         </tr>
                       ) : (
                         payments.map(pay => (
-                          <tr key={pay._id} style={{ borderBottom: '1px solid #334155' }}>
+                          <tr key={pay._id} style={{ borderBottom: '1px solid var(--line)' }}>
                             <td style={{ padding: '16px 24px', fontWeight: 'bold' }}>{pay.student?.name || 'N/A'}</td>
-                            <td style={{ padding: '16px 24px', color: '#cbd5e1' }}>
+                            <td style={{ padding: '16px 24px', color: 'var(--ink-2)' }}>
                               {pay.booking ? `${pay.booking.date} | ${pay.booking.timeSlot}` : 'N/A'}
                             </td>
                             <td style={{ padding: '16px 24px' }}>
                               <span style={{
-                                background: pay.booking?.status === 'approved' ? 'rgba(16, 185, 129, 0.15)' : pay.booking?.status === 'cancelled' || pay.booking?.status === 'rejected' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                                color: pay.booking?.status === 'approved' ? '#10b981' : pay.booking?.status === 'cancelled' || pay.booking?.status === 'rejected' ? '#ef4444' : '#f59e0b',
+                                background: pay.booking?.status === 'approved' ? 'color-mix(in srgb, var(--success) 15%, transparent)' : pay.booking?.status === 'cancelled' || pay.booking?.status === 'rejected' ? 'color-mix(in srgb, var(--danger) 15%, transparent)' : 'color-mix(in srgb, var(--warn) 15%, transparent)',
+                                color: pay.booking?.status === 'approved' ? 'var(--success-ink)' : pay.booking?.status === 'cancelled' || pay.booking?.status === 'rejected' ? 'var(--danger)' : 'var(--warn)',
                                 padding: '3px 8px',
                                 borderRadius: '8px',
                                 fontSize: '11px',
@@ -3020,11 +2876,11 @@ export default function AdminDashboard() {
                                 {pay.booking?.status || 'approved'}
                               </span>
                             </td>
-                            <td style={{ padding: '16px 24px', color: '#6366f1', fontWeight: 'bold' }}>LKR {pay.amount.toLocaleString()}</td>
+                            <td style={{ padding: '16px 24px', color: 'var(--primary)', fontWeight: 'bold' }}>LKR {pay.amount.toLocaleString()}</td>
                             <td style={{ padding: '16px 24px', textAlign: 'right' }}>
                               <span style={{
-                                background: pay.status === 'paid' ? 'rgba(16, 185, 129, 0.15)' : pay.status === 'cancelled' ? 'rgba(239, 68, 68, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                                color: pay.status === 'paid' ? '#10b981' : pay.status === 'cancelled' ? '#ef4444' : '#f59e0b',
+                                background: pay.status === 'paid' ? 'color-mix(in srgb, var(--success) 15%, transparent)' : pay.status === 'cancelled' ? 'color-mix(in srgb, var(--danger) 15%, transparent)' : 'color-mix(in srgb, var(--warn) 15%, transparent)',
+                                color: pay.status === 'paid' ? 'var(--success-ink)' : pay.status === 'cancelled' ? 'var(--danger)' : 'var(--warn)',
                                 padding: '4px 10px',
                                 borderRadius: '12px',
                                 fontSize: '11px',
@@ -3042,57 +2898,57 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Bank Account Details Form */}
-                <div style={{ background: '#1e293b', padding: '32px', borderRadius: '20px', border: '1px solid #334155', marginTop: '32px' }}>
-                  <h3 style={{ color: 'white', margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '20px', border: '1px solid var(--line)', marginTop: '32px' }}>
+                  <h3 style={{ color: 'var(--ink)', margin: '0 0 8px 0', fontSize: '16px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span>🏦</span> My Bank Account Settlement Details
                   </h3>
-                  <p style={{ color: '#94a3b8', fontSize: '13.5px', marginBottom: '24px' }}>MindSpace administration uses these details to wire your monthly approved earnings automatically.</p>
+                  <p style={{ color: 'var(--ink-3)', fontSize: '13.5px', marginBottom: '24px' }}>MindSpace administration uses these details to wire your monthly approved earnings automatically.</p>
 
                   {bankUpdateMsg && (
-                    <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', padding: '12px 16px', borderRadius: '8px', fontSize: '13.5px', marginBottom: '24px', fontWeight: 'bold' }}>
+                    <div style={{ background: 'color-mix(in srgb, var(--success) 15%, transparent)', border: '1px solid var(--success)', color: 'var(--success-ink)', padding: '12px 16px', borderRadius: '8px', fontSize: '13.5px', marginBottom: '24px', fontWeight: 'bold' }}>
                       {bankUpdateMsg}
                     </div>
                   )}
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '24px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', color: '#cbd5e1', textTransform: 'uppercase', marginBottom: '6px', fontWeight: 'bold', letterSpacing: '0.5px' }}>Bank Name:</label>
+                      <label style={{ display: 'block', fontSize: '11px', color: 'var(--ink-2)', textTransform: 'uppercase', marginBottom: '6px', fontWeight: 'bold', letterSpacing: '0.5px' }}>Bank Name:</label>
                       <input 
                         type="text" 
                         value={bankName}
                         onChange={e => setBankName(e.target.value)}
                         placeholder="e.g. Bank of Ceylon"
-                        style={{ width: '100%', padding: '10px 14px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white', outline: 'none', fontSize: '13.5px', boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '10px 14px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', fontSize: '13.5px', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', color: '#cbd5e1', textTransform: 'uppercase', marginBottom: '6px', fontWeight: 'bold', letterSpacing: '0.5px' }}>Branch Name:</label>
+                      <label style={{ display: 'block', fontSize: '11px', color: 'var(--ink-2)', textTransform: 'uppercase', marginBottom: '6px', fontWeight: 'bold', letterSpacing: '0.5px' }}>Branch Name:</label>
                       <input 
                         type="text" 
                         value={bankBranch}
                         onChange={e => setBankBranch(e.target.value)}
                         placeholder="e.g. Dehiwala"
-                        style={{ width: '100%', padding: '10px 14px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white', outline: 'none', fontSize: '13.5px', boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '10px 14px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', fontSize: '13.5px', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', color: '#cbd5e1', textTransform: 'uppercase', marginBottom: '6px', fontWeight: 'bold', letterSpacing: '0.5px' }}>Account Holder Name:</label>
+                      <label style={{ display: 'block', fontSize: '11px', color: 'var(--ink-2)', textTransform: 'uppercase', marginBottom: '6px', fontWeight: 'bold', letterSpacing: '0.5px' }}>Account Holder Name:</label>
                       <input 
                         type="text" 
                         value={bankHolder}
                         onChange={e => setBankHolder(e.target.value)}
                         placeholder="e.g. Dr. Rohan Perera"
-                        style={{ width: '100%', padding: '10px 14px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white', outline: 'none', fontSize: '13.5px', boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '10px 14px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', fontSize: '13.5px', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '11px', color: '#cbd5e1', textTransform: 'uppercase', marginBottom: '6px', fontWeight: 'bold', letterSpacing: '0.5px' }}>Account Number:</label>
+                      <label style={{ display: 'block', fontSize: '11px', color: 'var(--ink-2)', textTransform: 'uppercase', marginBottom: '6px', fontWeight: 'bold', letterSpacing: '0.5px' }}>Account Number:</label>
                       <input 
                         type="text" 
                         value={bankAccNum}
                         onChange={e => setBankAccNum(e.target.value)}
                         placeholder="e.g. 1002345091"
-                        style={{ width: '100%', padding: '10px 14px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: 'white', outline: 'none', fontSize: '13.5px', boxSizing: 'border-box' }}
+                        style={{ width: '100%', padding: '10px 14px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px', color: 'var(--ink)', outline: 'none', fontSize: '13.5px', boxSizing: 'border-box' }}
                       />
                     </div>
                   </div>
@@ -3100,7 +2956,7 @@ export default function AdminDashboard() {
                   <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <button 
                       onClick={handleUpdateBankDetails}
-                      style={{ padding: '12px 24px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px', transition: 'background 0.2s' }}
+                      style={{ padding: '12px 24px', background: 'var(--primary-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13.5px', transition: 'background 0.2s' }}
                       onMouseEnter={e => e.currentTarget.style.background = '#4facfe'}
                       onMouseLeave={e => e.currentTarget.style.background = '#6366f1'}
                     >
@@ -3122,8 +2978,8 @@ export default function AdminDashboard() {
             display: none !important;
           }
           body {
-            background: white !important;
-            color: black !important;
+            background:var(--surface) !important;
+            color:black !important;
           }
         }
         @keyframes spin {
@@ -3134,16 +2990,16 @@ export default function AdminDashboard() {
 
       {/* Rejection Reason Modal */}
       {rejectBookingId && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: '#1e293b', borderRadius: '24px', width: '400px', padding: '32px', border: '1px solid #334155', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
-            <h3 style={{ color: 'white', marginTop: 0, marginBottom: '8px' }}>❌ Reject Appointment Booking</h3>
-            <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '20px' }}>Please specify a reason for rejecting this student request.</p>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ background: 'var(--surface)', borderRadius: '24px', width: '400px', padding: '32px', border: '1px solid var(--line)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+            <h3 style={{ color: 'var(--ink)', marginTop: 0, marginBottom: '8px' }}>❌ Reject Appointment Booking</h3>
+            <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Please specify a reason for rejecting this student request.</p>
             
             <textarea 
               value={rejectReasonInput}
               onChange={e => setRejectReasonInput(e.target.value)}
               placeholder="Enter reason for rejection..."
-              style={{ width: '100%', padding: '12px', background: '#0f172a', border: '1px solid #475569', borderRadius: '12px', color: 'white', outline: 'none', height: '100px', resize: 'none', boxSizing: 'border-box', marginBottom: '20px', fontSize: '13.5px' }}
+              style={{ width: '100%', padding: '12px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '12px', color: 'var(--ink)', outline: 'none', height: '100px', resize: 'none', boxSizing: 'border-box', marginBottom: '20px', fontSize: '13.5px' }}
               required
             />
 
@@ -3153,7 +3009,7 @@ export default function AdminDashboard() {
                   setRejectBookingId(null)
                   setRejectReasonInput('')
                 }}
-                style={{ padding: '10px 18px', background: '#334155', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
+                style={{ padding: '10px 18px', background: 'var(--surface-3)', color: 'var(--ink)', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
               >
                 Cancel
               </button>
@@ -3164,7 +3020,7 @@ export default function AdminDashboard() {
                   setRejectReasonInput('')
                 }}
                 disabled={!rejectReasonInput.trim()}
-                style={{ padding: '10px 18px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
+                style={{ padding: '10px 18px', background: 'var(--danger-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
               >
                 Submit Rejection
               </button>
@@ -3175,11 +3031,11 @@ export default function AdminDashboard() {
 
       {/* Booking Chat Modal */}
       {activeChatBooking && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: '#1e293b', borderRadius: '24px', width: '450px', height: '550px', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', border: '1px solid #334155' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div style={{ background: 'var(--surface)', borderRadius: '24px', width: '450px', height: '550px', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', border: '1px solid var(--line)' }}>
             
             {/* Header */}
-            <div style={{ background: 'linear-gradient(135deg, #667eea, #764ba2)', padding: '20px 24px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', padding: '20px 24px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold' }}>💬 Chat with Student</h3>
                 <span style={{ fontSize: '12px', opacity: 0.85 }}>Student: {activeChatBooking.student?.name || 'Anonymous Student'}</span>
@@ -3191,7 +3047,7 @@ export default function AdminDashboard() {
                     setShowVideoModal(true)
                   }}
                   title="Start Video Call"
-                  style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', width: '30px', height: '30px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
+                  style={{ background: 'color-mix(in srgb, var(--ink) 20%, transparent)', border: 'none', color: 'var(--ink)', width: '30px', height: '30px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.35)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
                 >
@@ -3199,7 +3055,7 @@ export default function AdminDashboard() {
                 </button>
                 <button 
                   onClick={closeBookingChat} 
-                  style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', width: '30px', height: '30px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
+                  style={{ background: 'color-mix(in srgb, var(--ink) 20%, transparent)', border: 'none', color: 'var(--ink)', width: '30px', height: '30px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
                   onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.35)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
                 >
@@ -3209,9 +3065,9 @@ export default function AdminDashboard() {
             </div>
 
             {/* Message List */}
-            <div style={{ flex: 1, padding: '20px', overflowY: 'auto', background: '#0f172a', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ flex: 1, padding: '20px', overflowY: 'auto', background: 'var(--bg)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {chatMessages.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#64748b', margin: 'auto' }}>
+                <div style={{ textAlign: 'center', color: 'var(--ink-3)', margin: 'auto' }}>
                   <div style={{ fontSize: '32px', marginBottom: '8px' }}>💬</div>
                   <p style={{ margin: 0, fontSize: '13.5px' }}>Start the conversation with the student.</p>
                 </div>
@@ -3231,7 +3087,7 @@ export default function AdminDashboard() {
                       }}
                     >
                       <div style={{
-                        background: isOwn ? '#6366f1' : '#1e293b',
+                        background: isOwn ? 'var(--primary-fill)' : 'var(--surface)',
                         color: 'white',
                         padding: '10px 14px',
                         borderRadius: isOwn ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
@@ -3239,11 +3095,11 @@ export default function AdminDashboard() {
                         lineHeight: '1.4',
                         boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                         wordBreak: 'break-word',
-                        border: isOwn ? 'none' : '1px solid #334155'
+                        border: isOwn ? 'none' : '1px solid var(--line)'
                       }}>
                         {msg.text}
                       </div>
-                      <span style={{ fontSize: '10px', color: '#64748b', marginTop: '4px', paddingLeft: isOwn ? 0 : '4px', paddingRight: isOwn ? '4px' : 0 }}>
+                      <span style={{ fontSize: '10px', color: 'var(--ink-3)', marginTop: '4px', paddingLeft: isOwn ? 0 : '4px', paddingRight: isOwn ? '4px' : 0 }}>
                         {isOwn ? 'You' : msg.senderName || 'Student'}
                       </span>
                     </div>
@@ -3254,17 +3110,17 @@ export default function AdminDashboard() {
             </div>
 
             {/* Input Area */}
-            <form onSubmit={handleSendBookingMessage} style={{ display: 'flex', padding: '16px', gap: '10px', borderTop: '1px solid #334155', background: '#1e293b' }}>
+            <form onSubmit={handleSendBookingMessage} style={{ display: 'flex', padding: '16px', gap: '10px', borderTop: '1px solid var(--line)', background: 'var(--surface)' }}>
               <input 
                 type="text" 
                 value={chatInputText} 
                 onChange={e => setChatInputText(e.target.value)} 
                 placeholder="Type your message..." 
-                style={{ flex: 1, padding: '12px 16px', border: '1px solid #475569', borderRadius: '12px', fontSize: '13.5px', outline: 'none', background: '#0f172a', color: 'white' }}
+                style={{ flex: 1, padding: '12px 16px', border: '1px solid var(--line)', borderRadius: '12px', fontSize: '13.5px', outline: 'none', background: 'var(--bg)', color: 'var(--ink)' }}
               />
               <button 
                 type="submit" 
-                style={{ padding: '0 20px', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', border: 'none', borderRadius: '12px', fontSize: '13.5px', fontWeight: 'bold', cursor: 'pointer' }}
+                style={{ padding: '0 20px', background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', color: 'white', border: 'none', borderRadius: '12px', fontSize: '13.5px', fontWeight: 'bold', cursor: 'pointer', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
               >
                 Send
               </button>
@@ -3275,14 +3131,14 @@ export default function AdminDashboard() {
 
       {/* Video Call Modal */}
       {showVideoModal && activeVideoBooking && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', zIndex: 99999 }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', zIndex: 99999 }}>
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1e293b', padding: '16px 24px', borderBottom: '1px solid #334155', color: 'white' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--surface)', padding: '16px 24px', borderBottom: '1px solid var(--line)', color: 'var(--ink)' }}>
             <div>
               <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span>🎥</span> MindSpace Video Counseling
               </h3>
-              <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+              <span style={{ fontSize: '12px', color: 'var(--ink-3)' }}>
                 Session with Student: {activeVideoBooking.student?.name || 'Anonymous'}
               </span>
             </div>
@@ -3292,7 +3148,7 @@ export default function AdminDashboard() {
                 setActiveVideoBooking(null)
               }}
               style={{
-                background: '#ef4444',
+                background: 'var(--danger-fill)',
                 color: 'white',
                 border: 'none',
                 padding: '10px 20px',
@@ -3300,7 +3156,7 @@ export default function AdminDashboard() {
                 fontWeight: 'bold',
                 cursor: 'pointer',
                 fontSize: '14px',
-                boxShadow: '0 4px 12px rgba(239, 68, 68, 0.25)',
+                boxShadow: '0 4px 12px color-mix(in srgb, var(--danger) 25%, transparent)',
                 transition: 'background 0.2s'
               }}
               onMouseEnter={e => e.currentTarget.style.background = '#dc2626'}
@@ -3311,7 +3167,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Iframe Area */}
-          <div style={{ flex: 1, background: '#0f172a', position: 'relative' }}>
+          <div style={{ flex: 1, background: 'var(--bg)', position: 'relative' }}>
             <iframe
               src={`https://meet.jit.si/mindspace-session-${activeVideoBooking._id}#userInfo.displayName="${currentUser?.name || 'User'}"`}
               allow="camera; microphone; fullscreen; display-capture; autoplay"
@@ -3324,37 +3180,37 @@ export default function AdminDashboard() {
 
       {/* Loading Report Modal Overlay */}
       {loadingReport && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999999 }}>
-          <div style={{ background: '#1e293b', borderRadius: '16px', padding: '30px', border: '1px solid #334155', textAlign: 'center' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999999 }}>
+          <div style={{ background: 'var(--surface)', borderRadius: '16px', padding: '30px', border: '1px solid var(--line)', textAlign: 'center' }}>
             <div style={{
               width: '40px',
               height: '40px',
-              border: '4px solid #334155',
-              borderTop: '4px solid #6366f1',
+              border: '4px solid var(--line)',
+              borderTop: '4px solid var(--primary)',
               borderRadius: '50%',
               margin: '0 auto 16px',
               animation: 'spin 1s linear infinite'
             }} />
-            <p style={{ color: 'white', margin: 0, fontSize: '14.5px', fontWeight: 'bold' }}>Retrieving student mental health reports...</p>
+            <p style={{ color: 'var(--ink)', margin: 0, fontSize: '14.5px', fontWeight: 'bold' }}>Retrieving student mental health reports...</p>
           </div>
         </div>
       )}
 
       {/* Student Health Report Modal */}
       {selectedStudentReport && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '20px' }}>
-          <div style={{ background: '#1e293b', borderRadius: '24px', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflow: 'hidden', border: '1px solid #334155', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '20px' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: '24px', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflow: 'hidden', border: '1px solid var(--line)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column' }}>
             
             {/* Header */}
-            <div style={{ padding: '24px 32px', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+            <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <div>
-                <span style={{ fontSize: '11px', color: '#818cf8', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>Confidential Patient File</span>
-                <h3 style={{ color: 'white', margin: 0, fontSize: '22px', fontWeight: 'bold' }}>{selectedStudentReport.student?.name}</h3>
-                <span style={{ fontSize: '13px', color: '#94a3b8' }}>Email: {selectedStudentReport.student?.email}</span>
+                <span style={{ fontSize: '11px', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>Confidential Patient File</span>
+                <h3 style={{ color: 'var(--ink)', margin: 0, fontSize: '22px', fontWeight: 'bold' }}>{selectedStudentReport.student?.name}</h3>
+                <span style={{ fontSize: '13px', color: 'var(--ink-3)' }}>Email: {selectedStudentReport.student?.email}</span>
               </div>
               <button 
                 onClick={() => setSelectedStudentReport(null)}
-                style={{ background: '#334155', color: '#cbd5e1', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'background 0.2s' }}
+                style={{ background: 'var(--surface-3)', color: 'var(--ink-2)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: 'background 0.2s' }}
                 onMouseEnter={e => e.currentTarget.style.background = '#475569'}
                 onMouseLeave={e => e.currentTarget.style.background = '#334155'}
               >
@@ -3367,45 +3223,45 @@ export default function AdminDashboard() {
               
               {/* Analytics Summary Row */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-                <div style={{ background: '#0f172a', padding: '20px', borderRadius: '16px', border: '1px solid #334155' }}>
-                  <div style={{ fontSize: '10.5px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Average Mood Score</div>
-                  <div style={{ fontSize: '26px', fontWeight: 'bold', marginTop: '6px', color: '#10b981' }}>
+                <div style={{ background: 'var(--bg)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                  <div style={{ fontSize: '10.5px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Average Mood Score</div>
+                  <div style={{ fontSize: '26px', fontWeight: 'bold', marginTop: '6px', color: 'var(--success-ink)' }}>
                     {selectedStudentReport.stats?.averageMood ? `${selectedStudentReport.stats.averageMood} / 5.0` : 'N/A'}
                   </div>
                 </div>
-                <div style={{ background: '#0f172a', padding: '20px', borderRadius: '16px', border: '1px solid #334155' }}>
-                  <div style={{ fontSize: '10.5px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Current Log Streak</div>
-                  <div style={{ fontSize: '26px', fontWeight: 'bold', marginTop: '6px', color: '#f97316' }}>
+                <div style={{ background: 'var(--bg)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                  <div style={{ fontSize: '10.5px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Current Log Streak</div>
+                  <div style={{ fontSize: '26px', fontWeight: 'bold', marginTop: '6px', color: 'var(--sun)' }}>
                     🔥 {selectedStudentReport.student?.streakCount || 0} Days
                   </div>
                 </div>
-                <div style={{ background: '#0f172a', padding: '20px', borderRadius: '16px', border: '1px solid #334155' }}>
-                  <div style={{ fontSize: '10.5px', color: '#94a3b8', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Common Trigger</div>
-                  <div style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '10px', color: '#f59e0b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ background: 'var(--bg)', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)' }}>
+                  <div style={{ fontSize: '10.5px', color: 'var(--ink-3)', textTransform: 'uppercase', fontWeight: 'bold', letterSpacing: '0.5px' }}>Common Trigger</div>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', marginTop: '10px', color: 'var(--warn)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                     ⚡ {selectedStudentReport.stats?.mostCommonTrigger || 'None'}
                   </div>
                 </div>
               </div>
 
               {/* AI Assistant Insight */}
-              <div style={{ background: 'linear-gradient(135deg, #1e1b4b, #312e81)', padding: '20px', borderRadius: '16px', border: '1px solid #4338ca' }}>
-                <h4 style={{ color: '#a5b4fc', margin: '0 0 10px 0', fontSize: '14.5px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div style={{ background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', padding: '20px', borderRadius: '16px', border: '1px solid var(--primary)' }}>
+                <h4 style={{ color: 'var(--primary)', margin: '0 0 10px 0', fontSize: '14.5px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span>🤖</span> AI Mental Health Assessment Summary
                 </h4>
-                <p style={{ color: '#cbd5e1', margin: 0, fontSize: '13px', lineHeight: '1.6', fontStyle: 'italic' }}>
+                <p style={{ color: 'var(--ink-2)', margin: 0, fontSize: '13px', lineHeight: '1.6', fontStyle: 'italic' }}>
                   "{selectedStudentReport.stats?.weeklySummary || 'No tracking statistics logged by this student.'}"
                 </p>
               </div>
 
               {/* Badges Overview */}
               <div>
-                <h4 style={{ color: 'white', margin: '0 0 12px 0', fontSize: '14.5px', fontWeight: 'bold' }}>🏅 Unlocked Badges ({selectedStudentReport.student?.badges?.length || 0})</h4>
+                <h4 style={{ color: 'var(--ink)', margin: '0 0 12px 0', fontSize: '14.5px', fontWeight: 'bold' }}>🏅 Unlocked Badges ({selectedStudentReport.student?.badges?.length || 0})</h4>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                   {(!selectedStudentReport.student?.badges || selectedStudentReport.student.badges.length === 0) ? (
-                    <span style={{ fontSize: '12.5px', color: '#64748b', fontStyle: 'italic' }}>No mental health badges unlocked yet.</span>
+                    <span style={{ fontSize: '12.5px', color: 'var(--ink-3)', fontStyle: 'italic' }}>No mental health badges unlocked yet.</span>
                   ) : (
                     selectedStudentReport.student.badges.map(b => (
-                      <span key={b} style={{ background: '#312e81', color: '#e0e7ff', padding: '6px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 'bold', border: '1px solid #4338ca' }}>
+                      <span key={b} style={{ background: 'var(--primary-fill)', color: 'var(--primary-ink)', padding: '6px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: 'bold', border: '1px solid var(--primary)' }}>
                         🏅 {b}
                       </span>
                     ))
@@ -3415,37 +3271,37 @@ export default function AdminDashboard() {
 
               {/* Patient Mood Journal Logs Table */}
               <div>
-                <h4 style={{ color: 'white', margin: '0 0 16px 0', fontSize: '14.5px', fontWeight: 'bold' }}>📋 Mood Logs & Daily Journal Logs</h4>
+                <h4 style={{ color: 'var(--ink)', margin: '0 0 16px 0', fontSize: '14.5px', fontWeight: 'bold' }}>📋 Mood Logs & Daily Journal Logs</h4>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '320px', overflowY: 'auto', paddingRight: '6px' }}>
                   {(!selectedStudentReport.moods || selectedStudentReport.moods.length === 0) ? (
-                    <p style={{ color: '#94a3b8', fontStyle: 'italic', margin: '20px 0', textAlign: 'center' }}>No mood logs recorded yet.</p>
+                    <p style={{ color: 'var(--ink-3)', fontStyle: 'italic', margin: '20px 0', textAlign: 'center' }}>No mood logs recorded yet.</p>
                   ) : (
                     selectedStudentReport.moods.map(log => (
-                      <div key={log.id} style={{ background: '#0f172a', padding: '16px', borderRadius: '12px', border: '1px solid #334155' }}>
+                      <div key={log.id} style={{ background: 'var(--bg)', padding: '16px', borderRadius: '12px', border: '1px solid var(--line)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <span style={{ fontSize: '22px' }}>{log.emoji}</span>
                             <div>
-                              <strong style={{ color: 'white', fontSize: '13.5px' }}>{log.label} ({log.value}/5)</strong>
-                              <span style={{ fontSize: '11px', color: '#94a3b8', display: 'block' }}>Trigger: <span style={{ color: '#f59e0b', fontWeight: 'bold' }}>{log.trigger || 'None'}</span></span>
+                              <strong style={{ color: 'var(--ink)', fontSize: '13.5px' }}>{log.label} ({log.value}/5)</strong>
+                              <span style={{ fontSize: '11px', color: 'var(--ink-3)', display: 'block' }}>Trigger: <span style={{ color: 'var(--warn)', fontWeight: 'bold' }}>{log.trigger || 'None'}</span></span>
                             </div>
                           </div>
-                          <span style={{ fontSize: '12px', color: '#818cf8', fontWeight: 'bold', background: 'rgba(99, 102, 241, 0.1)', padding: '4px 8px', borderRadius: '8px' }}>{log.date}</span>
+                          <span style={{ fontSize: '12px', color: 'var(--primary)', fontWeight: 'bold', background: 'color-mix(in srgb, var(--primary) 10%, transparent)', padding: '4px 8px', borderRadius: '8px' }}>{log.date}</span>
                         </div>
 
                         {log.note ? (
-                          <div style={{ background: '#1e293b', padding: '10px 14px', borderRadius: '8px', color: '#cbd5e1', fontSize: '12.5px', fontStyle: 'italic', marginBottom: '10px', borderLeft: '3px solid #6366f1' }}>
+                          <div style={{ background: 'var(--surface)', padding: '10px 14px', borderRadius: '8px', color: 'var(--ink-2)', fontSize: '12.5px', fontStyle: 'italic', marginBottom: '10px', borderLeft: '3px solid var(--primary)' }}>
                             "{log.note}"
                           </div>
                         ) : (
-                          <div style={{ color: '#64748b', fontSize: '12px', fontStyle: 'italic', marginBottom: '10px' }}>No journal notes attached.</div>
+                          <div style={{ color: 'var(--ink-3)', fontSize: '12px', fontStyle: 'italic', marginBottom: '10px' }}>No journal notes attached.</div>
                         )}
 
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '11px', color: '#94a3b8' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '11px', color: 'var(--ink-3)' }}>
                           {log.activities && log.activities.length > 0 && (
                             <div>
-                              <span style={{ color: '#cbd5e1', fontWeight: 'bold' }}>Activities:</span> {log.activities.join(', ')}
+                              <span style={{ color: 'var(--ink-2)', fontWeight: 'bold' }}>Activities:</span> {log.activities.join(', ')}
                             </div>
                           )}
                           <div style={{ display: 'flex', gap: '12px' }}>
@@ -3463,10 +3319,10 @@ export default function AdminDashboard() {
             </div>
 
             {/* Footer */}
-            <div style={{ padding: '20px 32px', borderTop: '1px solid #334155', display: 'flex', justifyContent: 'flex-end', flexShrink: 0, background: '#0f172a' }}>
+            <div style={{ padding: '20px 32px', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end', flexShrink: 0, background: 'var(--bg)' }}>
               <button 
                 onClick={() => setSelectedStudentReport(null)}
-                style={{ padding: '10px 20px', background: '#6366f1', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', transition: 'background 0.2s' }}
+                style={{ padding: '10px 20px', background: 'var(--primary-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', transition: 'background 0.2s' }}
                 onMouseEnter={e => e.currentTarget.style.background = '#4f46e5'}
                 onMouseLeave={e => e.currentTarget.style.background = '#6366f1'}
               >
@@ -3480,9 +3336,9 @@ export default function AdminDashboard() {
 
       {/* Settlement Slip Modal */}
       {settlementSuccessMsg && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '20px' }}>
-          <div style={{ background: '#1e293b', borderRadius: '24px', width: '100%', maxWidth: '650px', border: '1px solid #334155', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '24px 32px', background: '#10b981', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '20px' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: '24px', width: '100%', maxWidth: '650px', border: '1px solid var(--line)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '24px 32px', background: 'var(--success-fill)', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>🏦 Bank Settlement Wire Transfer Slip</h3>
                 <span style={{ fontSize: '12px', opacity: 0.9 }}>MindSpace Automated Clearing House (ACH) Payout Settlement</span>
@@ -3492,43 +3348,43 @@ export default function AdminDashboard() {
                   setSettlementSuccessMsg('')
                   setAutoSettleLogs(null)
                 }}
-                style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' }}
+                style={{ background: 'color-mix(in srgb, var(--ink) 20%, transparent)', color: 'var(--ink)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px' }}
               >
                 ✕
               </button>
             </div>
 
             <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '20px', maxHeight: '60vh', overflowY: 'auto' }}>
-              <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '16px', borderRadius: '12px', color: '#34d399', fontSize: '13.5px', fontWeight: '500', textAlign: 'center' }}>
+              <div style={{ background: 'color-mix(in srgb, var(--success) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--success) 30%, transparent)', padding: '16px', borderRadius: '12px', color: 'var(--success)', fontSize: '13.5px', fontWeight: '500', textAlign: 'center' }}>
                 ✅ {settlementSuccessMsg}
               </div>
 
-              <h4 style={{ color: 'white', margin: '10px 0 0 0', fontSize: '14px', fontWeight: 'bold' }}>Clearing House Transaction Log:</h4>
+              <h4 style={{ color: 'var(--ink)', margin: '10px 0 0 0', fontSize: '14px', fontWeight: 'bold' }}>Clearing House Transaction Log:</h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {autoSettleLogs && autoSettleLogs.map(log => (
-                  <div key={log.transactionId} style={{ background: '#0f172a', padding: '16px', borderRadius: '12px', border: '1px solid #1e293b', fontSize: '12.5px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: 'white', fontWeight: 'bold' }}>
+                  <div key={log.transactionId} style={{ background: 'var(--bg)', padding: '16px', borderRadius: '12px', border: '1px solid var(--line)', fontSize: '12.5px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: 'var(--ink)', fontWeight: 'bold' }}>
                       <span>👤 {log.counsellorName}</span>
-                      <span style={{ color: '#10b981' }}>LKR {log.amount.toLocaleString()}</span>
+                      <span style={{ color: 'var(--success-ink)' }}>LKR {log.amount.toLocaleString()}</span>
                     </div>
-                    <div style={{ color: '#94a3b8', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11.5px' }}>
+                    <div style={{ color: 'var(--ink-3)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11.5px' }}>
                       <div>Bank: <strong>{log.bankName}</strong></div>
                       <div>Account: <strong>{log.accountNumber}</strong></div>
                       <div>Holder: <strong>{log.accountHolder}</strong></div>
-                      <div>Ref: <strong style={{ color: '#6366f1' }}>{log.transactionId}</strong></div>
+                      <div>Ref: <strong style={{ color: 'var(--primary)' }}>{log.transactionId}</strong></div>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div style={{ padding: '20px 32px', background: '#0f172a', borderTop: '1px solid #334155', display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ padding: '20px 32px', background: 'var(--bg)', borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end' }}>
               <button 
                 onClick={() => {
                   setSettlementSuccessMsg('')
                   setAutoSettleLogs(null)
                 }}
-                style={{ padding: '10px 20px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
+                style={{ padding: '10px 20px', background: 'var(--success-fill)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px' }}
               >
                 Done
               </button>

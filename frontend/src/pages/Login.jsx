@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import API_URL from '../config'
 import ThemeToggle from '../components/ThemeToggle'
+import Icon from '../components/ui/Icon'
+import { Logo, Horizon } from '../components/ui/Brand'
 
 export default function Login() {
   const [isLogin, setIsLogin] = useState(true)
@@ -26,6 +28,7 @@ export default function Login() {
 
   const handleSubmit = async () => {
     setError('')
+    setSuccessMessage('')
     if (!email.trim()) {
       setError('Please enter your email address')
       return
@@ -81,7 +84,7 @@ export default function Login() {
       await axios.post(`${API_URL}/api/auth/forgot-password`, { email: forgotEmail.trim() })
       setOtpSent(true)
       setError('')
-      setSuccessMessage('✅ Verification code generated successfully!')
+      setSuccessMessage('Verification code generated successfully!')
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to request reset code')
     }
@@ -105,8 +108,7 @@ export default function Login() {
         code: otpCode.trim(),
         newPassword: newPasswordInput.trim()
       })
-      alert('🔒 Password reset successful! You can now log in.')
-      setSuccessMessage('✅ Password updated successfully! Please log in.')
+      setSuccessMessage('Password updated successfully! Please log in.')
       setOtpSent(false)
       setForgotMode(false)
       // Autofill fields
@@ -118,295 +120,206 @@ export default function Login() {
     setLoading(false)
   }
 
-  if (forgotMode) {
-    return (
-      <div style={{ minHeight: '100dvh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', overflowY: 'auto', boxSizing: 'border-box' }}>
-        <div style={{ background: 'white', padding: '32px 24px', borderRadius: '20px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', boxSizing: 'border-box', margin: 'auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-            <h2 style={{ color: '#4f46e5', fontSize: '24px' }}>Reset Password</h2>
-            <p style={{ color: '#6b7280', fontSize: '14px' }}>MindSpace Security Console</p>
-          </div>
+  const features = [
+    { icon: 'smile', title: 'Daily mood check-ins', text: 'Notice patterns and celebrate small wins.' },
+    { icon: 'feather', title: 'Aura, always listening', text: 'A gentle AI companion, any hour of the day.' },
+    { icon: 'shield', title: 'Private & anonymous', text: 'Talk to peers and counsellors safely.' }
+  ]
 
-          {error && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px' }}>{error}</div>}
-          {successMessage && <div style={{ background: '#ecfdf5', color: '#047857', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '14px', fontWeight: '500' }}>{successMessage}</div>}
-
-          {!otpSent ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <p style={{ color: '#4b5563', fontSize: '13.5px', margin: '0 0 4px', lineHeight: '1.5' }}>
-                Enter your registered email address to request a password reset verification code.
-              </p>
-              <input 
-                value={forgotEmail} 
-                onChange={e => { setForgotEmail(e.target.value); setError(''); }} 
-                placeholder="Enter email address" 
-                type="email" 
-                style={{ width: '100%', padding: '14px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', color: '#1e293b', background: '#ffffff', colorScheme: 'light', textAlign: 'left', opacity: 1, pointerEvents: 'auto' }} 
-              />
-              <button 
-                onClick={handleRequestOtp} 
-                disabled={loading}
-                style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}
-              >
-                {loading ? 'Processing...' : 'Request Reset Code'}
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '12px', fontSize: '12.5px', color: '#1e3a8a', fontWeight: '500', lineHeight: '1.4' }}>
-                Dev Mode Reset Code: <strong style={{ color: '#2563eb', fontSize: '13.5px' }}>123456</strong>
-              </div>
-              <div>
-                <label style={{ display: 'block', color: '#4b5563', fontWeight: '600', marginBottom: '6px', fontSize: '12.5px' }}>Verification Code:</label>
-                <input 
-                  value={otpCode} 
-                  onChange={e => { setOtpCode(e.target.value); setError(''); }} 
-                  placeholder="Enter 123456" 
-                  type="text" 
-                  maxLength={6}
-                  style={{ width: '100%', padding: '14px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', letterSpacing: '2px', textAlign: 'center', fontWeight: 'bold', color: '#1e293b', background: '#ffffff', colorScheme: 'light', opacity: 1, pointerEvents: 'auto' }} 
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', color: '#4b5563', fontWeight: '600', marginBottom: '6px', fontSize: '12.5px' }}>New Password:</label>
-                <input 
-                  value={newPasswordInput} 
-                  onChange={e => { setNewPasswordInput(e.target.value); setError(''); }} 
-                  placeholder="Enter new secure password" 
-                  type="password" 
-                  style={{ width: '100%', padding: '14px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', color: '#1e293b', background: '#ffffff', colorScheme: 'light', textAlign: 'left', opacity: 1, pointerEvents: 'auto' }} 
-                />
-              </div>
-              <button 
-                onClick={handleResetPassword} 
-                disabled={loading}
-                style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}
-              >
-                {loading ? 'Updating...' : 'Reset Password'}
-              </button>
-            </div>
-          )}
-
-          <div style={{ textAlign: 'center', marginTop: '24px' }}>
-            <span 
-              onClick={() => {
-                setForgotMode(false)
-                setError('')
-                setSuccessMessage('')
-              }}
-              style={{ color: '#6b7280', fontSize: '13.5px', cursor: 'pointer', fontWeight: 'bold', textDecoration: 'underline' }}
-            >
-              ← Back to Login
-            </span>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  const errorBox = error && (
+    <div className="alert alert-danger" role="alert">
+      <Icon name="alert" size={18} /> <span>{error}</span>
+    </div>
+  )
+  const successBox = successMessage && (
+    <div className="alert alert-success" role="status">
+      <Icon name="checkCircle" size={18} /> <span>{successMessage}</span>
+    </div>
+  )
 
   return (
-    <div className="ms-animated-bg" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', overflow: 'hidden', position: 'relative', boxSizing: 'border-box' }}>
-      
-      {/* Theme Toggle Button Top-Right */}
-      <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 100 }}>
-        <ThemeToggle showLabel={true} />
-      </div>
-      <style>{`
-        @keyframes waveGradient {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        @keyframes floatBlob1 {
-          0% { transform: translate(0px, 0px) scale(1); }
-          50% { transform: translate(80px, 60px) scale(1.35); }
-          100% { transform: translate(0px, 0px) scale(1); }
-        }
-        @keyframes floatBlob2 {
-          0% { transform: translate(0px, 0px) scale(1.1); }
-          50% { transform: translate(-90px, -70px) scale(0.8); }
-          100% { transform: translate(0px, 0px) scale(1.1); }
-        }
-        @keyframes mindFloat {
-          0% { transform: translateY(0px) rotate(0deg) scale(1); }
-          50% { transform: translateY(-10px) rotate(3deg) scale(1.08); }
-          100% { transform: translateY(0px) rotate(0deg) scale(1); }
-        }
-        .ms-animated-bg {
-          background: linear-gradient(-45deg, #3b82f6, #6366f1, #8b5cf6, #ec4899);
-          background-size: 400% 400%;
-          animation: waveGradient 10s ease infinite !important;
-        }
-        .ms-blob-1 {
-          position: absolute; top: -50px; left: -50px; width: 300px; height: 300px;
-          background: radial-gradient(circle, rgba(168,85,247,0.85) 0%, rgba(126,34,206,0) 70%);
-          border-radius: 50%; filter: blur(35px); animation: floatBlob1 8s ease-in-out infinite alternate; pointer-events: none;
-        }
-        .ms-blob-2 {
-          position: absolute; bottom: -60px; right: -60px; width: 340px; height: 340px;
-          background: radial-gradient(circle, rgba(59,130,246,0.85) 0%, rgba(29,78,216,0) 70%);
-          border-radius: 50%; filter: blur(40px); animation: floatBlob2 10s ease-in-out infinite alternate; pointer-events: none;
-        }
-        @keyframes borderGlow {
-          0% { border-color: #6366f1; box-shadow: 0 15px 45px rgba(99, 102, 241, 0.3); }
-          50% { border-color: #a855f7; box-shadow: 0 15px 45px rgba(168, 85, 247, 0.4); }
-          100% { border-color: #6366f1; box-shadow: 0 15px 45px rgba(99, 102, 241, 0.3); }
-        }
-        @keyframes cardBreath {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.012); }
-          100% { transform: scale(1); }
-        }
-        .ms-white-card {
-          background: rgba(255, 255, 255, 0.16) !important;
-          backdrop-filter: blur(24px) !important;
-          -webkit-backdrop-filter: blur(24px) !important;
-          border: 1px solid rgba(255, 255, 255, 0.3) !important;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4) !important;
-          position: relative !important;
-          overflow: hidden !important;
-          border-radius: 28px !important;
-        }
-        .ms-card-inner-glow {
-          position: absolute;
-          top: -30px;
-          right: -30px;
-          width: 160px;
-          height: 160px;
-          background: radial-gradient(circle, rgba(168,85,247,0.25) 0%, rgba(255,255,255,0) 70%);
-          border-radius: 50%;
-          animation: floatBlob1 6s ease-in-out infinite alternate;
-          pointer-events: none;
-        }
-        .ms-brain-icon {
-          animation: mindFloat 3s ease-in-out infinite !important; display: inline-block;
-        }
-      `}</style>
-
-      {/* Background Animated Blobs */}
-      <div className="ms-blob-1" />
-      <div className="ms-blob-2" />
-
-      <div className="ms-white-card" key={isLogin ? 'login-card' : 'register-card'} style={{ padding: '32px 24px', borderRadius: '24px', width: '100%', maxWidth: '380px', boxSizing: 'border-box', margin: 'auto', zIndex: 2 }}>
-        {/* Inner Card Soft Glow */}
-        <div className="ms-card-inner-glow" />
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div className="ms-brain-icon" style={{ fontSize: '48px', filter: 'drop-shadow(0 4px 12px rgba(79,70,229,0.3))' }}>🧠</div>
-          <h2 style={{ color: '#4f46e5', fontSize: '26px', margin: '6px 0 2px', fontWeight: '800', letterSpacing: '-0.5px' }}>MindSpace</h2>
-          <p style={{ color: '#6b7280', fontSize: '13.5px', margin: 0, fontWeight: '500' }}>Student Mental Health Support</p>
-        </div>
-
-        <div style={{ display: 'flex', marginBottom: '20px', background: '#f1f5f9', borderRadius: '12px', padding: '4px', position: 'relative' }}>
-          <button 
-            type="button" 
-            onClick={() => { setIsLogin(true); setError(''); }} 
-            style={{ flex: 1, padding: '11px', background: isLogin ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'transparent', color: isLogin ? 'white' : '#64748b', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '14.5px', transition: 'all 0.3s ease', boxShadow: isLogin ? '0 4px 12px rgba(79,70,229,0.3)' : 'none', touchAction: 'manipulation' }}
-          >
-            Login
-          </button>
-          <button 
-            type="button" 
-            onClick={() => { setIsLogin(false); setError(''); }} 
-            style={{ flex: 1, padding: '11px', background: !isLogin ? 'linear-gradient(135deg, #4f46e5, #6366f1)' : 'transparent', color: !isLogin ? 'white' : '#64748b', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '14.5px', transition: 'all 0.3s ease', boxShadow: !isLogin ? '0 4px 12px rgba(79,70,229,0.3)' : 'none', touchAction: 'manipulation' }}
-          >
-            Register
-          </button>
-        </div>
-
-        {error && <div style={{ background: '#fee2e2', color: '#dc2626', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '13.5px' }}>{error}</div>}
-
-        <form onSubmit={e => { e.preventDefault(); handleSubmit(); }}>
-          {!isLogin && (
-            <input 
-              value={name} 
-              onChange={e => setName(e.target.value)} 
-              placeholder="Full Name" 
-              autoCapitalize="words"
-              autoCorrect="off"
-              spellCheck="false"
-              style={{ width: '100%', height: '50px', lineHeight: '1.5', padding: '12px 16px', marginBottom: '14px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', color: '#1e293b', background: '#ffffff', outline: 'none', boxSizing: 'border-box', textAlign: 'left', colorScheme: 'light' }} 
-            />
-          )}
-          <input 
-            value={email} 
-            onChange={e => setEmail(e.target.value)} 
-            placeholder="Email address" 
-            type="email" 
-            autoComplete="email" 
-            inputMode="email"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck="false"
-            style={{ width: '100%', height: '50px', lineHeight: '1.5', padding: '12px 16px', marginBottom: '14px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', color: '#1e293b', background: '#ffffff', outline: 'none', boxSizing: 'border-box', textAlign: 'left', colorScheme: 'light' }} 
-          />
-          <div style={{ position: 'relative', width: '100%', marginBottom: isLogin ? '16px' : '14px' }}>
-            <input 
-              value={password} 
-              onChange={e => setPassword(e.target.value)} 
-              placeholder="Password" 
-              type={showPassword ? "text" : "password"} 
-              autoComplete="current-password" 
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck="false"
-              style={{ width: '100%', height: '50px', lineHeight: '1.5', padding: '12px 46px 12px 16px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', color: '#1e293b', background: '#ffffff', outline: 'none', boxSizing: 'border-box', textAlign: 'left', colorScheme: 'light' }} 
-            />
-            <button 
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', opacity: 0.7, padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >
-              {showPassword ? '🙈' : '👁️'}
-            </button>
+    <div className="auth">
+      {/* ---------- Hero ---------- */}
+      <section className="auth-hero" aria-hidden={false}>
+        <Horizon />
+        <div className="auth-hero-top">
+          <div className="row">
+            <Logo size={44} />
+            <span className="brand-name" style={{ fontSize: 28 }}>MindSpace</span>
           </div>
+        </div>
 
-          {!isLogin && (
-            <div style={{ position: 'relative', width: '100%', marginBottom: '16px' }}>
-              <input 
-                value={confirmPassword} 
-                onChange={e => { setConfirmPassword(e.target.value); setError(''); }} 
-                placeholder="Confirm Password" 
-                type={showConfirmPassword ? "text" : "password"} 
-                autoComplete="new-password" 
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck="false"
-                style={{ width: '100%', height: '50px', lineHeight: '1.5', padding: '12px 46px 12px 16px', border: '2px solid #cbd5e1', borderRadius: '12px', fontSize: '16px', color: '#1e293b', background: '#ffffff', outline: 'none', boxSizing: 'border-box', textAlign: 'left', colorScheme: 'light' }} 
-              />
-              <button 
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', opacity: 0.7, padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              >
-                {showConfirmPassword ? '🙈' : '👁️'}
+        <div className="auth-hero-copy">
+          <span className="eyebrow">Student mental health support</span>
+          <h1 className="h-display">A calm place<br />to land.</h1>
+          <p className="lead">Check in with yourself, talk it through, and find support that fits, whenever you need it.</p>
+        </div>
+
+        <ul className="auth-features">
+          {features.map(f => (
+            <li key={f.title}>
+              <span className="tile tile-sm"><Icon name={f.icon} size={18} /></span>
+              <div>
+                <strong>{f.title}</strong>
+                <span>{f.text}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* ---------- Form ---------- */}
+      <section className="auth-panel">
+        <div className="auth-theme"><ThemeToggle showLabel /></div>
+
+        <div className="auth-card rise" key={forgotMode ? 'forgot' : isLogin ? 'login' : 'register'}>
+          {forgotMode ? (
+            <>
+              <button className="btn btn-ghost btn-sm" style={{ marginLeft: -10 }} onClick={() => { setForgotMode(false); setError(''); setSuccessMessage('') }}>
+                <Icon name="arrowLeft" size={17} /> Back to log in
               </button>
-            </div>
-          )}
+              <div className="tile tile-lg mt-16"><Icon name="key" size={26} /></div>
+              <h2 className="h-title mt-16">Reset your password</h2>
+              <p className="muted mt-8">
+                {otpSent ? 'Enter the verification code and choose a new password.' : 'Enter your registered email and we\u2019ll generate a reset code.'}
+              </p>
 
-          {isLogin && (
-            <div style={{ textAlign: 'right', marginBottom: '16px', marginTop: '-6px' }}>
-              <span 
-                onClick={() => {
-                  setForgotMode(true)
-                  setOtpSent(false)
-                  setForgotEmail(email)
-                  setOtpCode('')
-                  setNewPasswordInput('')
-                  setError('')
-                  setSuccessMessage('')
-                }}
-                style={{ color: '#4f46e5', fontSize: '13px', cursor: 'pointer', fontWeight: '500' }}
-              >
-                Forgot Password?
-              </span>
-            </div>
-          )}
+              <div className="col gap-16 mt-24">
+                {errorBox}
+                {successBox}
 
-          <button type="submit" disabled={loading}
-            style={{ width: '100%', height: '50px', padding: '0 16px', background: 'linear-gradient(135deg, #667eea, #764ba2)', color: 'white', border: 'none', borderRadius: '12px', fontSize: '16px', fontWeight: '600', cursor: 'pointer' }}>
-            {loading ? 'Please wait...' : isLogin ? 'Login' : 'Create Account'}
-          </button>
-        </form>
-      </div>
+                {!otpSent ? (
+                  <>
+                    <div className="field">
+                      <label className="label" htmlFor="fe">Email address</label>
+                      <div className="input-wrap has-left">
+                        <span className="input-icon-left"><Icon name="mail" size={18} /></span>
+                        <input id="fe" className="input" type="email" value={forgotEmail} placeholder="you@school.edu"
+                          onChange={e => { setForgotEmail(e.target.value); setError('') }} />
+                      </div>
+                    </div>
+                    <button className="btn btn-primary btn-lg btn-block" onClick={handleRequestOtp} disabled={loading}>
+                      {loading ? 'Processing…' : 'Request reset code'}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="alert alert-info">
+                      <Icon name="info" size={18} />
+                      <span>Dev mode reset code: <strong style={{ letterSpacing: '0.1em' }}>123456</strong></span>
+                    </div>
+                    <div className="field">
+                      <label className="label" htmlFor="otp">Verification code</label>
+                      <input id="otp" className="input" type="text" maxLength={6} value={otpCode} placeholder="6-digit code"
+                        style={{ letterSpacing: '0.5em', textAlign: 'center', fontWeight: 700, fontSize: 20 }}
+                        onChange={e => { setOtpCode(e.target.value); setError('') }} />
+                    </div>
+                    <div className="field">
+                      <label className="label" htmlFor="np">New password</label>
+                      <div className="input-wrap has-left">
+                        <span className="input-icon-left"><Icon name="lock" size={18} /></span>
+                        <input id="np" className="input" type="password" value={newPasswordInput} placeholder="Choose a strong password"
+                          onChange={e => { setNewPasswordInput(e.target.value); setError('') }} />
+                      </div>
+                    </div>
+                    <button className="btn btn-primary btn-lg btn-block" onClick={handleResetPassword} disabled={loading}>
+                      {loading ? 'Updating…' : 'Reset password'}
+                    </button>
+                  </>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="h-title">{isLogin ? 'Welcome back' : 'Create your space'}</h2>
+              <p className="muted mt-8">
+                {isLogin ? 'Log in to continue your journey.' : 'It only takes a minute. No judgement, ever.'}
+              </p>
+
+              <div className="seg mt-24" style={{ display: 'flex' }} role="tablist">
+                <button type="button" role="tab" aria-selected={isLogin} className={`seg-btn grow ${isLogin ? 'is-active' : ''}`}
+                  onClick={() => { setIsLogin(true); setError(''); setSuccessMessage('') }}>Login</button>
+                <button type="button" role="tab" aria-selected={!isLogin} className={`seg-btn grow ${!isLogin ? 'is-active' : ''}`}
+                  onClick={() => { setIsLogin(false); setError(''); setSuccessMessage('') }}>Register</button>
+              </div>
+
+              <form className="col gap-16 mt-24" onSubmit={e => { e.preventDefault(); handleSubmit() }} noValidate>
+                {errorBox}
+                {successBox}
+
+                {!isLogin && (
+                  <div className="field">
+                    <label className="label" htmlFor="nm">Full name</label>
+                    <div className="input-wrap has-left">
+                      <span className="input-icon-left"><Icon name="user" size={18} /></span>
+                      <input id="nm" className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Your name"
+                        autoCapitalize="words" autoCorrect="off" spellCheck="false" autoComplete="name" />
+                    </div>
+                  </div>
+                )}
+
+                <div className="field">
+                  <label className="label" htmlFor="em">Email address</label>
+                  <div className="input-wrap has-left">
+                    <span className="input-icon-left"><Icon name="mail" size={18} /></span>
+                    <input id="em" className="input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@school.edu"
+                      autoComplete="email" inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck="false" />
+                  </div>
+                </div>
+
+                <div className="field">
+                  <div className="row-between">
+                    <label className="label" htmlFor="pw">Password</label>
+                    {isLogin && (
+                      <button type="button" className="btn btn-ghost btn-sm" style={{ minHeight: 24, padding: '0 6px', color: 'var(--primary)' }}
+                        onClick={() => {
+                          setForgotMode(true); setOtpSent(false); setForgotEmail(email)
+                          setOtpCode(''); setNewPasswordInput(''); setError(''); setSuccessMessage('')
+                        }}>
+                        Forgot password?
+                      </button>
+                    )}
+                  </div>
+                  <div className="input-wrap has-left">
+                    <span className="input-icon-left"><Icon name="lock" size={18} /></span>
+                    <input id="pw" className="input" type={showPassword ? 'text' : 'password'} value={password}
+                      onChange={e => setPassword(e.target.value)} placeholder="Your password"
+                      autoComplete={isLogin ? 'current-password' : 'new-password'} autoCapitalize="none" autoCorrect="off" spellCheck="false" />
+                    <button type="button" className="input-action" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'}>
+                      <Icon name={showPassword ? 'eyeOff' : 'eye'} size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {!isLogin && (
+                  <div className="field">
+                    <label className="label" htmlFor="cpw">Confirm password</label>
+                    <div className="input-wrap has-left">
+                      <span className="input-icon-left"><Icon name="lock" size={18} /></span>
+                      <input id="cpw" className="input" type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword}
+                        onChange={e => { setConfirmPassword(e.target.value); setError('') }} placeholder="Repeat your password"
+                        autoComplete="new-password" autoCapitalize="none" autoCorrect="off" spellCheck="false" />
+                      <button type="button" className="input-action" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}>
+                        <Icon name={showConfirmPassword ? 'eyeOff' : 'eye'} size={18} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <button type="submit" className="btn btn-primary btn-lg btn-block" disabled={loading}>
+                  {loading ? 'Please wait…' : isLogin ? 'Log in' : 'Create account'}
+                  {!loading && <Icon name="arrowRight" size={18} />}
+                </button>
+              </form>
+
+              <p className="tiny muted center mt-24" style={{ lineHeight: 1.6 }}>
+                <Icon name="lock" size={12} style={{ verticalAlign: '-1px', marginRight: 5 }} />
+                Your check-ins and chats are private to you.
+              </p>
+            </>
+          )}
+        </div>
+      </section>
     </div>
   )
 }

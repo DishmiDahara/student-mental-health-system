@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import Navbar from '../components/Navbar'
+import Icon from '../components/ui/Icon'
 import io from 'socket.io-client'
 import axios from 'axios'
 import API_URL from '../config'
@@ -204,294 +204,136 @@ export default function AnonymousChat() {
     setAlias(newAlias)
   }
 
-  return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      
-      {/* Navbar */}
-      <Navbar />
+  const isPeer = activeTab === 'peer'
+  const canType = (isPeer && chatStatus === 'connected') || !isPeer
 
-      {/* Main Chat Layout */}
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '30px 20px', boxSizing: 'border-box' }}>
-        <div style={{ background: 'white', borderRadius: '24px', maxWidth: '1100px', width: '100%', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-          
-          {/* Tabs header */}
-          <div style={{ display: 'flex', borderBottom: '1px solid #f3f4f6', background: '#f9fafb' }}>
-            <button 
-              onClick={() => setActiveTab('peer')} 
-              style={{
-                flex: 1,
-                padding: '18px 24px',
-                border: 'none',
-                background: activeTab === 'peer' ? 'white' : 'transparent',
-                color: activeTab === 'peer' ? '#4f46e5' : '#6b7280',
-                borderBottom: activeTab === 'peer' ? '3px solid #4f46e5' : 'none',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                fontSize: '15px'
-              }}
-            >
-              👥 Anonymous Peer Support Room
+  return (
+    <div className="chat-page">
+      <section className="chat-card">
+        {/* Tabs */}
+        <div className="chat-head" style={{ padding: '14px 18px' }}>
+          <div className="seg" role="tablist" style={{ width: '100%' }}>
+            <button role="tab" aria-selected={isPeer} className={`seg-btn grow ${isPeer ? 'is-active' : ''}`} onClick={() => setActiveTab('peer')}>
+              <Icon name="users" size={17} /> Peer support
             </button>
-            <button 
-              onClick={() => setActiveTab('admin')} 
-              style={{
-                flex: 1,
-                padding: '18px 24px',
-                border: 'none',
-                background: activeTab === 'admin' ? 'white' : 'transparent',
-                color: activeTab === 'admin' ? '#4f46e5' : '#6b7280',
-                borderBottom: activeTab === 'admin' ? '3px solid #4f46e5' : 'none',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                fontSize: '15px'
-              }}
-            >
-              💬 Contact Admin / Counsellor
+            <button role="tab" aria-selected={!isPeer} className={`seg-btn grow ${!isPeer ? 'is-active' : ''}`} onClick={() => setActiveTab('admin')}>
+              <Icon name="shield" size={17} /> Counselor &amp; admin
             </button>
           </div>
+        </div>
 
-          {/* Active Status Info Bar */}
-          {activeTab === 'peer' ? (
+        {/* Status bar */}
+        <div className="peer-status">
+          {isPeer ? (
             chatStatus === 'idle' ? (
-              <div style={{ background: 'rgba(79, 70, 229, 0.05)', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f0f7' }}>
-                <span style={{ fontSize: '13px', color: '#4b5563' }}>
-                  👤 Your pseudonym is: <strong>{alias}</strong>
-                </span>
-                <button 
-                  onClick={changeAlias} 
-                  style={{ padding: '6px 12px', background: 'white', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '12px', color: '#4b5563', cursor: 'pointer', fontWeight: '500' }}
-                >
-                  🔄 Change Name
-                </button>
-              </div>
+              <>
+                <span className="row gap-8 small"><Icon name="user" size={16} /> Your pseudonym: <strong>{alias}</strong></span>
+                <button className="btn btn-ghost btn-sm" onClick={changeAlias}><Icon name="refresh" size={15} /> Change</button>
+              </>
             ) : chatStatus === 'searching' ? (
-              <div style={{ background: 'rgba(245, 158, 11, 0.08)', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f0f7' }}>
-                <span style={{ fontSize: '13px', color: '#b45309', fontWeight: '500' }}>
-                  🔍 Searching for a peer to pair you with...
-                </span>
-                <button 
-                  onClick={handleCancelSearch} 
-                  style={{ padding: '6px 12px', background: '#4b5563', border: 'none', borderRadius: '8px', fontSize: '12px', color: 'white', cursor: 'pointer', fontWeight: '600' }}
-                >
-                  Cancel Search
-                </button>
-              </div>
+              <>
+                <span className="row gap-8 small"><span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> Searching for a peer…</span>
+                <button className="btn btn-danger-soft btn-sm" onClick={handleCancelSearch}>Cancel search</button>
+              </>
             ) : chatStatus === 'connected' ? (
-              <div style={{ background: 'rgba(16, 185, 129, 0.08)', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eef7f2' }}>
-                <span style={{ fontSize: '13px', color: '#065f46', fontWeight: '500' }}>
-                  🟢 Connected with: <strong style={{ color: '#047857' }}>{peerPartnerAlias}</strong> (Your alias: {alias})
-                </span>
-                <button 
-                  onClick={handleLeaveChat} 
-                  style={{ padding: '6px 12px', background: '#dc2626', border: 'none', borderRadius: '8px', fontSize: '12px', color: 'white', cursor: 'pointer', fontWeight: '600' }}
-                >
-                  🛑 Leave Chat
-                </button>
-              </div>
+              <>
+                <span className="row gap-8 small"><span className="dot" style={{ color: 'var(--success)' }} /> Connected with <strong style={{ color: 'var(--success-ink)' }}>{peerPartnerAlias}</strong><span className="muted">· you are {alias}</span></span>
+                <button className="btn btn-danger-soft btn-sm" onClick={handleLeaveChat}>Leave chat</button>
+              </>
             ) : (
-              <div style={{ background: 'rgba(239, 68, 68, 0.08)', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #f1f0f7' }}>
-                <span style={{ fontSize: '13px', color: '#b91c1c', fontWeight: '500' }}>
-                  ⚠️ Your peer has disconnected from the session.
-                </span>
-                <button 
-                  onClick={handleResetToIdle} 
-                  style={{ padding: '6px 12px', background: '#4f46e5', border: 'none', borderRadius: '8px', fontSize: '12px', color: 'white', cursor: 'pointer', fontWeight: '600' }}
-                >
-                  Find New Peer
-                </button>
-              </div>
+              <>
+                <span className="row gap-8 small"><span className="dot" style={{ color: 'var(--danger)' }} /> Peer disconnected</span>
+                <button className="btn btn-primary btn-sm" onClick={handleResetToIdle}><Icon name="refresh" size={15} /> Find new peer</button>
+              </>
             )
           ) : (
-            <div style={{ background: 'rgba(16, 185, 129, 0.05)', padding: '12px 24px', borderBottom: '1px solid #eef7f2' }}>
-              <span style={{ fontSize: '13px', color: '#065f46' }}>
-                🔒 This is a secure 1-to-1 conversation with our staff psychologists and administrators.
-              </span>
-            </div>
+            <span className="row gap-8 small"><Icon name="lock" size={15} /> Private conversation with our counselors &amp; administrators</span>
           )}
+        </div>
 
-          {/* Messages Area */}
-          <div style={{ flex: 1, padding: '24px', overflowY: 'auto', background: '#fafbfc', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '420px', minHeight: '320px' }}>
-            {activeTab === 'peer' ? (
-              chatStatus === 'idle' ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', textAlign: 'center', gap: '20px', flex: 1 }}>
-                  <div style={{ fontSize: '64px' }}>👥</div>
-                  <h3 style={{ fontSize: '20px', color: '#1f2937', margin: 0, fontWeight: 'bold' }}>1-to-1 Anonymous Peer Support</h3>
-                  <p style={{ color: '#4b5563', fontSize: '14px', maxWidth: '500px', lineHeight: '1.6', margin: 0 }}>
-                    Connect anonymously with another student to chat, share thoughts, or offer support. 
-                    Your identity is fully protected behind your animal alias <strong>({alias})</strong>.
-                  </p>
-                  <button 
-                    onClick={handleFindPeer}
-                    style={{
-                      padding: '14px 32px',
-                      background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '12px',
-                      fontSize: '15px',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 14px rgba(79, 70, 229, 0.3)',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    Find a Peer to Chat 🚀
-                  </button>
+        {/* Messages */}
+        <div className="chat-scroll">
+          {isPeer ? (
+            chatStatus === 'idle' ? (
+              <div className="peer-hero">
+                <div className="tile tile-lg tile-sky" style={{ width: 76, height: 76, borderRadius: 26 }}><Icon name="users" size={34} /></div>
+                <h2 className="h-title">1-to-1 anonymous peer support</h2>
+                <p className="muted" style={{ maxWidth: 480 }}>
+                  Connect anonymously with another student to chat, share thoughts, or offer support.
+                  Your identity is fully protected behind your animal alias <strong style={{ color: 'var(--ink)' }}>({alias})</strong>.
+                </p>
+                <button className="btn btn-primary btn-lg" onClick={handleFindPeer}><Icon name="search" size={18} /> Find a peer to talk to</button>
+                <div className="row-wrap" style={{ justifyContent: 'center' }}>
+                  <span className="chip"><Icon name="lock" size={13} /> Anonymous</span>
+                  <span className="chip"><Icon name="heart" size={13} /> Judgement-free</span>
+                  <span className="chip"><Icon name="shield" size={13} /> Moderated</span>
                 </div>
-              ) : chatStatus === 'searching' ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '50px 20px', textAlign: 'center', gap: '24px', flex: 1 }}>
-                  <div className="pulsing-search-icon" style={{
-                    width: '90px',
-                    height: '90px',
-                    borderRadius: '50%',
-                    background: 'rgba(79, 70, 229, 0.1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '40px',
-                    animation: 'pulse 1.6s infinite ease-in-out'
-                  }}>
-                    🔍
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '18px', color: '#1f2937', margin: '0 0 8px', fontWeight: 'bold' }}>Finding a Peer...</h3>
-                    <p style={{ color: '#6b7280', fontSize: '13.5px', maxWidth: '420px', lineHeight: '1.6', margin: 0 }}>
-                      We are looking for another online student to pair you with. This might take a moment.
-                    </p>
-                  </div>
-                  <style dangerouslySetInnerHTML={{__html: `
-                    @keyframes pulse {
-                      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
-                      70% { transform: scale(1); box-shadow: 0 0 0 18px rgba(79, 70, 229, 0); }
-                      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
-                    }
-                  `}} />
-                </div>
-              ) : (
-                <>
-                  {peerMessages.length === 0 ? (
-                    <p style={{ color: '#9ca3af', textAlign: 'center', padding: '40px', fontStyle: 'italic' }}>
-                      Connected! Say hi to your peer and start the conversation.
-                    </p>
-                  ) : (
-                    peerMessages.map((msg, index) => {
-                      const isOwnMessage = msg.sender === user?.id || msg.sender?._id === user?.id || msg.senderName === alias
-                      return (
-                        <div 
-                          key={msg._id || index}
-                          style={{
-                            alignSelf: isOwnMessage ? 'flex-end' : 'flex-start',
-                            maxWidth: '70%',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: isOwnMessage ? 'flex-end' : 'flex-start'
-                          }}
-                        >
-                          <span style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '4px', paddingLeft: isOwnMessage ? 0 : '8px', paddingRight: isOwnMessage ? '8px' : 0 }}>
-                            {msg.senderName}
-                          </span>
-                          <div style={{
-                            background: isOwnMessage ? '#4f46e5' : 'white',
-                            color: isOwnMessage ? 'white' : '#1f2937',
-                            padding: '12px 16px',
-                            borderRadius: isOwnMessage ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                            fontSize: '14px',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                            border: isOwnMessage ? 'none' : '1px solid #e5e7eb',
-                            wordBreak: 'break-word'
-                          }}>
-                            {msg.text}
-                          </div>
-                        </div>
-                      )
-                    })
-                  )}
-                  {chatStatus === 'disconnected' && (
-                    <div style={{ background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '12px', padding: '16px', color: '#991b1b', fontSize: '13.5px', textAlign: 'center', marginTop: '16px' }}>
-                      ℹ️ The peer has disconnected from this session. Click "Find New Peer" above to match again.
-                    </div>
-                  )}
-                </>
-              )
+              </div>
+            ) : chatStatus === 'searching' ? (
+              <div className="peer-hero">
+                <div className="searching"><i /><i /><i /><span className="tile tile-lg" style={{ borderRadius: '50%', width: 64, height: 64, position: 'relative' }}><Icon name="users" size={28} /></span></div>
+                <h2 className="h-title" style={{ fontSize: 24 }}>Finding a peer…</h2>
+                <p className="muted" style={{ maxWidth: 420 }}>We are looking for another online student to pair you with. This might take a moment.</p>
+              </div>
             ) : (
-              adminMessages.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af' }}>
-                  <div style={{ fontSize: '32px', marginBottom: '10px' }}>💬</div>
-                  <p>Send a message below to contact a counsellor or administrator privately.</p>
-                </div>
-              ) : (
-                adminMessages.map((msg, index) => {
-                  const currentUserId = user?.id || user?._id
-                  const messageSenderId = msg.sender?._id || msg.sender
-                  const isOwnMessage = currentUserId && messageSenderId && (messageSenderId.toString() === currentUserId.toString())
-                  const senderRole = msg.sender?.role || (isOwnMessage ? 'student' : 'admin')
-                  return (
-                    <div 
-                      key={msg._id || index}
-                      style={{
-                        alignSelf: isOwnMessage ? 'flex-end' : 'flex-start',
-                        maxWidth: '70%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: isOwnMessage ? 'flex-end' : 'flex-start'
-                      }}
-                    >
-                      <span style={{ fontSize: '11px', color: '#9ca3af', marginBottom: '4px', paddingLeft: isOwnMessage ? 0 : '8px' }}>
-                        {isOwnMessage ? 'You' : `${msg.senderName || 'Staff Member'} (${senderRole.toUpperCase()})`}
-                      </span>
-                      <div style={{
-                        background: isOwnMessage ? 'linear-gradient(135deg, #4facfe, #00f2fe)' : '#f3f4f6',
-                        color: isOwnMessage ? 'white' : '#1f2937',
-                        padding: '12px 16px',
-                        borderRadius: isOwnMessage ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
-                        fontSize: '14px',
-                        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                        wordBreak: 'break-word'
-                      }}>
+              <>
+                {peerMessages.length === 0 ? (
+                  <p className="muted center" style={{ padding: 40, fontStyle: 'italic' }}>Connected! Say hi to your peer and start the conversation.</p>
+                ) : (
+                  peerMessages.map((msg, index) => {
+                    const isOwnMessage = msg.sender === user?.id || msg.sender?._id === user?.id || msg.senderName === alias
+                    return (
+                      <div key={msg._id || index} className={`msg ${isOwnMessage ? 'msg-user' : 'msg-ai'}`}>
+                        {!isOwnMessage && <div className="tiny strong" style={{ color: 'var(--primary)', marginBottom: 3 }}>{msg.senderName}</div>}
                         {msg.text}
                       </div>
-                    </div>
-                  )
-                })
+                    )
+                  })
+                )}
+                {chatStatus === 'disconnected' && (
+                  <div className="alert alert-info" style={{ alignSelf: 'center' }}>
+                    <Icon name="info" size={18} /> <span>The peer has disconnected from this session. Choose &ldquo;Find new peer&rdquo; above to match again.</span>
+                  </div>
+                )}
+              </>
+            )
+          ) : adminMessages.length === 0 ? (
+            <div className="peer-hero">
+              <div className="tile tile-lg tile-rose" style={{ width: 76, height: 76, borderRadius: 26 }}><Icon name="message" size={32} /></div>
+              <p className="muted" style={{ maxWidth: 420 }}>Send a message below to contact a counsellor or administrator privately.</p>
+            </div>
+          ) : (
+            adminMessages.map((msg, index) => {
+              const currentUserId = user?.id || user?._id
+              const messageSenderId = msg.sender?._id || msg.sender
+              const isOwnMessage = currentUserId && messageSenderId && (messageSenderId.toString() === currentUserId.toString())
+              const senderRole = msg.sender?.role || (isOwnMessage ? 'student' : 'admin')
+              return (
+                <div key={msg._id || index} className={`msg ${isOwnMessage ? 'msg-user' : 'msg-ai'}`}>
+                  <div className="tiny strong" style={{ opacity: 0.8, marginBottom: 3, letterSpacing: '0.04em' }}>
+                    {isOwnMessage ? 'You' : `${msg.senderName || 'Staff Member'} · ${senderRole.toUpperCase()}`}
+                  </div>
+                  {msg.text}
+                </div>
               )
-            )}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* Form Input Area - hidden for peer tab unless in connected state */}
-          {((activeTab === 'peer' && chatStatus === 'connected') || activeTab === 'admin') && (
-            <form 
-              onSubmit={activeTab === 'peer' ? handleSendPeer : handleSendAdmin} 
-              style={{ display: 'flex', padding: '16px 24px', gap: '12px', borderTop: '1px solid #f3f4f6' }}
-            >
-              <input
-                type="text"
-                value={activeTab === 'peer' ? peerInput : adminInput}
-                onChange={e => activeTab === 'peer' ? setPeerInput(e.target.value) : setAdminInput(e.target.value)}
-                placeholder={activeTab === 'peer' ? `Send a supportive message to ${peerPartnerAlias} anonymously...` : "Type your message to staff here..."}
-                style={{ flex: 1, padding: '14px', border: '2px solid #e5e7eb', borderRadius: '12px', fontSize: '14px', outline: 'none' }}
-              />
-              <button
-                type="submit"
-                style={{
-                  padding: '0 24px',
-                  background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontSize: '15px',
-                  fontWeight: 'bold',
-                  cursor: 'pointer'
-                }}
-              >
-                Send 🚀
-              </button>
-            </form>
+            })
           )}
-
+          <div ref={chatEndRef} />
         </div>
-      </div>
 
+        {/* Composer */}
+        {canType && (!isPeer || chatStatus === 'connected') && (
+          <form className="chat-composer" onSubmit={isPeer ? handleSendPeer : handleSendAdmin} style={{ paddingBottom: 16 }}>
+            <input
+              className="chat-input"
+              value={isPeer ? peerInput : adminInput}
+              onChange={e => isPeer ? setPeerInput(e.target.value) : setAdminInput(e.target.value)}
+              placeholder={isPeer ? `Send a supportive message to ${peerPartnerAlias} anonymously…` : 'Type your message to staff here…'}
+            />
+            <button type="submit" className="btn btn-primary btn-icon" disabled={!(isPeer ? peerInput : adminInput).trim()} aria-label="Send"><Icon name="send" size={19} /></button>
+          </form>
+        )}
+      </section>
     </div>
   )
 }

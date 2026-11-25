@@ -2,7 +2,66 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import API_URL from '../config'
-import Navbar from '../components/Navbar'
+import Icon from '../components/ui/Icon'
+import { Horizon, MoodFace, MOOD_LABELS } from '../components/ui/Brand'
+
+const REMINDERS = [
+  "You don't have to be positive all the time. It's perfectly okay to feel sad, angry, or frustrated.",
+  "Your mental health is a priority. Your happiness is an essential. Your self-care is a necessity.",
+  "Take a deep breath. It's just a bad day, not a bad life.",
+  "Be proud of how far you've come, and have faith in how far you can go.",
+  "You are stronger than you think, and you have survived 100% of your worst days so far.",
+  "Slow down. Give yourself permission to pause, breathe, and rest.",
+  "Small steps in the right direction can turn out to be the biggest steps of your life.",
+  "You are enough just as you are. Your worth is not defined by your productivity.",
+  "It is okay to ask for help. Strength is knowing when you need a hand.",
+  "Self-care is not selfish. You cannot pour from an empty cup.",
+  "Healing is not linear. Be patient and kind to yourself as you navigate the ups and downs.",
+  "Every day is a fresh start. Take a moment to appreciate the present.",
+  "Focus on the step in front of you, not the whole staircase.",
+  "Your feelings are valid. You are allowed to feel whatever you are feeling.",
+  "Be gentle with yourself. You are doing the best you can.",
+  "A bad chapter doesn't mean the end of your story. Keep going.",
+  "Believe in yourself and all that you are. There is something inside you that is greater than any obstacle.",
+  "You don't need to control everything. Sometimes you just need to breathe, trust, let go, and see what happens.",
+  "Talk to yourself like you would to someone you love.",
+  "The only way out is through, but you don't have to walk the path alone.",
+  "Difficult roads often lead to beautiful destinations.",
+  "Allow yourself to grow. You are not the same person you were a year ago, or even yesterday.",
+  "Your peace of mind is worth more than any external approval.",
+  "Quiet the voice of self-doubt and listen to the voice of your courage.",
+  "One day at a time. One step at a time. One breath at a time.",
+  "Make time for the things that make your soul happy.",
+  "Your mind is a garden. Your thoughts are the seeds. You can grow flowers, or you can grow weeds.",
+  "You are worthy of love, care, and understanding—especially from yourself.",
+  "Don't compare your behind-the-scenes with everyone else's highlight reel.",
+  "Never underestimate the power of a quiet mind and a grateful heart.",
+  "You are doing a lot better than you give yourself credit for."
+]
+
+const getGameLabel = (code) => {
+  if (code === 'bubbles') return 'Bubble Wrap Popper'
+  if (code === 'memory') return 'Zen Memory Match'
+  if (code === 'gratitude') return 'Gratitude Garden'
+  return ''
+}
+
+const getDailyReminder = () => {
+  const today = new Date()
+  const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000)
+  return REMINDERS[dayOfYear % REMINDERS.length]
+}
+
+const getFormattedDate = () =>
+  new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+
+const getGreeting = () => {
+  const h = new Date().getHours()
+  if (h < 5) return 'Still up'
+  if (h < 12) return 'Good morning'
+  if (h < 17) return 'Good afternoon'
+  return 'Good evening'
+}
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -19,21 +78,20 @@ export default function Dashboard() {
     }
     fetchProfileAndData()
     checkSupportMessages()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navigate])
 
   const fetchProfileAndData = async () => {
     try {
-      // 1. Fetch latest user profile details (includes recommendations, status updates)
+      // Latest profile (includes recommendations & status updates)
       const profileRes = await axios.get(`${API_URL}/api/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setUser(profileRes.data)
-      
-      // Update local storage user details
       localStorage.setItem('user', JSON.stringify(profileRes.data))
     } catch (err) {
       console.error(err)
-      // If deactivated or invalid token, log out
+      // Deactivated account or invalid token → sign out
       handleLogout()
     } finally {
       setLoading(false)
@@ -45,11 +103,8 @@ export default function Dashboard() {
       const res = await axios.get(`${API_URL}/api/messages/admin-support`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      // Find the latest message sent by counselor or admin
       const latestSupportMsg = res.data.slice().reverse().find(msg => msg.sender?.role === 'counsellor' || msg.sender?.role === 'admin')
-      if (latestSupportMsg) {
-        setSupportMessage(latestSupportMsg)
-      }
+      if (latestSupportMsg) setSupportMessage(latestSupportMsg)
     } catch (err) {
       console.error('Error checking support messages:', err)
     }
@@ -61,409 +116,143 @@ export default function Dashboard() {
     navigate('/')
   }
 
-  const name = user ? user.name.split(' ')[0] : 'Student'
-  const isAdmin = user && (user.role === 'admin' || user.role === 'counsellor')
+  const name = user ? user.name.split(' ')[0] : 'there'
   const customRec = user?.customRecommendation
-
-  const getGameLabel = (code) => {
-    if (code === 'bubbles') return 'Bubble Wrap Popper 🫧'
-    if (code === 'memory') return 'Zen Memory Match 🧩'
-    if (code === 'gratitude') return 'Gratitude Garden 🌸'
-    return ''
-  }
-
-  const getDailyReminder = () => {
-    const reminders = [
-      "You don't have to be positive all the time. It's perfectly okay to feel sad, angry, or frustrated.",
-      "Your mental health is a priority. Your happiness is an essential. Your self-care is a necessity.",
-      "Take a deep breath. It's just a bad day, not a bad life.",
-      "Be proud of how far you've come, and have faith in how far you can go.",
-      "You are stronger than you think, and you have survived 100% of your worst days so far.",
-      "Slow down. Give yourself permission to pause, breathe, and rest.",
-      "Small steps in the right direction can turn out to be the biggest steps of your life.",
-      "You are enough just as you are. Your worth is not defined by your productivity.",
-      "It is okay to ask for help. Strength is knowing when you need a hand.",
-      "Self-care is not selfish. You cannot pour from an empty cup.",
-      "Healing is not linear. Be patient and kind to yourself as you navigate the ups and downs.",
-      "Every day is a fresh start. Take a moment to appreciate the present.",
-      "Focus on the step in front of you, not the whole staircase.",
-      "Your feelings are valid. You are allowed to feel whatever you are feeling.",
-      "Be gentle with yourself. You are doing the best you can.",
-      "A bad chapter doesn't mean the end of your story. Keep going.",
-      "Believe in yourself and all that you are. There is something inside you that is greater than any obstacle.",
-      "You don't need to control everything. Sometimes you just need to breathe, trust, let go, and see what happens.",
-      "Talk to yourself like you would to someone you love.",
-      "The only way out is through, but you don't have to walk the path alone.",
-      "Difficult roads often lead to beautiful destinations.",
-      "Allow yourself to grow. You are not the same person you were a year ago, or even yesterday.",
-      "Your peace of mind is worth more than any external approval.",
-      "Quiet the voice of self-doubt and listen to the voice of your courage.",
-      "One day at a time. One step at a time. One breath at a time.",
-      "Make time for the things that make your soul happy.",
-      "Your mind is a garden. Your thoughts are the seeds. You can grow flowers, or you can grow weeds.",
-      "You are worthy of love, care, and understanding—especially from yourself.",
-      "Don't compare your behind-the-scenes with everyone else's highlight reel.",
-      "Never underestimate the power of a quiet mind and a grateful heart.",
-      "You are doing a lot better than you give yourself credit for."
-    ];
-    
-    const today = new Date();
-    const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
-    const index = dayOfYear % reminders.length;
-    return reminders[index];
-  }
-
-  const getFormattedDate = () => {
-    return new Date().toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  }
-
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e2e8f0' }}>
-        <h3 style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 600 }}>Loading MindSpace Glass Dashboard...</h3>
+      <div className="page">
+        <div className="skeleton" style={{ height: 260, borderRadius: 30 }} />
+        <div className="grid grid-3 mt-24">
+          <div className="skeleton" style={{ height: 180 }} /><div className="skeleton" style={{ height: 180 }} /><div className="skeleton" style={{ height: 180 }} />
+        </div>
       </div>
     )
   }
 
   return (
-    <div style={{ minHeight: '100vh', paddingBottom: '60px', position: 'relative' }}>
-      
-      {/* Navbar */}
-      <Navbar />
+    <div className="page">
+      {/* Urgent message from staff */}
+      {supportMessage && (
+        <button
+          className="notice notice-danger rise"
+          onClick={() => navigate('/anonymous-chat', { state: { defaultTab: 'admin' } })}
+        >
+          <span className="tile tile-danger"><Icon name="message" size={22} /></span>
+          <span className="notice-body">
+            <span className="chip chip-danger" style={{ marginBottom: 8 }}>Message from your counselor</span>
+            <strong>Your counselor started a private support session</strong>
+            <span className="notice-quote">&ldquo;{supportMessage.text}&rdquo;</span>
+          </span>
+          <span className="btn btn-danger btn-sm">Reply now <Icon name="arrowRight" size={16} /></span>
+        </button>
+      )}
 
-      <div style={{ padding: '36px 24px', maxWidth: '1320px', width: '100%', margin: '0 auto', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        
-        {/* Urgent Support Message Banner */}
-        {supportMessage && (
-          <div 
-            onClick={() => navigate('/anonymous-chat', { state: { defaultTab: 'admin' } })}
-            style={{ 
-              background: 'rgba(239, 68, 68, 0.15)', 
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              border: '1px solid rgba(239, 68, 68, 0.4)', 
-              borderLeft: '6px solid #ef4444', 
-              borderRadius: '24px', 
-              padding: '24px 28px', 
-              marginBottom: '32px', 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center', 
-              cursor: 'pointer',
-              boxShadow: '0 8px 32px rgba(239, 68, 68, 0.2)',
-              transition: 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-              flexWrap: 'wrap',
-              gap: '16px',
-              width: '100%',
-              boxSizing: 'border-box'
-            }}
-            onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-            onMouseLeave={e => e.currentTarget.style.transform = 'translateY(0)'}
-          >
-            <div style={{ flex: '1 1 300px' }}>
-              <span style={{ fontSize: '11px', background: '#ef4444', color: 'white', padding: '3px 10px', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Urgent Advisor Message</span>
-              <h4 style={{ margin: '10px 0 6px', color: 'var(--urgent-title, #fca5a5)', fontSize: '17px', fontWeight: 'bold' }}>Your counselor initiated a private live support session:</h4>
-              <p style={{ margin: 0, fontSize: '15px', color: 'var(--urgent-text, #fecaca)', fontStyle: 'italic', fontWeight: '500' }}>
-                "{supportMessage.text}"
-              </p>
-            </div>
-            <button 
-              style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 14px rgba(239, 68, 68, 0.35)' }}
-            >
-              Reply Immediately 💬
+      {/* Counselor recommendation */}
+      {customRec && (customRec.game || customRec.activity) && (
+        <div className="notice notice-primary rise">
+          <span className="tile"><Icon name="heart" size={22} /></span>
+          <span className="notice-body">
+            <span className="chip chip-primary" style={{ marginBottom: 8 }}>Suggested by your counselor</span>
+            <strong>A relaxation exercise, picked for you</strong>
+            <span className="notice-quote">&ldquo;{customRec.activity || 'Take some time out to pop bubbles and calm your thoughts.'}&rdquo;</span>
+            {customRec.game && <span className="small muted" style={{ marginTop: 6 }}>Recommended game: <strong style={{ color: 'var(--ink)' }}>{getGameLabel(customRec.game)}</strong></span>}
+          </span>
+          {customRec.game && (
+            <button className="btn btn-primary btn-sm" onClick={() => navigate('/mood')}>
+              <Icon name="play" size={15} /> Play now
             </button>
-          </div>
-        )}
+          )}
+        </div>
+      )}
 
-        {/* Custom Admin Recommendation Banner */}
-        {customRec && (customRec.game || customRec.activity) && (
-          <div style={{ 
-            background: 'var(--rec-bg, rgba(99, 102, 241, 0.15))', 
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid rgba(129, 140, 248, 0.35)', 
-            borderLeft: '6px solid #6366f1', 
-            borderRadius: '24px', 
-            padding: '24px 28px', 
-            marginBottom: '32px', 
-            display: 'flex', 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            flexWrap: 'wrap', 
-            gap: '16px',
-            boxShadow: '0 8px 32px rgba(99, 102, 241, 0.2)',
-            width: '100%',
-            boxSizing: 'border-box' 
-          }}>
-            <div style={{ flex: '1 1 300px' }}>
-              <span style={{ fontSize: '11px', background: '#6366f1', color: 'white', padding: '3px 10px', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase' }}>Advisor Custom Suggestion</span>
-              <h4 style={{ margin: '10px 0 6px', color: 'var(--rec-title, #e0e7ff)', fontSize: '16.5px', fontWeight: 'bold' }}>Your counselor recommended a relaxation exercise:</h4>
-              <p style={{ margin: 0, fontSize: '14.5px', color: 'var(--rec-text, #c7d2fe)', fontStyle: 'italic', fontWeight: '500' }}>
-                "{customRec.activity || 'Take some time out to pop bubbles and calm your thoughts.'}"
-              </p>
-              {customRec.game && (
-                <div style={{ marginTop: '10px', fontSize: '13.5px', color: 'var(--rec-text, #a5b4fc)' }}>
-                  Recommended Game: <strong>{getGameLabel(customRec.game)}</strong>
-                </div>
-              )}
-            </div>
-            {customRec.game && (
-              <button 
-                onClick={() => navigate('/mood')}
-                style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #6366f1, #4f46e5)', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 14px rgba(99, 102, 241, 0.3)' }}
-              >
-                Play Game 🌸
+      {/* Hero */}
+      <section className="hero rise rise-1">
+        <div className="hero-art"><Horizon /></div>
+        <div className="hero-body">
+          <span className="eyebrow">{getFormattedDate()}</span>
+          <h1 className="h-display">{getGreeting()},<br />{name}.</h1>
+          <p className="lead">How are you feeling right now? A quick check-in helps you notice what&rsquo;s going on.</p>
+
+          <div className="hero-moods" role="group" aria-label="Quick mood check-in">
+            {[5, 4, 3, 2, 1].map(v => (
+              <button key={v} className="hero-mood" onClick={() => navigate('/mood')} aria-label={MOOD_LABELS[v]}>
+                <MoodFace value={v} size={46} />
+                <span>{MOOD_LABELS[v]}</span>
               </button>
-            )}
+            ))}
           </div>
-        )}
-
-        {/* Hero Welcome Header - Centered */}
-        <div style={{ marginBottom: '36px', textAlign: 'center', width: '100%' }}>
-          <h2 style={{ 
-            fontSize: 'clamp(28px, 4vw, 42px)', 
-            fontWeight: '800', 
-            margin: '0 0 10px 0',
-            background: 'linear-gradient(135deg, var(--text-h, #ffffff) 0%, #c084fc 50%, #60a5fa 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            filter: 'drop-shadow(0 2px 10px rgba(192, 132, 252, 0.25))'
-          }}>
-            Welcome back, {name} 👋
-          </h2>
-          <p style={{ color: 'var(--text-muted, #94a3b8)', fontSize: 'clamp(15px, 2vw, 18px)', margin: '0 auto', maxWidth: '650px', lineHeight: '1.6' }}>
-            How are you feeling today? Check out the tools below for support.
-          </p>
         </div>
+      </section>
 
-        {/* Glassmorphism Action Cards Grid - Centered Elements */}
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', 
-          gap: '24px', 
-          marginBottom: '36px',
-          width: '100%',
-          alignItems: 'stretch' 
-        }}>
-          
-          {/* Card 1: Mood Tracker */}
-          <div 
-            onClick={() => navigate('/mood')} 
-            className="glass-card"
-            style={{ 
-              background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.25), rgba(126, 34, 206, 0.35))', 
-              padding: '32px 24px', 
-              cursor: 'pointer',
-              position: 'relative',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              height: '100%',
-              minHeight: '230px',
-              borderRadius: '24px',
-              boxSizing: 'border-box'
-            }}
-          >
-            <div style={{ 
-              width: '64px', 
-              height: '64px', 
-              borderRadius: '20px', 
-              background: 'rgba(168, 85, 247, 0.3)', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              fontSize: '34px', 
-              marginBottom: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              boxShadow: '0 4px 16px rgba(168, 85, 247, 0.3)'
-            }}>
-              😊
-            </div>
-            <h3 style={{ margin: '0 0 10px 0', fontSize: '21px', color: 'var(--text-h, #ffffff)', fontWeight: '700' }}>
-              Mood Tracker
-            </h3>
-            <p style={{ margin: 0, color: 'var(--card-desc-1, #e9d5ff)', fontSize: '14.5px', lineHeight: '1.55', fontWeight: '500', maxWidth: '240px' }}>
-              Track your daily emotions and play relaxation games
-            </p>
-          </div>
-
-          {/* Card 2: Book Session */}
-          <div 
-            onClick={() => navigate('/booking')} 
-            className="glass-card"
-            style={{ 
-              background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.25), rgba(219, 39, 119, 0.35))', 
-              padding: '32px 24px', 
-              cursor: 'pointer',
-              position: 'relative',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              height: '100%',
-              minHeight: '230px',
-              borderRadius: '24px',
-              boxSizing: 'border-box'
-            }}
-          >
-            <div style={{ 
-              width: '64px', 
-              height: '64px', 
-              borderRadius: '20px', 
-              background: 'rgba(244, 114, 182, 0.3)', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              fontSize: '34px', 
-              marginBottom: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              boxShadow: '0 4px 16px rgba(244, 114, 182, 0.3)'
-            }}>
-              📅
-            </div>
-            <h3 style={{ margin: '0 0 10px 0', fontSize: '21px', color: 'var(--text-h, #ffffff)', fontWeight: '700' }}>
-              Book Session
-            </h3>
-            <p style={{ margin: 0, color: 'var(--card-desc-2, #fbcfe8)', fontSize: '14.5px', lineHeight: '1.55', fontWeight: '500', maxWidth: '240px' }}>
-              Schedule a private counselling session
-            </p>
-          </div>
-
-          {/* Card 3: AI Chatbot Aura */}
-          <div 
-            onClick={() => navigate('/chat')} 
-            className="glass-card"
-            style={{ 
-              background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(2, 132, 199, 0.35))', 
-              padding: '32px 24px', 
-              cursor: 'pointer',
-              position: 'relative',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              height: '100%',
-              minHeight: '230px',
-              borderRadius: '24px',
-              boxSizing: 'border-box'
-            }}
-          >
-            <div style={{ 
-              width: '64px', 
-              height: '64px', 
-              borderRadius: '20px', 
-              background: 'rgba(56, 189, 248, 0.3)', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              fontSize: '34px', 
-              marginBottom: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              boxShadow: '0 4px 16px rgba(56, 189, 248, 0.3)'
-            }}>
-              💬
-            </div>
-            <h3 style={{ margin: '0 0 10px 0', fontSize: '21px', color: 'var(--text-h, #ffffff)', fontWeight: '700' }}>
-              AI Chatbot Aura
-            </h3>
-            <p style={{ margin: 0, color: 'var(--card-desc-3, #bae6fd)', fontSize: '14.5px', lineHeight: '1.55', fontWeight: '500', maxWidth: '240px' }}>
-              Talk to our empathetic AI assistant 24/7
-            </p>
-          </div>
-
-          {/* Card 4: Resources & Breath */}
-          <div 
-            onClick={() => navigate('/resources')} 
-            className="glass-card"
-            style={{ 
-              background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.25), rgba(22, 163, 74, 0.35))', 
-              padding: '32px 24px', 
-              cursor: 'pointer',
-              position: 'relative',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              textAlign: 'center',
-              height: '100%',
-              minHeight: '230px',
-              borderRadius: '24px',
-              boxSizing: 'border-box'
-            }}
-          >
-            <div style={{ 
-              width: '64px', 
-              height: '64px', 
-              borderRadius: '20px', 
-              background: 'rgba(74, 222, 128, 0.3)', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              fontSize: '34px', 
-              marginBottom: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              boxShadow: '0 4px 16px rgba(74, 222, 128, 0.3)'
-            }}>
-              📚
-            </div>
-            <h3 style={{ margin: '0 0 10px 0', fontSize: '21px', color: 'var(--text-h, #ffffff)', fontWeight: '700' }}>
-              Resources & Breath
-            </h3>
-            <p style={{ margin: 0, color: 'var(--card-desc-4, #bbf7d0)', fontSize: '14.5px', lineHeight: '1.55', fontWeight: '500', maxWidth: '240px' }}>
-              Mental health articles & breathing guide
-            </p>
-          </div>
-
-        </div>
-
-        {/* Glass Daily Reminder Quote Box - Centered */}
-        <div className="glass-container" style={{ 
-          padding: '32px 36px', 
-          borderTop: '4px solid #c084fc', 
-          borderLeft: '1px solid var(--glass-border, rgba(255, 255, 255, 0.18))',
-          position: 'relative',
-          overflow: 'hidden',
-          borderRadius: '24px',
-          textAlign: 'center',
-          width: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxSizing: 'border-box'
-        }}>
-          <div style={{ fontSize: '24px', marginBottom: '8px', opacity: 0.85 }}>✨</div>
-          <p style={{ 
-            color: 'var(--text, #f1f5f9)', 
-            fontStyle: 'italic', 
-            fontSize: 'clamp(15.5px, 2vw, 18.5px)', 
-            lineHeight: '1.65', 
-            margin: '0 0 12px 0',
-            fontWeight: '600',
-            maxWidth: '850px' 
-          }}>
-            "{getDailyReminder()}"
-          </p>
-          <p style={{ color: 'var(--text-muted, #94a3b8)', margin: 0, fontSize: '14px', fontWeight: '600', letterSpacing: '0.4px' }}>
-            — Daily Reminder — {getFormattedDate()}
-          </p>
-        </div>
-
+      {/* Toolkit */}
+      <div className="row-between mt-32 mb-16 rise rise-2">
+        <h2 className="h-section">Your toolkit</h2>
       </div>
+
+      <div className="bento rise rise-3">
+        <button className="card card-interactive bento-card b-7" onClick={() => navigate('/mood')}>
+          <div className="row-between">
+            <span className="tile tile-lg tile-sun"><Icon name="smile" size={26} /></span>
+            <span className="go"><Icon name="arrowRight" size={18} /></span>
+          </div>
+          <h3 className="card-title serif">Mood Tracker</h3>
+          <p className="card-sub">Track your daily emotions, see your patterns and unwind with relaxation games.</p>
+          <div className="bento-visual">
+            {[5, 4, 3, 2, 1].map(v => <MoodFace key={v} value={v} size={34} muted={v !== 4} />)}
+          </div>
+        </button>
+
+        <button className="card card-interactive bento-card b-5 bento-aura" onClick={() => navigate('/chat')}>
+          <div className="row-between">
+            <span className="tile tile-lg tile-dusk"><Icon name="feather" size={26} /></span>
+            <span className="go"><Icon name="arrowRight" size={18} /></span>
+          </div>
+          <h3 className="card-title serif">Talk to Aura</h3>
+          <p className="card-sub">An empathetic AI companion, available 24/7, in English and Sinhala.</p>
+          <div className="bento-visual col gap-8" style={{ alignItems: 'flex-start' }}>
+            <span className="bubble">I&rsquo;m here whenever you want to talk.</span>
+            <span className="bubble bubble-typing"><i /><i /><i /></span>
+          </div>
+        </button>
+
+        <button className="card card-interactive bento-card b-4" onClick={() => navigate('/booking')}>
+          <div className="row-between">
+            <span className="tile tile-lg tile-rose"><Icon name="calendar" size={26} /></span>
+            <span className="go"><Icon name="arrowRight" size={18} /></span>
+          </div>
+          <h3 className="card-title serif">Book a session</h3>
+          <p className="card-sub">Schedule a private counselling session with a professional.</p>
+        </button>
+
+        <button className="card card-interactive bento-card b-4" onClick={() => navigate('/resources')}>
+          <div className="row-between">
+            <span className="tile tile-lg tile-success"><Icon name="wind" size={26} /></span>
+            <span className="go"><Icon name="arrowRight" size={18} /></span>
+          </div>
+          <h3 className="card-title serif">Resources &amp; breathing</h3>
+          <p className="card-sub">Helpful articles and a guided breathing coach for calmer moments.</p>
+        </button>
+
+        <button className="card card-interactive bento-card b-4" onClick={() => navigate('/anonymous-chat')}>
+          <div className="row-between">
+            <span className="tile tile-lg tile-sky"><Icon name="users" size={26} /></span>
+            <span className="go"><Icon name="arrowRight" size={18} /></span>
+          </div>
+          <h3 className="card-title serif">Peer support</h3>
+          <p className="card-sub">Chat anonymously with a supportive peer, or reach our staff.</p>
+        </button>
+      </div>
+
+      {/* Daily reminder */}
+      <section className="reminder rise rise-4">
+        <Icon name="sunrise" size={26} />
+        <blockquote>{getDailyReminder()}</blockquote>
+        <cite>Today&rsquo;s reminder</cite>
+        <button className="btn btn-soft btn-sm" onClick={() => navigate('/resources')}>
+          <Icon name="wind" size={16} /> Take a mindful breath
+        </button>
+      </section>
     </div>
   )
 }

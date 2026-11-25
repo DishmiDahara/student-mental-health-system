@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
+import AppShell from './components/AppShell'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import MoodTracker from './pages/MoodTracker'
@@ -15,16 +16,22 @@ function App() {
     <ThemeProvider>
       <BrowserRouter>
         <Routes>
+          {/* Public entry */}
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/mood" element={<MoodTracker />} />
-          <Route path="/booking" element={<Booking />} />
-          <Route path="/resources" element={<Resources />} />
-          <Route path="/chat" element={<AIChatbot />} />
-          <Route path="/anonymous-chat" element={<AnonymousChat />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/apply-counselor" element={<ApplyCounselor />} />
+
+          {/* Signed-in area — shares the MindSpace shell (rail / tab bar) */}
+          <Route element={<AppShell />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/mood" element={<MoodTracker />} />
+            <Route path="/booking" element={<Booking />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/chat" element={<AIChatbot />} />
+            <Route path="/anonymous-chat" element={<AnonymousChat />} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/apply-counselor" element={<ApplyCounselor />} />
+          </Route>
+
           <Route path="*" element={<Login />} />
         </Routes>
       </BrowserRouter>

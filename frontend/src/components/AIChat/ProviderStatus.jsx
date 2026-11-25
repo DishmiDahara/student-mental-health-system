@@ -1,35 +1,16 @@
-import React from 'react'
+import Icon from '../ui/Icon'
 
-export const ProviderStatus = ({ provider = 'gemini', darkMode }) => {
-  const getLabel = () => {
-    switch (provider?.toLowerCase()) {
-      case 'gemini':
-        return '✨ Powered by Gemini AI'
-      case 'openrouter':
-        return '🌐 Powered by OpenRouter'
-      case 'free_fallback':
-        return '🌿 MindSpace Offline AI'
-      case 'crisis_escaper':
-        return '🚨 Emergency Safety Guidance'
-      default:
-        return '🤖 MindSpace Assistant'
-    }
+export const ProviderStatus = ({ provider = 'gemini' }) => {
+  const map = {
+    gemini: ['Powered by Gemini AI', 'chip-dusk', 'zap'],
+    openrouter: ['Powered by OpenRouter', 'chip-sky', 'globe'],
+    free_fallback: ['MindSpace offline guide', 'chip-success', 'feather'],
+    crisis_escaper: ['Safety guidance', 'chip-danger', 'shield']
   }
-
+  const [label, tone, icon] = map[provider?.toLowerCase()] || ['MindSpace assistant', 'chip-primary', 'feather']
   return (
-    <div style={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '4px',
-      fontSize: '10.5px',
-      fontWeight: '600',
-      padding: '2px 8px',
-      borderRadius: '12px',
-      background: darkMode ? 'rgba(99, 102, 241, 0.2)' : '#e0e7ff',
-      color: darkMode ? '#818cf8' : '#4338ca',
-      letterSpacing: '0.2px'
-    }}>
-      {getLabel()}
-    </div>
+    <span className={`chip ${tone}`} style={{ padding: '3px 10px', fontSize: 11.5 }}>
+      <Icon name={icon} size={12} /> {label}
+    </span>
   )
 }

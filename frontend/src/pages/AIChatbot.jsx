@@ -1,13 +1,19 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import axios from 'axios'
-import Navbar from '../components/Navbar'
+import Icon from '../components/ui/Icon'
+import { Orb } from '../components/ui/Brand'
 import { API_BASE_URL } from '../config'
 import { MarkdownRenderer } from '../components/AIChat/MarkdownRenderer'
 import { ProviderStatus } from '../components/AIChat/ProviderStatus'
-import { useTheme } from '../context/ThemeContext'
+
+const CRISIS_HELPLINES = [
+  { name: 'National Mental Health Helpline', number: '1926', note: '24/7 Toll-Free (NIMH Sri Lanka)', tel: '1926' },
+  { name: 'Suwa Seriya Emergency Ambulance', number: '1990', note: '24/7 Free Pre-Hospital Emergency Care', tel: '1990' },
+  { name: 'CCCline Emotional Support', number: '1333', note: '24/7 Free Crisis Counseling Hotline', tel: '1333' },
+  { name: 'Sumithrayo Suicide Prevention', number: '011 269 6666', note: 'Daily 9:00 AM – 8:00 PM', tel: '+94112696666' }
+]
 
 export default function AIChatbot() {
-  const { isDark } = useTheme()
   const [lang, setLang] = useState('en') // 'en' or 'si'
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
@@ -17,7 +23,8 @@ export default function AIChatbot() {
   const [conversationId, setConversationId] = useState(null)
   const [showClearConfirm, setShowClearConfirm] = useState(false)
   const [showPrivacyNotice, setShowPrivacyNotice] = useState(true)
-  const [speakingIndex, setSpeakingIndex] = useState(null)
+  const [showHelplineModal, setShowHelplineModal] = useState(false)
+  const [speakingId, setSpeakingId] = useState(null)
   const chatEndRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -114,9 +121,12 @@ export default function AIChatbot() {
       setMessages(prev => [...prev, aiMsgObj])
     } catch (err) {
       console.error('[AIChatbot] Send message error:', err)
+      const errorMsg = err.response?.data?.reply ||
+        "I'm having a little trouble connecting to my AI service right now. Please take a gentle breath and try sending your message again."
+
       const errorMsgObj = {
         id: `err_${Date.now()}`,
-        text: err.response?.data?.reply || "I'm having a little trouble connecting right now. Please take a gentle breath and try sending your message again in a moment.",
+        text: errorMsg,
         isUser: false,
         provider: 'gemini',
         isError: true,
@@ -134,15 +144,8 @@ export default function AIChatbot() {
     handleSendMessage()
   }
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
-    }
-  }
-
-  // Confirm and Clear Chat History
-  const handleConfirmClearHistory = async () => {
+  // Clear chat history permanently from DB and state
+  const handleConfirmClear = async () => {
     setShowClearConfirm(false)
     const token = localStorage.getItem('token')
 
@@ -173,7 +176,7 @@ export default function AIChatbot() {
   // Voice Input (SpeechRecognition)
   const toggleSpeechRecognition = () => {
     if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-      alert('Speech recognition is not supported in this browser. Please use Chrome or Edge.')
+      alert('Speech recognition is not supported in this browser. Please use Google Chrome or Edge.')
       return
     }
 
@@ -202,12 +205,12 @@ export default function AIChatbot() {
   }
 
   // Text-To-Speech with toggle
-  const toggleSpeakText = (text, index) => {
+  const toggleSpeakText = (text, id) => {
     if (!('speechSynthesis' in window)) return
 
-    if (speakingIndex === index) {
+    if (speakingId === id) {
       window.speechSynthesis.cancel()
-      setSpeakingIndex(null)
+      setSpeakingId(null)
       return
     }
 
@@ -215,780 +218,274 @@ export default function AIChatbot() {
     const clean = text.replace(/[*#_`]/g, '').replace(/https?:\/\/\S+/g, '')
     const utterance = new SpeechSynthesisUtterance(clean)
     utterance.lang = lang === 'si' ? 'si-LK' : 'en-US'
-    utterance.onend = () => setSpeakingIndex(null)
-    utterance.onerror = () => setSpeakingIndex(null)
-    setSpeakingIndex(index)
+    utterance.onend = () => setSpeakingId(null)
+    utterance.onerror = () => setSpeakingId(null)
+    setSpeakingId(id)
     window.speechSynthesis.speak(utterance)
   }
 
-  // Verified crisis hotline click-to-dial trigger
-  const handleDial = (telUrl) => {
-    window.location.href = telUrl
-  }
-
-  // UI Theme tokens
-  const colors = {
-    pageBg: isDark ? '#090d16' : '#f8fafc',
-    cardBg: isDark ? '#0f172a' : '#ffffff',
-    cardBorder: isDark ? 'rgba(255, 255, 255, 0.1)' : '#e2e8f0',
-    chatBg: isDark ? '#0a0f1d' : '#f8fafc',
-    aiMsgBg: isDark ? '#1e293b' : '#ffffff',
-    aiMsgBorder: isDark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
-    aiMsgText: isDark ? '#f1f5f9' : '#1e293b',
-    userMsgBg: 'linear-gradient(135deg, #4f46e5, #6366f1)',
-    userMsgText: '#ffffff',
-    inputBg: isDark ? '#1e293b' : '#ffffff',
-    inputBorder: isDark ? 'rgba(255, 255, 255, 0.15)' : '#cbd5e1',
-    inputText: isDark ? '#f8fafc' : '#0f172a',
-    metaText: isDark ? '#94a3b8' : '#64748b',
-    chipBg: isDark ? '#1e293b' : '#ffffff',
-    chipBorder: isDark ? 'rgba(255, 255, 255, 0.12)' : '#cbd5e1',
-    chipText: isDark ? '#cbd5e1' : '#475569',
-    chipHover: isDark ? '#334155' : '#f1f5f9'
-  }
+  const prompts = lang === 'en'
+    ? [
+        { label: '📚 Exam Stress', text: "I'm feeling really stressed about upcoming exams and deadlines." },
+        { label: '🌬️ 4-7-8 Breathing', text: "Can you guide me through a calming 4-7-8 breathing exercise?" },
+        { label: '💭 Racing Mind', text: "My mind is racing and I can't seem to unwind right now." },
+        { label: '🌊 Overwhelmed', text: "I feel overwhelmed and could use a gentle grounding exercise." }
+      ]
+    : [
+        { label: '📚 විභාග ආතතිය', text: "විභාග පීඩනය නිසා මට ලොකු ආතතියක් දැනෙනවා." },
+        { label: '🌬️ හුස්ම ගැනීමේ අභ්‍යාස', text: "සිත සන්සුන් කරගන්න හුස්ම ගැනීමේ ව්‍යායාමයක් මට කියාදෙන්න." },
+        { label: '🌙 නින්ද නොයාම', text: "මට නින්ද යන්නේ නැහැ, මනස කලබලයි." },
+        { label: '💭 සිත සන්සුන් කිරීම', text: "මගේ සිතේ පීඩනය අඩු කරගන්න උපදෙසක් දෙන්න." }
+      ]
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: colors.pageBg, color: colors.inputText, transition: 'background-color 0.25s ease' }}>
-      
-      {/* Top Navigation */}
-      <Navbar />
-
-      {/* Main Container */}
-      <main style={{ flex: 1, display: 'flex', justifyContent: 'center', padding: '16px', boxSizing: 'border-box' }}>
-        <div style={{
-          background: colors.cardBg,
-          borderRadius: '24px',
-          maxWidth: '1050px',
-          width: '100%',
-          boxShadow: isDark ? '0 12px 40px rgba(0,0,0,0.5)' : '0 8px 32px rgba(0,0,0,0.06)',
-          border: `1px solid ${colors.cardBorder}`,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
-          height: 'calc(100vh - 110px)',
-          minHeight: '560px'
-        }}>
-
-          {/* Header Banner */}
-          <header style={{
-            background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
-            padding: '16px 22px',
-            color: 'white',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: '12px'
-          }}>
-            {/* Title & Badge */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                fontSize: '26px',
-                background: 'rgba(255,255,255,0.2)',
-                width: '48px',
-                height: '48px',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-              }}>
-                🧠
+    <div className="chat-page">
+      <section className="chat-card">
+        {/* Header */}
+        <header className="chat-head">
+          <div className="row grow" style={{ minWidth: 0, gap: 14 }}>
+            <div className="chat-avatar">
+              <Orb size={54} scale={1}>
+                <Icon name="feather" size={20} />
+              </Orb>
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div className="row gap-8" style={{ alignItems: 'baseline' }}>
+                <h1 className="serif" style={{ fontSize: 22, margin: 0 }}>Aura</h1>
+                <span className="small muted">· Wellbeing Companion</span>
               </div>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <h1 style={{ color: 'white', fontSize: '19px', margin: 0, fontWeight: '800' }}>Aura</h1>
-                  <ProviderStatus provider={activeProvider} darkMode={true} />
-                </div>
-                <p style={{ margin: 0, fontSize: '12px', opacity: 0.92, fontWeight: '500' }}>
-                  MindSpace AI Wellbeing Companion · Sinhala, English & Singlish
-                </p>
+              <div className="row gap-8 small muted" style={{ flexWrap: 'wrap', marginTop: 3 }}>
+                <span className="row gap-4">
+                  <span className="dot" style={{ color: 'var(--success)', width: 7, height: 7 }} />
+                  Online · private
+                </span>
+                <ProviderStatus provider={activeProvider} />
               </div>
             </div>
+          </div>
 
-            {/* Top Controls */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {/* Clear Chat Button */}
-              <button
-                type="button"
-                onClick={() => setShowClearConfirm(true)}
-                title="Clear conversation history"
-                aria-label="Clear chat history"
-                style={{
-                  background: 'rgba(255,255,255,0.18)',
-                  border: '1px solid rgba(255,255,255,0.25)',
-                  borderRadius: '10px',
-                  color: 'white',
-                  padding: '7px 12px',
-                  fontSize: '12px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  transition: 'background 0.2s'
-                }}
-              >
-                🗑️ {lang === 'en' ? 'Clear Chat' : 'මකන්න'}
-              </button>
-
-              {/* Language Switcher */}
-              <div style={{ display: 'flex', background: 'rgba(255,255,255,0.18)', borderRadius: '10px', padding: '3px' }}>
-                <button
-                  type="button"
-                  onClick={() => setLang('en')}
-                  aria-pressed={lang === 'en'}
-                  style={{
-                    padding: '5px 12px',
-                    background: lang === 'en' ? 'white' : 'transparent',
-                    color: lang === 'en' ? '#4f46e5' : 'white',
-                    border: 'none',
-                    borderRadius: '7px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  English
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLang('si')}
-                  aria-pressed={lang === 'si'}
-                  style={{
-                    padding: '5px 12px',
-                    background: lang === 'si' ? 'white' : 'transparent',
-                    color: lang === 'si' ? '#4f46e5' : 'white',
-                    border: 'none',
-                    borderRadius: '7px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  සිංහල
-                </button>
-              </div>
-            </div>
-          </header>
-
-          {/* Responsible Mental Health Boundary Banner */}
-          <aside aria-label="Crisis disclaimer" style={{
-            background: isDark ? 'rgba(30, 41, 59, 0.7)' : '#f1f5f9',
-            borderBottom: `1px solid ${colors.cardBorder}`,
-            padding: '8px 18px',
-            fontSize: '11.5px',
-            color: colors.metaText,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '8px',
-            flexWrap: 'wrap'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>🛡️</span>
-              <span>
-                <strong>General Wellbeing Companion:</strong> Aura is an AI supportive listener, not a therapist or doctor. In immediate crisis, dial <strong>1926</strong> (NIMH) or <strong>1990</strong> (Ambulance).
-              </span>
-            </div>
+          <div className="row gap-8">
             <button
-              type="button"
-              onClick={() => handleSendMessage(lang === 'en' ? "I need emergency crisis support contacts." : "මට හදිසි උපකාරක සේවා අංක ලබාදෙන්න.")}
-              style={{
-                background: '#fee2e2',
-                color: '#b91c1c',
-                border: '1px solid #fca5a5',
-                borderRadius: '8px',
-                padding: '3px 9px',
-                fontSize: '11px',
-                fontWeight: '700',
-                cursor: 'pointer'
-              }}
+              className="btn btn-soft btn-sm"
+              onClick={() => setShowHelplineModal(true)}
+              style={{ color: 'var(--danger-fill)', borderColor: 'var(--danger-soft)' }}
+              title="Emergency Helplines"
             >
-              🚨 Helplines
+              <Icon name="alert" size={14} /> Helplines
             </button>
-          </aside>
 
-          {/* Privacy Notice Banner */}
-          {showPrivacyNotice && (
-            <div style={{
-              background: isDark ? 'rgba(59, 130, 246, 0.12)' : '#eff6ff',
-              borderBottom: `1px solid ${isDark ? 'rgba(59, 130, 246, 0.25)' : '#bfdbfe'}`,
-              padding: '8px 18px',
-              fontSize: '11.5px',
-              color: isDark ? '#93c5fd' : '#1e40af',
+            <div className="seg" role="group" aria-label="Language selection">
+              <button
+                className={`seg-btn ${lang === 'en' ? 'is-active' : ''}`}
+                onClick={() => setLang('en')}
+                style={{ minHeight: 34, padding: '0 12px' }}
+              >
+                EN
+              </button>
+              <button
+                className={`seg-btn ${lang === 'si' ? 'is-active' : ''}`}
+                onClick={() => setLang('si')}
+                style={{ minHeight: 34, padding: '0 12px' }}
+              >
+                සිං
+              </button>
+            </div>
+
+            <button
+              className="icon-btn"
+              onClick={() => setShowClearConfirm(true)}
+              title="Clear chat history"
+              aria-label="Clear chat history"
+            >
+              <Icon name="trash" size={18} />
+            </button>
+          </div>
+        </header>
+
+        {/* Privacy Notice Banner */}
+        {showPrivacyNotice && (
+          <div
+            className="notice notice-primary"
+            style={{
+              margin: '12px 20px 0',
+              padding: '10px 16px',
+              borderRadius: 'var(--r-card)',
+              fontSize: '12.5px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              gap: '10px'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>🔒</span>
-                <span>
-                  <strong>Privacy Notice:</strong> Messages are processed by Google Gemini AI. MindSpace securely stores your chat history for continuity. We never transmit your private mood logs or profile details to Gemini.
-                </span>
+              gap: '12px'
+            }}
+          >
+            <div className="row gap-8" style={{ minWidth: 0 }}>
+              <Icon name="shield" size={16} />
+              <span>
+                <strong>Privacy Notice:</strong> Messages are securely processed by Google Gemini. MindSpace stores chat history strictly for your account continuity without sending personal mood logs or sleep profiles.
+              </span>
+            </div>
+            <button
+              onClick={() => setShowPrivacyNotice(false)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-3)', padding: 4 }}
+              aria-label="Dismiss privacy notice"
+            >
+              <Icon name="x" size={15} />
+            </button>
+          </div>
+        )}
+
+        {/* Chat Messages */}
+        <div className="chat-scroll">
+          {messages.map((msg, index) => (
+            <div
+              key={msg.id || index}
+              className={`msg ${msg.isUser ? 'msg-user' : 'msg-ai'} ${msg.isCrisis ? 'msg-crisis' : ''}`}
+            >
+              {msg.isCrisis && (
+                <div className="row gap-8 small strong" style={{ marginBottom: 8, color: 'var(--danger-ink)' }}>
+                  <Icon name="alert" size={16} /> Support is available right now. You are never alone.
+                </div>
+              )}
+
+              {msg.isUser ? (
+                <div style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</div>
+              ) : (
+                <>
+                  <MarkdownRenderer content={msg.text} />
+                  <div className="msg-actions">
+                    <button
+                      type="button"
+                      onClick={() => toggleSpeakText(msg.text, msg.id || index)}
+                      style={{ color: speakingId === (msg.id || index) ? 'var(--danger)' : 'var(--primary)' }}
+                    >
+                      <Icon name="volume" size={14} />
+                      {speakingId === (msg.id || index) ? 'Stop audio' : 'Read aloud'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+
+          {loading && (
+            <div className="msg msg-ai" aria-label="Aura is thinking">
+              <div className="bubble-typing" style={{ display: 'inline-flex', gap: 5 }}>
+                <i /><i /><i />
               </div>
-              <button
-                type="button"
-                onClick={() => setShowPrivacyNotice(false)}
-                title="Dismiss privacy notice"
-                aria-label="Dismiss privacy notice"
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: isDark ? '#93c5fd' : '#1e40af',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  fontSize: '13px'
-                }}
-              >
-                ✕
-              </button>
             </div>
           )}
-
-          {/* Messages Area */}
-          <div
-            role="log"
-            aria-live="polite"
-            aria-label="Conversation messages"
-            style={{
-              flex: 1,
-              padding: '20px 22px',
-              overflowY: 'auto',
-              background: colors.chatBg,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '14px'
-            }}
-          >
-            {messages.map((msg, index) => (
-              <div
-                key={msg.id || index}
-                style={{
-                  alignSelf: msg.isUser ? 'flex-end' : 'flex-start',
-                  maxWidth: '84%',
-                  background: msg.isUser
-                    ? colors.userMsgBg
-                    : msg.isCrisis
-                      ? (isDark ? '#3b1212' : '#fef2f2')
-                      : colors.aiMsgBg,
-                  color: msg.isUser
-                    ? colors.userMsgText
-                    : msg.isCrisis
-                      ? (isDark ? '#fecaca' : '#991b1b')
-                      : colors.aiMsgText,
-                  padding: '14px 18px',
-                  borderRadius: msg.isUser ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
-                  fontSize: '14px',
-                  lineHeight: '1.6',
-                  boxShadow: msg.isUser
-                    ? '0 4px 14px rgba(79, 70, 229, 0.25)'
-                    : '0 2px 8px rgba(0,0,0,0.04)',
-                  border: msg.isUser
-                    ? 'none'
-                    : msg.isCrisis
-                      ? '1.5px solid #ef4444'
-                      : `1px solid ${colors.aiMsgBorder}`
-                }}
-              >
-                {msg.isUser ? (
-                  <div style={{ whiteSpace: 'pre-wrap' }}>{msg.text}</div>
-                ) : (
-                  <div>
-                    <MarkdownRenderer content={msg.text} isDark={isDark} />
-
-                    {/* Verified Crisis Helpline Action Card */}
-                    {msg.isCrisis && (
-                      <div style={{
-                        marginTop: '12px',
-                        padding: '12px',
-                        borderRadius: '12px',
-                        background: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.7)',
-                        border: '1px solid rgba(239, 68, 68, 0.3)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px'
-                      }}>
-                        <span style={{ fontSize: '12px', fontWeight: '800', color: isDark ? '#f87171' : '#b91c1c' }}>
-                          ⚡ Quick Call Sri Lanka Helplines (Toll-Free):
-                        </span>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                          <button
-                            type="button"
-                            onClick={() => handleDial('tel:1926')}
-                            style={{
-                              padding: '6px 12px',
-                              background: '#ef4444',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '8px',
-                              fontSize: '12px',
-                              fontWeight: '700',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px'
-                            }}
-                          >
-                            📞 Call 1926 (NIMH)
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDial('tel:1990')}
-                            style={{
-                              padding: '6px 12px',
-                              background: '#ea580c',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '8px',
-                              fontSize: '12px',
-                              fontWeight: '700',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px'
-                            }}
-                          >
-                            🚑 Call 1990 (Ambulance)
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDial('tel:1333')}
-                            style={{
-                              padding: '6px 12px',
-                              background: '#0284c7',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '8px',
-                              fontSize: '12px',
-                              fontWeight: '700',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px'
-                            }}
-                          >
-                            🤝 Call 1333 (CCCline)
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDial('tel:0112696666')}
-                            style={{
-                              padding: '6px 12px',
-                              background: '#4b5563',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '8px',
-                              fontSize: '12px',
-                              fontWeight: '700',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px'
-                            }}
-                          >
-                            🫂 Call 011 269 6666 (Sumithrayo)
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Bottom message controls (Read aloud, timestamp) */}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      marginTop: '8px',
-                      paddingTop: '6px',
-                      borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#f1f5f9'}`,
-                      fontSize: '11px',
-                      color: colors.metaText
-                    }}>
-                      <button
-                        type="button"
-                        onClick={() => toggleSpeakText(msg.text, index)}
-                        aria-label={speakingIndex === index ? 'Stop reading message' : 'Read message aloud'}
-                        style={{
-                          background: 'transparent',
-                          border: 'none',
-                          color: isDark ? '#818cf8' : '#4f46e5',
-                          cursor: 'pointer',
-                          fontWeight: '600',
-                          padding: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}
-                      >
-                        {speakingIndex === index ? '⏹️ Stop Voice' : '🔊 Read Aloud'}
-                      </button>
-                      <span>
-                        {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {loading && (
-              <div
-                aria-live="polite"
-                aria-busy="true"
-                style={{
-                  alignSelf: 'flex-start',
-                  background: colors.aiMsgBg,
-                  padding: '12px 18px',
-                  borderRadius: '20px 20px 20px 4px',
-                  border: `1px solid ${colors.aiMsgBorder}`,
-                  display: 'flex',
-                  gap: '8px',
-                  alignItems: 'center'
-                }}
-              >
-                <span style={{ fontSize: '12.5px', color: colors.metaText, fontWeight: '600' }}>
-                  Aura is thinking…
-                </span>
-                <div style={{ width: '6px', height: '6px', background: '#6366f1', borderRadius: '50%', animation: 'auraDot 1.4s infinite ease-in-out both' }}></div>
-                <div style={{ width: '6px', height: '6px', background: '#8b5cf6', borderRadius: '50%', animation: 'auraDot 1.4s infinite ease-in-out both 0.2s' }}></div>
-                <div style={{ width: '6px', height: '6px', background: '#ec4899', borderRadius: '50%', animation: 'auraDot 1.4s infinite ease-in-out both 0.4s' }}></div>
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* Empty-State Suggestions & Quick Prompts */}
-          <div style={{
-            padding: '10px 20px',
-            background: isDark ? '#0c1222' : '#f8fafc',
-            borderTop: `1px solid ${colors.cardBorder}`,
-            display: 'flex',
-            gap: '8px',
-            overflowX: 'auto',
-            scrollbarWidth: 'none'
-          }}>
-            {lang === 'en' ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage("I'm feeling really stressed about upcoming exams")}
-                  style={{
-                    padding: '6px 14px',
-                    background: colors.chipBg,
-                    border: `1px solid ${colors.chipBorder}`,
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    color: colors.chipText,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    fontWeight: '600'
-                  }}
-                >
-                  📚 Exam Stress
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage("Can you guide me through a 4-7-8 breathing exercise?")}
-                  style={{
-                    padding: '6px 14px',
-                    background: colors.chipBg,
-                    border: `1px solid ${colors.chipBorder}`,
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    color: colors.chipText,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    fontWeight: '600'
-                  }}
-                >
-                  🌬️ 4-7-8 Breathing
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage("My mind won't stop racing tonight and I can't sleep")}
-                  style={{
-                    padding: '6px 14px',
-                    background: colors.chipBg,
-                    border: `1px solid ${colors.chipBorder}`,
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    color: colors.chipText,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    fontWeight: '600'
-                  }}
-                >
-                  🌙 Racing Mind
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage("I feel overwhelmed and don't know where to start")}
-                  style={{
-                    padding: '6px 14px',
-                    background: colors.chipBg,
-                    border: `1px solid ${colors.chipBorder}`,
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    color: colors.chipText,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    fontWeight: '600'
-                  }}
-                >
-                  💭 Feeling Overwhelmed
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage("I need emergency crisis support contacts.")}
-                  style={{
-                    padding: '6px 14px',
-                    background: '#fee2e2',
-                    border: '1px solid #fca5a5',
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    color: '#b91c1c',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  🚨 Emergency Help
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage("විභාග පීඩනය නිසා මට ලොකු ආතතියක් දැනෙනවා")}
-                  style={{
-                    padding: '6px 14px',
-                    background: colors.chipBg,
-                    border: `1px solid ${colors.chipBorder}`,
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    color: colors.chipText,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    fontWeight: '600'
-                  }}
-                >
-                  📚 විභාග ආතතිය
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage("සිත සන්සුන් කරගන්න හුස්ම ගැනීමේ ව්‍යායාමයක් මට කියාදෙන්න")}
-                  style={{
-                    padding: '6px 14px',
-                    background: colors.chipBg,
-                    border: `1px solid ${colors.chipBorder}`,
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    color: colors.chipText,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    fontWeight: '600'
-                  }}
-                >
-                  🌬️ හුස්ම ගැනීමේ අභ්‍යාස
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage("මට නින්ද යන්නේ නැහැ, මනස කලබලයි")}
-                  style={{
-                    padding: '6px 14px',
-                    background: colors.chipBg,
-                    border: `1px solid ${colors.chipBorder}`,
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    color: colors.chipText,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    fontWeight: '600'
-                  }}
-                >
-                  🌙 නින්ද නොයාම
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage("මට හදිසි උපකාරක සේවා අංක ලබාදෙන්න.")}
-                  style={{
-                    padding: '6px 14px',
-                    background: '#fee2e2',
-                    border: '1px solid #fca5a5',
-                    borderRadius: '20px',
-                    fontSize: '12px',
-                    color: '#b91c1c',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  🚨 හදිසි උපකාර
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Input Form */}
-          <form
-            onSubmit={handleFormSubmit}
-            style={{
-              display: 'flex',
-              padding: '14px 20px',
-              gap: '10px',
-              borderTop: `1px solid ${colors.cardBorder}`,
-              background: colors.cardBg,
-              alignItems: 'center'
-            }}
-          >
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={e => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              maxLength={2000}
-              aria-label="Type your message to Aura"
-              placeholder={
-                lang === 'en'
-                  ? "Talk with Aura... (e.g. 'I feel stressed', or ask in Sinhala / Singlish)"
-                  : "Aura සමඟ කතා කරන්න... (උදා: 'මට මහන්සියි', 'stress wela')"
-              }
-              style={{
-                flex: 1,
-                padding: '12px 16px',
-                border: `2px solid ${colors.inputBorder}`,
-                borderRadius: '12px',
-                fontSize: '14px',
-                outline: 'none',
-                background: colors.inputBg,
-                color: colors.inputText,
-                transition: 'border-color 0.2s'
-              }}
-            />
-
-            {/* Speech Mic Button */}
-            <button
-              type="button"
-              onClick={toggleSpeechRecognition}
-              title={isListening ? 'Stop listening' : 'Voice input'}
-              aria-label={isListening ? 'Stop listening' : 'Voice input'}
-              style={{
-                background: isListening ? '#ef4444' : (isDark ? '#1e293b' : '#f1f5f9'),
-                color: isListening ? 'white' : colors.metaText,
-                border: `1px solid ${colors.cardBorder}`,
-                borderRadius: '12px',
-                width: '44px',
-                height: '44px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                fontSize: '17px',
-                transition: 'all 0.2s'
-              }}
-            >
-              🎤
-            </button>
-
-            {/* Send Button */}
-            <button
-              type="submit"
-              disabled={!input.trim() || loading}
-              aria-label="Send message"
-              style={{
-                padding: '0 20px',
-                height: '44px',
-                background: input.trim() && !loading ? 'linear-gradient(135deg, #4f46e5, #7c3aed)' : (isDark ? '#334155' : '#cbd5e1'),
-                color: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '14px',
-                fontWeight: 'bold',
-                cursor: input.trim() && !loading ? 'pointer' : 'not-allowed',
-                transition: 'all 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}
-            >
-              <span>{lang === 'en' ? 'Send' : 'යවන්න'}</span>
-              <span>🚀</span>
-            </button>
-          </form>
-
+          <div ref={chatEndRef} />
         </div>
-      </main>
 
-      {/* Confirmation Modal for Clearing Chat History */}
+        {/* Quick Prompts */}
+        <div className="chat-prompts">
+          {prompts.map((p, i) => (
+            <button
+              key={i}
+              type="button"
+              className="chip chip-outline"
+              onClick={() => handleSendMessage(p.text)}
+            >
+              {p.label}
+            </button>
+          ))}
+          <button
+            type="button"
+            className="chip chip-danger"
+            onClick={() => handleSendMessage(lang === 'en' ? 'I need emergency crisis support.' : 'මට හදිසි උපකාර අවශ්‍යයි.')}
+          >
+            <Icon name="alert" size={13} /> {lang === 'en' ? '🚨 Emergency Help' : '🚨 හදිසි උපකාර'}
+          </button>
+        </div>
+
+        {/* Composer */}
+        <form className="chat-composer" onSubmit={handleFormSubmit}>
+          <button
+            type="button"
+            className={`icon-btn ${isListening ? 'is-on' : ''}`}
+            onClick={toggleSpeechRecognition}
+            title={isListening ? 'Stop listening' : 'Voice input'}
+            aria-label="Voice input"
+            style={isListening ? { animation: 'pulseRing 1.2s infinite', color: 'var(--danger)' } : undefined}
+          >
+            <Icon name="mic" size={20} />
+          </button>
+
+          <input
+            ref={inputRef}
+            className="chat-input"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder={
+              isListening
+                ? (lang === 'en' ? 'Listening to your voice…' : 'සවන් දෙමින්…')
+                : (lang === 'en' ? "Talk with Aura… (e.g. 'I feel stressed', or ask in Sinhala / Singlish)" : "Aura සමඟ කතා කරන්න… (උදා: 'මට මහන්සියි', 'stress wela')")
+            }
+            disabled={loading}
+          />
+
+          <button
+            type="submit"
+            className="btn btn-primary btn-icon"
+            disabled={loading || !input.trim()}
+            aria-label="Send message"
+          >
+            <Icon name="send" size={19} />
+          </button>
+        </form>
+
+        <p className="tiny muted center chat-foot" style={{ margin: '0 0 10px' }}>
+          Aura is an AI companion for emotional reflection, not a doctor or therapist. In an emergency, dial <a href="tel:1926" style={{ color: 'var(--danger-fill)', fontWeight: 'bold' }}>1926</a> (NIMH) or <a href="tel:1990" style={{ color: 'var(--danger-fill)', fontWeight: 'bold' }}>1990</a>.
+        </p>
+      </section>
+
+      {/* Clear Chat Confirmation Modal */}
       {showClearConfirm && (
         <div
           role="dialog"
           aria-modal="true"
-          aria-labelledby="clear-title"
+          aria-labelledby="clear-dialog-title"
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0,0,0,0.65)',
+            background: 'var(--overlay)',
             backdropFilter: 'blur(4px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 999999,
-            padding: '16px'
+            zIndex: 9999,
+            padding: 16
           }}
         >
-          <div style={{
-            background: colors.cardBg,
-            border: `1px solid ${colors.cardBorder}`,
-            borderRadius: '20px',
-            padding: '24px',
-            maxWidth: '440px',
-            width: '100%',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '14px'
-          }}>
-            <h3 id="clear-title" style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: colors.inputText }}>
-              🗑️ Clear Chat History?
-            </h3>
-            <p style={{ margin: 0, fontSize: '13.5px', color: colors.metaText, lineHeight: '1.5' }}>
+          <div
+            className="card rise"
+            style={{
+              maxWidth: 440,
+              width: '100%',
+              padding: 24,
+              boxShadow: 'var(--shadow-lg)'
+            }}
+          >
+            <div className="row gap-10" style={{ alignItems: 'center', marginBottom: 12 }}>
+              <span className="tile tile-danger"><Icon name="trash" size={20} /></span>
+              <h3 id="clear-dialog-title" className="serif" style={{ margin: 0, fontSize: 19 }}>
+                Clear Conversation History?
+              </h3>
+            </div>
+            <p className="small muted" style={{ lineHeight: 1.6, margin: '0 0 20px' }}>
               Are you sure you want to clear your conversation history? This will permanently delete your stored messages from your account. This action cannot be undone.
             </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '6px' }}>
+            <div className="row gap-10" style={{ justifyContent: 'flex-end' }}>
               <button
                 type="button"
+                className="btn btn-soft"
                 onClick={() => setShowClearConfirm(false)}
-                style={{
-                  padding: '9px 16px',
-                  background: isDark ? '#334155' : '#f1f5f9',
-                  color: colors.inputText,
-                  border: 'none',
-                  borderRadius: '10px',
-                  fontWeight: '600',
-                  fontSize: '13px',
-                  cursor: 'pointer'
-                }}
               >
                 Cancel
               </button>
               <button
                 type="button"
-                onClick={handleConfirmClearHistory}
-                style={{
-                  padding: '9px 18px',
-                  background: '#ef4444',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '10px',
-                  fontWeight: '700',
-                  fontSize: '13px',
-                  cursor: 'pointer'
-                }}
+                className="btn btn-danger"
+                onClick={handleConfirmClear}
               >
                 Yes, Clear Chat
               </button>
@@ -997,12 +494,93 @@ export default function AIChatbot() {
         </div>
       )}
 
-      <style>{`
-        @keyframes auraDot {
-          0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
-          40% { transform: scale(1.0); opacity: 1; }
-        }
-      `}</style>
+      {/* Emergency Helplines Modal */}
+      {showHelplineModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="helpline-modal-title"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'var(--overlay)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: 16
+          }}
+        >
+          <div
+            className="card rise"
+            style={{
+              maxWidth: 500,
+              width: '100%',
+              padding: 24,
+              boxShadow: 'var(--shadow-lg)'
+            }}
+          >
+            <div className="row-between mb-16">
+              <div className="row gap-10">
+                <span className="tile tile-danger"><Icon name="alert" size={22} /></span>
+                <div>
+                  <h3 id="helpline-modal-title" className="serif" style={{ margin: 0, fontSize: 19 }}>
+                    Emergency Helplines (Sri Lanka)
+                  </h3>
+                  <p className="small muted" style={{ margin: '2px 0 0' }}>Free, confidential human support available 24/7</p>
+                </div>
+              </div>
+              <button
+                className="icon-btn"
+                onClick={() => setShowHelplineModal(false)}
+                aria-label="Close modal"
+              >
+                <Icon name="x" size={18} />
+              </button>
+            </div>
+
+            <div className="col gap-10 mb-20">
+              {CRISIS_HELPLINES.map((h, i) => (
+                <div
+                  key={i}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 14px',
+                    borderRadius: 'var(--r-card)',
+                    background: 'var(--surface-2)',
+                    border: '1px solid var(--line)'
+                  }}
+                >
+                  <div>
+                    <strong style={{ display: 'block', fontSize: '14px', color: 'var(--ink)' }}>{h.name}</strong>
+                    <span className="tiny muted">{h.note}</span>
+                  </div>
+                  <a
+                    href={`tel:${h.tel}`}
+                    className="btn btn-sm btn-danger"
+                    style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Icon name="phone" size={14} /> Dial {h.number}
+                  </a>
+                </div>
+              ))}
+            </div>
+
+            <div className="row" style={{ justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                className="btn btn-soft"
+                onClick={() => setShowHelplineModal(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
