@@ -166,17 +166,17 @@ export default function Navbar() {
     {
       label: 'Support',
       items: [
-        { to: '/chat', icon: 'feather', label: 'AI Aura' },
+        { to: '/chat', icon: 'feather', label: 'Aura AI' },
         { to: '/anonymous-chat', icon: 'users', label: 'Peer Chat' },
-        { to: '/booking', icon: 'calendar', label: 'Bookings' }
+        { to: '/booking', icon: 'calendar', label: 'Sessions' }
       ]
     },
     {
       label: 'Grow',
       items: [
         { to: '/resources', icon: 'book', label: 'Resources' },
-        ...(user.role === 'student' ? [{ to: '/apply-counselor', icon: 'briefcase', label: 'Apply as Counselor' }] : []),
-        ...(isAdmin ? [{ to: '/admin', icon: 'shield', label: user.role === 'counsellor' ? 'Counsellor Console' : 'Admin Console' }] : [])
+        ...(user.role === 'student' ? [{ to: '/apply-counselor', icon: 'briefcase', label: 'Apply Counselor' }] : []),
+        ...(isAdmin ? [{ to: '/admin', icon: 'shield', label: user.role === 'counsellor' ? 'Staff Console' : 'Admin Console' }] : [])
       ]
     }
   ]
@@ -193,11 +193,11 @@ export default function Navbar() {
 
   const mobileNavCategories = [
     {
-      title: 'Mood & Wellbeing Tracking',
+      title: 'Wellbeing',
       items: [
         {
           label: 'Mood Tracker',
-          desc: 'Emotion logs, triggers & weekly patterns',
+          desc: 'Daily emotions & triggers',
           icon: 'smile',
           to: '/mood',
           state: { tab: 'log' },
@@ -205,8 +205,8 @@ export default function Navbar() {
           badge: null
         },
         {
-          label: 'Daily Wellbeing Assessment',
-          desc: '2-minute clinical check-in & personalized pulse',
+          label: 'Assessment',
+          desc: '2-min clinical check-in',
           icon: 'activity',
           to: '/mood',
           state: { tab: 'log', scrollTo: 'sec-assessment' },
@@ -214,8 +214,8 @@ export default function Navbar() {
           badge: 'Daily'
         },
         {
-          label: 'Mood Analytics & Trends',
-          desc: 'Trigger breakdown & weekly charts',
+          label: 'Mood Insights',
+          desc: 'Weekly patterns & trends',
           icon: 'trending',
           to: '/mood',
           state: { tab: 'analytics' },
@@ -225,11 +225,11 @@ export default function Navbar() {
       ]
     },
     {
-      title: 'Therapeutic Coping & Exercises',
+      title: 'Coping & Relief',
       items: [
         {
-          label: 'Therapeutic Exercise Library',
-          desc: 'Guided breathing, somatic calming & audio guides',
+          label: 'Exercises',
+          desc: 'Breathing & somatic guides',
           icon: 'compass',
           to: '/mood',
           state: { tab: 'log', scrollTo: 'sec-library' },
@@ -237,17 +237,17 @@ export default function Navbar() {
           badge: 'Coping'
         },
         {
-          label: 'Relaxation Games',
-          desc: '65+ ASMR, tactile bubble wrap & 3D WebGL scenes',
+          label: 'Relaxing Games',
+          desc: '65+ ASMR & 3D scenes',
           icon: 'award',
           to: '/mood',
           state: { tab: 'log', scrollTo: 'sec-3d' },
           tileClass: 'tile-rose',
-          badge: '65+ Games'
+          badge: '65+'
         },
         {
-          label: 'Calming Soundscapes',
-          desc: 'Nature ambience, binaural beats & focus audio',
+          label: 'Soundscapes',
+          desc: 'Nature audio & waves',
           icon: 'headphones',
           to: '/mood',
           state: { tab: 'music' },
@@ -257,27 +257,27 @@ export default function Navbar() {
       ]
     },
     {
-      title: 'Support & Counseling',
+      title: 'Support',
       items: [
         {
-          label: 'Aura AI Chatbot',
-          desc: '24/7 empathetic listener in English & Sinhala',
+          label: 'Aura AI',
+          desc: '24/7 empathetic companion',
           icon: 'feather',
           to: '/chat',
           tileClass: 'tile-dusk',
-          badge: '24/7 AI'
+          badge: '24/7'
         },
         {
-          label: 'Anonymous Peer Space',
-          desc: 'Safe student discussion with encrypted aliases',
+          label: 'Peer Space',
+          desc: 'Safe anonymous discussion',
           icon: 'users',
           to: '/anonymous-chat',
           tileClass: 'tile-sky',
-          badge: 'Encrypted'
+          badge: 'Safe'
         },
         {
-          label: 'Counseling Appointments',
-          desc: '1-on-1 private appointments with campus psychologists',
+          label: 'Counseling',
+          desc: '1-on-1 private appointments',
           icon: 'calendar',
           to: '/booking',
           tileClass: 'tile-rose',
@@ -286,27 +286,27 @@ export default function Navbar() {
       ]
     },
     {
-      title: 'Resources & Campus Portal',
+      title: 'Resources',
       items: [
         {
-          label: 'Wellbeing Resources & Articles',
-          desc: 'Clinical guides, stress reduction & self-help',
+          label: 'Guides & Articles',
+          desc: 'Self-help psychoeducation',
           icon: 'book',
           to: '/resources',
           tileClass: 'tile-primary',
           badge: null
         },
         ...(user.role === 'student' ? [{
-          label: 'Apply as Peer Counselor',
-          desc: 'Join the campus student mental health support team',
+          label: 'Apply Counselor',
+          desc: 'Join student support team',
           icon: 'briefcase',
           to: '/apply-counselor',
           tileClass: 'tile-sun',
           badge: null
         }] : []),
         ...(isAdmin ? [{
-          label: user.role === 'counsellor' ? 'Counsellor Console' : 'Admin Console',
-          desc: 'Manage appointments, analytics & student sessions',
+          label: user.role === 'counsellor' ? 'Staff Console' : 'Admin Console',
+          desc: 'Manage sessions & students',
           icon: 'shield',
           to: '/admin',
           tileClass: 'tile-danger',
@@ -550,15 +550,15 @@ export default function Navbar() {
                   <div className="side-nav-helpline-grid">
                     <a href="tel:1926" className="side-nav-helpline-chip">
                       <strong>1926</strong>
-                      <span>NIMH Mental</span>
+                      <span>NIMH Hotline</span>
                     </a>
                     <a href="tel:1990" className="side-nav-helpline-chip">
                       <strong>1990</strong>
-                      <span>Suwaseriya</span>
+                      <span>Ambulance</span>
                     </a>
                     <a href="tel:1333" className="side-nav-helpline-chip">
                       <strong>1333</strong>
-                      <span>CCCline</span>
+                      <span>Crisis Line</span>
                     </a>
                   </div>
                 </div>
