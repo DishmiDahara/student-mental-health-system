@@ -639,8 +639,13 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
 @media (max-width: 720px) {
   .b-7, .b-5, .b-4, .b-12 { grid-column: span 12; }
   .bento-card { min-height: 0; }
-  .hero { min-height: 0; }
-  .hero-body { padding: 24px 18px; }
+  .hero { min-height: 280px; isolation: isolate; }
+  .hero-art { z-index: 0; }
+  .hero-body { position: relative; z-index: 2; padding: 24px 18px; }
+  .hero-art .scene .sun-group {
+    transform-origin: 515px 215px;
+    transform: translate(-30px, -10px);
+  }
   .hero-moods { gap: 6px; margin-top: 14px; max-width: 100%; }
   .hero-mood { padding: 8px 2px 6px; font-size: 11px; border-radius: 14px; }
   .hero-mood svg { width: 32px !important; height: 32px !important; }
@@ -727,11 +732,42 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
 .mobile-hero-card {
   position: relative;
   overflow: hidden;
+  isolation: isolate;
   border-radius: 22px;
   border: 1px solid var(--line);
   background: var(--scene-sky-1);
   box-shadow: var(--shadow-sm);
-  padding: 20px 18px 16px;
+  padding: 22px 18px 18px;
+  min-height: 230px;
+}
+.mobile-hero-card .hero-art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+.mobile-hero-card .hero-art .scene {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.mobile-hero-card .hero-art .scene .sun-group {
+  transform-origin: 515px 215px;
+  transform: translate(0, 0);
+  transition: transform 0.3s ease;
+}
+@media (max-width: 480px) {
+  .mobile-hero-card .hero-art .scene .sun-group {
+    transform: translate(-12px, -8px);
+  }
+}
+@media (max-width: 360px) {
+  .mobile-hero-card .hero-art .scene .sun-group {
+    transform: translate(-25px, -14px);
+  }
 }
 .mobile-hero-content {
   position: relative;
@@ -744,11 +780,13 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  min-height: 72px;
 }
 .mobile-hero-greeting-box {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  max-width: min(65%, calc(100% - 110px));
 }
 .mobile-hero-date {
   display: inline-flex;

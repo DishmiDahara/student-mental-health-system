@@ -1047,7 +1047,17 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--primary-fill);
 }
 
 .scene { width: 100%; height: auto; display: block; }
-.scene .orb { animation: breathe 7s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+.scene .orb, .scene .sun-orb {
+  animation: breathe 7s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+.scene .sun-glow {
+  animation: breathe 7s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+  animation-delay: -0.3s;
+}
 .scene .cloud { animation: drift 14s ease-in-out infinite; }
 .scene .cloud-2 { animation-duration: 19s; animation-delay: -6s; }
 .scene .star { animation: blink 4s ease-in-out infinite; }

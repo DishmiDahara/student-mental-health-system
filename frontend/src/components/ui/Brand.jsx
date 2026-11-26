@@ -44,8 +44,10 @@ export function Horizon({ className = '', style }) {
           <circle key={i} className="star" cx={x} cy={y} r={r} fill="#eaf3ef" />
         ))}
       </g>
-      <circle cx="515" cy="215" r="190" fill={`url(#glow${id})`} />
-      <circle className="orb" cx="515" cy="215" r="52" style={{ fill: 'var(--scene-orb)' }} />
+      <g className="sun-group">
+        <circle className="sun-glow" cx="515" cy="215" r="190" fill={`url(#glow${id})`} />
+        <circle className="orb sun-orb" cx="515" cy="215" r="52" style={{ fill: 'var(--scene-orb)' }} />
+      </g>
       <g className="cloud" style={{ opacity: 'var(--scene-cloud)' }}>
         <ellipse cx="330" cy="82" rx="62" ry="16" fill="#fff" fillOpacity="0.6" />
         <ellipse cx="368" cy="69" rx="38" ry="14" fill="#fff" fillOpacity="0.6" />
