@@ -4106,7 +4106,7 @@ export default function MoodTracker() {
                   <h4 style={{ margin: 0, fontSize: '15px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     📷 AI Facial Emotion Scanner 🤖
                   </h4>
-                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#ddd6fe', lineHeight: '1.4' }}>
+                  <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'color-mix(in srgb, #ffffff 82%, transparent)', lineHeight: '1.4' }}>
                     Scan your facial expression to auto-detect your mood & energy levels
                   </p>
                 </div>
@@ -4389,8 +4389,9 @@ export default function MoodTracker() {
                       style={{
                         padding: '10px',
                         background: isChecked ? 'var(--primary-soft)' : 'var(--surface-2)',
-                        border: `1.5px solid ${isChecked ? '#818cf8' : '#e2e8f0'}`,
+                        border: `1.5px solid ${isChecked ? 'var(--primary)' : 'var(--line)'}`,
                         borderRadius: '10px',
+                        color: isChecked ? 'var(--primary-ink)' : 'var(--ink-2)',
                         cursor: 'pointer',
                         fontSize: '12.5px',
                         display: 'flex',
@@ -4521,12 +4522,13 @@ export default function MoodTracker() {
                         style={{
                           flex: 1,
                           padding: '10px',
-                          borderRadius: '8px',
-                          border: `1.5px solid ${energyLevel === lvl ? '#6366f1' : '#e2e8f0'}`,
+                          borderRadius: '10px',
+                          border: `1.5px solid ${energyLevel === lvl ? 'var(--primary)' : 'var(--line)'}`,
                           background: energyLevel === lvl ? 'var(--primary-fill)' : 'var(--surface)',
                           color: energyLevel === lvl ? 'white' : 'var(--ink-2)',
                           fontWeight: 'bold',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
                         }}
                       >
                         {lvl}
@@ -4547,7 +4549,7 @@ export default function MoodTracker() {
               
               <textarea value={note} onChange={(e) => setNote(e.target.value)}
                 placeholder="Vibe check... what is on your mind today?"
-                style={{ width: '100%', padding: '14px', border: '2px solid var(--line-strong)', borderRadius: '12px', fontSize: '16px', outline: 'none', minHeight: '100px', boxSizing: 'border-box', fontFamily: 'inherit', marginBottom: '16px' }} />
+                style={{ width: '100%', padding: '14px', border: '1.5px solid var(--line-strong)', borderRadius: '14px', background: 'var(--surface)', color: 'var(--ink)', fontSize: '15px', outline: 'none', minHeight: '100px', boxSizing: 'border-box', fontFamily: 'inherit', marginBottom: '16px' }} />
 
               {/* Photo Upload widget */}
               <div style={{ marginBottom: '16px' }}>

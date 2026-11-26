@@ -848,6 +848,8 @@ export default function AdminDashboard() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '14px',
           marginBottom: '32px',
           borderBottom: '1px solid var(--line)',
           paddingBottom: '20px'
@@ -901,7 +903,7 @@ export default function AdminDashboard() {
                       alignItems: 'center',
                       justifyContent: 'center',
                       fontWeight: 'bold',
-                      boxShadow: '0 0 0 2px #0f172a'
+                      boxShadow: '0 0 0 2px var(--surface)'
                     }}>
                       {totalNotificationCount}
                     </span>
@@ -914,10 +916,11 @@ export default function AdminDashboard() {
                     top: '48px',
                     right: 0,
                     width: '340px',
+                    maxWidth: 'calc(100vw - 32px)',
                     background: 'var(--surface)',
                     border: '1px solid var(--line)',
                     borderRadius: '16px',
-                    boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
+                    boxShadow: 'var(--shadow-lg)',
                     zIndex: 2000,
                     overflow: 'hidden',
                     animation: 'fadeIn 0.2s'
@@ -930,11 +933,11 @@ export default function AdminDashboard() {
                       alignItems: 'center',
                       background: 'var(--primary-fill)'
                     }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '13px', color: 'var(--ink-2)' }}>System Notifications</span>
+                      <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#ffffff' }}>System Notifications</span>
                       <span style={{
                         fontSize: '11px',
-                        background: 'var(--primary-fill)',
-                        color: 'var(--primary)',
+                        background: 'rgba(255, 255, 255, 0.22)',
+                        color: '#ffffff',
                         padding: '2px 8px',
                         borderRadius: '8px',
                         fontWeight: 'bold'
@@ -2385,7 +2388,8 @@ export default function AdminDashboard() {
                       Maps the psychological logs gathered through student mood selections. Lower mood entries are monitored to trigger emergency counseling assistance.
                     </p>
                     
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+                    <div style={{ overflowX: 'auto', width: '100%', borderRadius: '12px' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', minWidth: '480px' }}>
                       <thead>
                         <tr style={{ background: 'var(--surface)', borderBottom: '2px solid var(--line-strong)', textAlign: 'left' }}>
                           <th style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Student Profile</th>
@@ -2411,6 +2415,7 @@ export default function AdminDashboard() {
                         )}
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 )}
 
@@ -2423,7 +2428,8 @@ export default function AdminDashboard() {
                       The ledger outlines counselor appointment bookings recorded. Status indicates approvals by administrative counsellors.
                     </p>
 
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+                    <div style={{ overflowX: 'auto', width: '100%', borderRadius: '12px' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', minWidth: '520px' }}>
                       <thead>
                         <tr style={{ background: 'var(--surface)', borderBottom: '2px solid var(--line-strong)', textAlign: 'left' }}>
                           <th style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Student Profile</th>
@@ -2451,6 +2457,7 @@ export default function AdminDashboard() {
                         )}
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 )}
 
@@ -2463,7 +2470,8 @@ export default function AdminDashboard() {
                       Platform activity metrics mapping total logins, active statuses, and account settings.
                     </p>
 
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
+                    <div style={{ overflowX: 'auto', width: '100%', borderRadius: '12px' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', minWidth: '480px' }}>
                       <thead>
                         <tr style={{ background: 'var(--surface)', borderBottom: '2px solid var(--line-strong)', textAlign: 'left' }}>
                           <th style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Student Name</th>
@@ -2482,13 +2490,14 @@ export default function AdminDashboard() {
                             <tr key={u._id} style={{ borderBottom: '1px solid var(--line-strong)' }}>
                               <td style={{ padding: '8px', border: '1px solid var(--line-strong)', fontWeight: 'bold' }}>{u.name}</td>
                               <td style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>{u.email}</td>
-                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>{u.loginCount || 0} times</td>
-                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)', textTransform: 'uppercase', fontWeight: 'bold' }}>{u.status}</td>
+                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>{u.loginCount || 1}</td>
+                              <td style={{ padding: '8px', border: '1px solid var(--line-strong)' }}>Active Student</td>
                             </tr>
                           ))
                         )}
                       </tbody>
                     </table>
+                    </div>
                   </div>
                 )}
 

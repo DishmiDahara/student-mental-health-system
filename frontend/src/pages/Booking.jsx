@@ -521,16 +521,16 @@ export default function Booking() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'approved': return { bg: '#d1fae5', text: '#065f46', label: 'Approved' }
-      case 'rejected': return { bg: '#fee2e2', text: '#991b1b', label: 'Rejected' }
-      case 'cancelled': return { bg: '#fee2e2', text: '#991b1b', label: 'Cancelled' }
-      default: return { bg: '#fef3c7', text: '#92400e', label: 'Pending' }
+      case 'approved': return { bg: 'var(--success-soft)', text: 'var(--success-ink)', label: 'Approved' }
+      case 'rejected': return { bg: 'var(--danger-soft)', text: 'var(--danger-ink)', label: 'Rejected' }
+      case 'cancelled': return { bg: 'var(--danger-soft)', text: 'var(--danger-ink)', label: 'Cancelled' }
+      default: return { bg: 'var(--warn-soft)', text: 'var(--warn-ink)', label: 'Pending' }
     }
   }
 
   return (
     <div className="page">
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '24px', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '24px', alignItems: 'start' }}>
 
         <div className="page-head" style={{ gridColumn: '1 / -1', marginBottom: 4 }}>
           <div>
@@ -1244,12 +1244,12 @@ export default function Booking() {
                             padding: '10px 8px',
                             background: selectedSlot === slot ? 'var(--primary-fill)' : 'var(--surface)',
                             color: selectedSlot === slot ? 'white' : 'var(--ink-2)',
-                            border: `2px solid ${selectedSlot === slot ? '#4f46e5' : '#e5e7eb'}`,
-                            borderRadius: '8px',
+                            border: `2px solid ${selectedSlot === slot ? 'var(--primary)' : 'var(--line-strong)'}`,
+                            borderRadius: '10px',
                             cursor: 'pointer',
                             fontSize: '12px',
                             fontWeight: '600',
-                            transition: 'all 0.1s'
+                            transition: 'all 0.15s ease'
                           }}
                         >
                           {slot}
@@ -1266,7 +1266,7 @@ export default function Booking() {
                       value={note}
                       onChange={e => setNote(e.target.value)}
                       placeholder="Let the counselor know how they can help you..."
-                      style={{ width: '100%', padding: '12px', border: '2px solid var(--line)', borderRadius: '10px', outline: 'none', fontSize: '14px', resize: 'none', height: '80px', boxSizing: 'border-box' }}
+                      style={{ width: '100%', padding: '12px', border: '1.5px solid var(--line-strong)', borderRadius: '12px', background: 'var(--surface)', color: 'var(--ink)', outline: 'none', fontSize: '14px', resize: 'vertical', minHeight: '80px', boxSizing: 'border-box', fontFamily: 'inherit' }}
                     />
                   </div>
 
