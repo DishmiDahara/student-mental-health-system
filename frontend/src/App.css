@@ -1580,3 +1580,17 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   inset: -28px -40px -20px -48px;
   background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-sky-1) 82%, transparent) 40%, transparent);
 }
+
+/* AI Face Scanner Animations */
+@keyframes scanLaser {
+  0% { top: 4%; opacity: 0.3; }
+  50% { top: 92%; opacity: 1; }
+  100% { top: 4%; opacity: 0.3; }
+}
+
+@keyframes facePulse {
+  0% { box-shadow: 0 0 15px color-mix(in srgb, var(--primary) 30%, transparent); }
+  50% { box-shadow: 0 0 35px color-mix(in srgb, var(--primary) 65%, transparent); }
+  100% { box-shadow: 0 0 15px color-mix(in srgb, var(--primary) 30%, transparent); }
+}
+

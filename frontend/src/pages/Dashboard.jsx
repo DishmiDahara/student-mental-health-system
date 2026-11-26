@@ -335,7 +335,18 @@ export default function Dashboard() {
 
             <div className="bento-footer-strip mt-14">
               <span className="bento-chip">65+ Zen Games</span>
-              <span className="bento-chip">Facial AI Scanner</span>
+              <span
+                className="bento-chip"
+                role="button"
+                tabIndex={0}
+                style={{ cursor: 'pointer' }}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigate('/mood', { state: { tab: 'log', openFaceScanner: true, scrollTo: 'sec-assessment' } })
+                }}
+              >
+                Facial AI Scanner
+              </span>
               <span className="bento-chip">Audio Journal</span>
               <span className="bento-action-text">Explore Tracker &rarr;</span>
             </div>

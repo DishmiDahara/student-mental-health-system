@@ -2,8 +2,10 @@ import MoodGamesSection from '../components/MoodGames/MoodGamesSection'
 import LocalGameModal from '../components/MoodGames/LocalGameModal'
 import { BackButton, FullscreenButton } from '../components/MoodGames/GameControls'
 import { buildGameData, getRecommendedGames, toSavedRecommendation } from '../data/moodGames'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+
+const FaceEmotionScannerModal = lazy(() => import('../components/FaceEmotionScannerModal'))
 import axios from 'axios'
 import * as THREE from 'three'
 import API_URL from '../config'
@@ -323,232 +325,20 @@ export default function MoodTracker() {
 
   // --- AI FACE EMOTION MOOD SCANNER STATES ---
   const [showFaceScannerModal, setShowFaceScannerModal] = useState(false)
-  const [isFaceCameraActive, setIsFaceCameraActive] = useState(false)
-  const [isAnalyzingFace, setIsAnalyzingFace] = useState(false)
-  const [scanProgress, setScanProgress] = useState(0)
-  const [scanStatusText, setScanStatusText] = useState('Align your face inside the circle')
-  const [detectedEmotion, setDetectedEmotion] = useState(null)
-  
-  const faceVideoRef = useRef(null)
-  const faceCanvasRef = useRef(null)
-  const faceStreamRef = useRef(null)
 
-  const startFaceCamera = async () => {
-    setShowFaceScannerModal(true)
-    setIsFaceCameraActive(true)
-    setDetectedEmotion(null)
-    setScanProgress(0)
-    setScanStatusText('Initializing camera & facial AI model...')
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
-      })
-      faceStreamRef.current = stream
-      if (faceVideoRef.current) {
-        faceVideoRef.current.srcObject = stream
-        faceVideoRef.current.play()
-      }
-      setScanStatusText('Position your face in the oval frame')
-    } catch (err) {
-      console.error('Camera access error:', err)
-      setScanStatusText('⚠️ Camera permission denied or not available.')
-      setIsFaceCameraActive(false)
-    }
-  }
-
-  const stopFaceCamera = () => {
-    if (faceStreamRef.current) {
-      faceStreamRef.current.getTracks().forEach(t => t.stop())
-      faceStreamRef.current = null
-    }
-    setIsFaceCameraActive(false)
-    setShowFaceScannerModal(false)
-    setIsAnalyzingFace(false)
-  }
-
-  const triggerAIAnalysis = () => {
-    if (isAnalyzingFace) return
-    setIsAnalyzingFace(true)
-    setScanStatusText('🔍 Scanning facial landmarks & expressions...')
-    
-    let currentProg = 0
-    const interval = setInterval(() => {
-      currentProg += 25
-      setScanProgress(currentProg)
-      if (currentProg === 50) setScanStatusText('🧠 Analyzing mouth curvature & eyebrow tension...')
-      if (currentProg === 75) setScanStatusText('✨ Calculating emotion confidence metrics...')
-      if (currentProg >= 100) {
-        clearInterval(interval)
-        performFacialFeatureDetection()
-      }
-    }, 350)
-  }
-
-  const performFacialFeatureDetection = () => {
-    try {
-      if (faceVideoRef.current && faceVideoRef.current.readyState >= 2) {
-        const video = faceVideoRef.current
-        const canvas = document.createElement('canvas')
-        canvas.width = 160
-        canvas.height = 120
-        const ctx = canvas.getContext('2d')
-        ctx.drawImage(video, 0, 0, 160, 120)
-        const frame = ctx.getImageData(0, 0, 160, 120)
-        const data = frame.data
-
-        let mouthRegionLuma = 0
-        let eyeRegionLuma = 0
-        let cheekRegionLuma = 0
-        let foreheadLuma = 0
-        let varianceSum = 0
-
-        let mouthPixelCount = 0
-        let eyePixelCount = 0
-        let cheekPixelCount = 0
-        let foreheadPixelCount = 0
-
-        // Measure relative brightness & contrast across facial zones
-        for (let y = 0; y < 120; y++) {
-          for (let x = 0; x < 160; x++) {
-            const idx = (y * 160 + x) * 4
-            const r = data[idx]
-            const g = data[idx + 1]
-            const b = data[idx + 2]
-            const luma = 0.299 * r + 0.587 * g + 0.114 * b
-
-            // Mouth region: y between 75 and 110, x between 40 and 120
-            if (y >= 75 && y <= 110 && x >= 40 && x <= 120) {
-              mouthRegionLuma += luma
-              mouthPixelCount++
-            }
-            // Eye region: y between 35 and 65, x between 30 and 130
-            else if (y >= 35 && y <= 65 && x >= 30 && x <= 130) {
-              eyeRegionLuma += luma
-              eyePixelCount++
-            }
-            // Cheek region: y between 55 and 85, x between 25 and 135
-            else if (y >= 55 && y <= 85 && (x <= 55 || x >= 105)) {
-              cheekRegionLuma += luma
-              cheekPixelCount++
-            }
-            // Forehead: y between 10 and 35
-            else if (y >= 10 && y <= 35) {
-              foreheadLuma += luma
-              foreheadPixelCount++
-            }
-
-            // Calculate contrast variance
-            if (x > 30 && x < 130 && y > 30 && y < 100) {
-              const diff = Math.abs(r - g) + Math.abs(g - b)
-              varianceSum += diff
-            }
-          }
-        }
-
-        const avgMouth = mouthRegionLuma / (mouthPixelCount || 1)
-        const avgEye = eyeRegionLuma / (eyePixelCount || 1)
-        const avgCheek = cheekRegionLuma / (cheekPixelCount || 1)
-        const avgForehead = foreheadLuma / (foreheadPixelCount || 1)
-
-        // Calculate relative expression ratios (independent of room ambient light!)
-        const mouthToEyeRatio = avgMouth / (avgEye || 1)
-        const cheekToForeheadRatio = avgCheek / (avgForehead || 1)
-
-        // Dynamic Seeded Feature Hash for consistent, distinct per-facial expression accuracy
-        const sampleCenterPixel = data[((60 * 160) + 80) * 4] || 128
-        const sampleMouthPixel = data[((90 * 160) + 80) * 4] || 128
-        const expressionScore = (mouthToEyeRatio * 2.5 + cheekToForeheadRatio * 1.8 + (sampleMouthPixel % 10) * 0.4 + (sampleCenterPixel % 7) * 0.3)
-
-        let detected
-
-        if (expressionScore > 5.2 || (mouthToEyeRatio > 1.08 && sampleMouthPixel > sampleCenterPixel)) {
-          detected = {
-            emotion: 'Happy & Joyful 😄',
-            value: 5,
-            energy: 5,
-            confidence: Math.min(99, Math.round(92 + (sampleMouthPixel % 7))),
-            color: '#10b981',
-            note: `AI Facial Scanner detected elevated cheek-lip curvature (smile ratio: ${(mouthToEyeRatio).toFixed(2)}) & high positive expression energy!`,
-            suggestedActivities: ['Music 🎵', 'Socializing 👥']
-          }
-        } else if (expressionScore > 4.4 || mouthToEyeRatio > 1.02) {
-          detected = {
-            emotion: 'Calm & Content 🙂',
-            value: 4,
-            energy: 4,
-            confidence: Math.min(97, Math.round(88 + (sampleCenterPixel % 8))),
-            color: '#3b82f6',
-            note: `AI Facial Scanner detected balanced facial muscle alignment (symmetry ratio: ${(cheekToForeheadRatio).toFixed(2)}) & peaceful posture.`,
-            suggestedActivities: ['Meditation 🧘', 'Reading 📚']
-          }
-        } else if (expressionScore > 3.6) {
-          detected = {
-            emotion: 'Neutral & Focused 😐',
-            value: 3,
-            energy: 3,
-            confidence: Math.min(95, Math.round(86 + (sampleCenterPixel % 7))),
-            color: '#f59e0b',
-            note: `AI Facial Scanner detected steady, focused facial composure with balanced eye-mouth focus.`,
-            suggestedActivities: ['Breathing 🎈', 'Word Search 🔍']
-          }
-        } else if (expressionScore > 2.8) {
-          detected = {
-            emotion: 'Stressed & Tired 😔',
-            value: 2,
-            energy: 2,
-            confidence: Math.min(94, Math.round(85 + (sampleMouthPixel % 8))),
-            color: '#f97316',
-            note: `AI Facial Scanner detected lowered facial curvature & brow tension metrics. Take a soothing break!`,
-            suggestedActivities: ['Rest 💤', 'Bubble Wrap 🫧']
-          }
-        } else {
-          detected = {
-            emotion: 'Down & Exhausted 😢',
-            value: 1,
-            energy: 1,
-            confidence: Math.min(96, Math.round(88 + (sampleCenterPixel % 6))),
-            color: '#ef4444',
-            note: `AI Facial Scanner detected low facial muscle energy & fatigue posture. Please take a gentle pause.`,
-            suggestedActivities: ['Guided Breathing 🎈', 'Whack-a-Stress 🔨']
-          }
-        }
-
-        setDetectedEmotion(detected)
-        setIsAnalyzingFace(false)
-        setScanStatusText('🎉 Real-time Facial Expression Analysis Complete!')
-        return
-      }
-    } catch (e) {
-      console.error('Frame analysis error:', e)
-    }
-
-    const defaultDetected = {
-      emotion: 'Calm & Peaceful 😌',
-      value: 4,
-      energy: 3,
-      confidence: 93,
-      color: '#3b82f6',
-      note: 'AI facial scan detected relaxed facial muscle symmetry and calm posture.',
-      suggestedActivities: ['Meditation 🧘', 'Reading 📚']
-    }
-    setDetectedEmotion(defaultDetected)
-    setIsAnalyzingFace(false)
-    setScanStatusText('🎉 Facial Analysis Complete!')
-  }
-
-  const applyDetectedEmotionToLog = () => {
-    if (!detectedEmotion) return
-    const matchedMood = moods.find(m => m.value === detectedEmotion.value) || moods[0]
+  const handleApplyFaceScanResult = (result) => {
+    if (!result) return
+    const matchedMood = moods.find(m => m.value === result.value) || moods[0]
     setSelected(matchedMood)
     setSelectedColor(matchedMood.color)
-    if (detectedEmotion.energy) {
-      setEnergyLevel(detectedEmotion.energy)
+    if (result.energy) {
+      setEnergyLevel(result.energy)
     }
-    setNote(prev => prev ? `${prev}\n[AI Face Scan]: ${detectedEmotion.note}` : `[AI Face Scan Result]: ${detectedEmotion.note}`)
-    if (detectedEmotion.suggestedActivities) {
-      setCheckedActivities(prev => Array.from(new Set([...prev, ...detectedEmotion.suggestedActivities])))
+    const scanNote = `[AI Facial Expression Scan]: ${result.emotion} (${result.confidence}% match). ${result.note}`
+    setNote(prev => prev ? `${prev}\n${scanNote}` : scanNote)
+    if (result.suggestedActivities) {
+      setCheckedActivities(prev => Array.from(new Set([...prev, ...result.suggestedActivities])))
     }
-    stopFaceCamera()
   }
 
   // --- THREE.JS 3D WEBGL RELAXATION GAMES ENGINE STATES ---
@@ -556,8 +346,11 @@ export default function MoodTracker() {
   const [is3DAudioMuted, setIs3DAudioMuted] = useState(false)
   const threeContainerRef = useRef(null)
 
-  // Smooth scroll to target section if passed via navigation
+  // Smooth scroll to target section or auto-open face scanner if passed via navigation
   useEffect(() => {
+    if (location.state?.openFaceScanner) {
+      setShowFaceScannerModal(true)
+    }
     if (location.state?.scrollTo) {
       const timer = setTimeout(() => {
         const el = document.getElementById(location.state.scrollTo)
@@ -4109,7 +3902,7 @@ export default function MoodTracker() {
         {activeTab === 'log' && (
           <div className="mood-log-grid">
             {/* Column 1: Daily Assessment Form */}
-            <div className="card assessment-scroll-card" style={{
+            <div className="card assessment-scroll-card" id="sec-assessment" style={{
               background: 'var(--surface)',
               padding: '28px',
               borderRadius: 'var(--r-card, 24px)',
@@ -4147,7 +3940,7 @@ export default function MoodTracker() {
                 </div>
                 <button
                   type="button"
-                  onClick={startFaceCamera}
+                  onClick={() => setShowFaceScannerModal(true)}
                   style={{
                     padding: '12px 18px',
                     borderRadius: '12px',
@@ -4169,179 +3962,13 @@ export default function MoodTracker() {
 
               {/* AI FACE SCANNER MODAL */}
               {showFaceScannerModal && (
-                <div style={{
-                  position: 'fixed',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background: 'var(--overlay)',
-                  backdropFilter: 'blur(8px)',
-                  zIndex: 99999,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '20px'
-                }}>
-                  <div style={{
-                    background: '#0f172a',
-                    color: 'white',
-                    borderRadius: '24px',
-                    padding: '28px',
-                    maxWidth: '480px',
-                    width: '100%',
-                    border: '1px solid rgba(255, 255, 255, 0.15)',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                    position: 'relative',
-                    textAlign: 'center', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>
-                    <button
-                      type="button"
-                      onClick={stopFaceCamera}
-                      style={{
-                        position: 'absolute',
-                        top: '16px',
-                        right: '16px',
-                        background: 'rgba(255,255,255,0.1)',
-                        border: 'none',
-                        color: 'white',
-                        width: '32px',
-                        height: '32px',
-                        borderRadius: '50%',
-                        fontSize: '16px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      ✕
-                    </button>
-
-                    <h3 style={{ margin: '0 0 6px 0', fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                      📷 AI Facial Emotion Scanner 🤖
-                    </h3>
-                    <p style={{ margin: '0 0 20px 0', fontSize: '12.5px', color: 'var(--ink-4)' }}>
-                      {scanStatusText}
-                    </p>
-
-                    {/* Video Preview Box with Cyber Overlay */}
-                    <div style={{
-                      position: 'relative',
-                      width: '260px',
-                      height: '260px',
-                      margin: '0 auto 20px',
-                      borderRadius: '50%',
-                      overflow: 'hidden',
-                      border: '3px solid var(--primary)',
-                      boxShadow: '0 0 30px color-mix(in srgb, var(--primary) 50%, transparent)',
-                      animation: isAnalyzingFace ? 'facePulse 1.5s infinite' : 'none'
-                    }}>
-                      <video 
-                        ref={faceVideoRef} 
-                        playsInline 
-                        muted 
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} 
-                      />
-                      
-                      {/* Scanning Laser Line */}
-                      {isAnalyzingFace && (
-                        <div style={{
-                          position: 'absolute',
-                          left: 0,
-                          right: 0,
-                          height: '4px',
-                          background: 'linear-gradient(90deg, transparent, var(--primary-fill), var(--primary-fill), transparent)',
-                          boxShadow: '0 0 15px #818cf8',
-                          animation: 'scanLaser 2s infinite ease-in-out'
-                        }} />
-                      )}
-
-                      {/* Target Reticle Overlay */}
-                      <div style={{
-                        position: 'absolute',
-                        top: '15%',
-                        left: '15%',
-                        right: '15%',
-                        bottom: '15%',
-                        border: '2px dashed rgba(255, 255, 255, 0.4)',
-                        borderRadius: '50%',
-                        pointerEvents: 'none'
-                      }} />
-                    </div>
-
-                    {/* Progress Bar */}
-                    {isAnalyzingFace && (
-                      <div style={{ width: '100%', background: '#1e293b', borderRadius: '10px', height: '8px', overflow: 'hidden', marginBottom: '20px' }}>
-                        <div style={{ width: `${scanProgress}%`, background: 'linear-gradient(90deg, var(--primary-fill), var(--primary-fill))', height: '100%', transition: 'width 0.3s' }} />
-                      </div>
-                    )}
-
-                    {/* Detected Emotion Result Box */}
-                    {detectedEmotion && (
-                      <div style={{
-                        background: 'rgba(255, 255, 255, 0.08)',
-                        border: `1.5px solid ${detectedEmotion.color}`,
-                        borderRadius: '16px',
-                        padding: '16px',
-                        marginBottom: '20px',
-                        textAlign: 'left'
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-                          <span style={{ fontSize: '15px', fontWeight: '800', color: detectedEmotion.color }}>
-                            Detected: {detectedEmotion.emotion}
-                          </span>
-                          <span style={{ fontSize: '12px', background: detectedEmotion.color, color: 'white', padding: '3px 8px', borderRadius: '8px', fontWeight: 'bold' }}>
-                            {detectedEmotion.confidence}% Match
-                          </span>
-                        </div>
-                        <p style={{ margin: 0, fontSize: '12.5px', color: '#cbd5e1', lineHeight: '1.4' }}>
-                          {detectedEmotion.note}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Control Action Buttons */}
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                      {!detectedEmotion ? (
-                        <button
-                          type="button"
-                          onClick={triggerAIAnalysis}
-                          disabled={!isFaceCameraActive || isAnalyzingFace}
-                          style={{
-                            flex: 1,
-                            height: '46px',
-                            borderRadius: '12px',
-                            background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))',
-                            color: 'white',
-                            border: 'none',
-                            fontWeight: '800',
-                            fontSize: '14.5px',
-                            cursor: 'pointer',
-                            boxShadow: '0 4px 14px color-mix(in srgb, var(--primary) 40%, transparent)',
-                            touchAction: 'manipulation', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
-                        >
-                          {isAnalyzingFace ? 'Scanning Facial Features...' : '🔍 Scan Facial Emotion'}
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={applyDetectedEmotionToLog}
-                          style={{
-                            flex: 1,
-                            height: '46px',
-                            borderRadius: '12px',
-                            background: 'linear-gradient(135deg, var(--success-fill), var(--success-fill))',
-                            color: 'white',
-                            border: 'none',
-                            fontWeight: '800',
-                            fontSize: '14.5px',
-                            cursor: 'pointer',
-                            boxShadow: '0 4px 14px color-mix(in srgb, var(--success) 40%, transparent)',
-                            touchAction: 'manipulation', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}
-                        >
-                          ✨ Apply Mood Rating to Log
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <Suspense fallback={null}>
+                  <FaceEmotionScannerModal
+                    isOpen={showFaceScannerModal}
+                    onClose={() => setShowFaceScannerModal(false)}
+                    onApplyResult={handleApplyFaceScanResult}
+                  />
+                </Suspense>
               )}
 
               {/* Step 1: Mood select */}
