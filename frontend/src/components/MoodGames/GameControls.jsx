@@ -42,7 +42,7 @@ function useFullscreen(targetRef) {
 
 const palettes = {
   dark: { background: 'rgba(255,255,255,0.15)', color: 'white', border: '1px solid rgba(255,255,255,0.2)' },
-  light: { background: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0' }
+  light: { background: 'var(--surface-3)', color: 'var(--ink)', border: '1px solid var(--line-strong)' }
 }
 
 const baseButton = {

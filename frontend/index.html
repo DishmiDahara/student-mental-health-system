@@ -17,6 +17,10 @@
         var t = localStorage.getItem('mindspace_theme_v2');
         if (t !== 'light' && t !== 'dark') t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
         document.documentElement.setAttribute('data-theme', t);
+        if (t === 'dark') {
+          var m = document.querySelector('meta[name="theme-color"]');
+          if (m) m.setAttribute('content', '#0a0d12');
+        }
       } catch (e) {}
     </script>
   </head>

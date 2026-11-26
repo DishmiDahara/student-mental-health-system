@@ -4116,9 +4116,9 @@ export default function MoodTracker() {
                   style={{
                     padding: '12px 18px',
                     borderRadius: '12px',
-                    background: '#ffffff',
-                    color: '#1b554d',
-                    border: 'none',
+                    background: 'var(--surface)',
+                    color: 'var(--primary)',
+                    border: '1.5px solid var(--line-strong)',
                     fontWeight: '800',
                     fontSize: '13.5px',
                     cursor: 'pointer',

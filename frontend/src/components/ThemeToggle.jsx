@@ -16,11 +16,19 @@ export default function ThemeToggle({ showLabel = false, style = {}, className =
       type="button"
       onClick={toggleTheme}
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
+      aria-pressed={isDark}
       title={`Switch to ${label.toLowerCase()}`}
       className={`${showLabel ? 'btn btn-outline btn-sm' : 'icon-btn'} theme-toggle-btn ${className}`}
       style={style}
     >
-      <span style={{ display: 'inline-flex', transition: 'transform .5s var(--ease)', transform: isDark ? 'rotate(0)' : 'rotate(-20deg)' }}>
+      <span style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'transform .4s var(--ease), color .3s ease',
+        transform: isDark ? 'rotate(0)' : 'rotate(-20deg)',
+        color: isDark ? 'var(--sun)' : 'var(--ink-2)'
+      }}>
         <Icon name={isDark ? 'sun' : 'moon'} size={showLabel ? 17 : 20} />
       </span>
       {showLabel && <span>{label}</span>}

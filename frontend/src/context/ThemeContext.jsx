@@ -30,7 +30,7 @@ export function ThemeProvider({ children }) {
 
     // Browser UI colour (mobile address bar / Android status bar)
     const meta = document.querySelector('meta[name="theme-color"]')
-    if (meta) meta.setAttribute('content', theme === 'dark' ? '#0b1517' : '#f5f2ea')
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#0a0d12' : '#f5f2ea')
 
     try { localStorage.setItem(STORAGE_KEY, theme) } catch { /* ignore */ }
   }, [theme])
