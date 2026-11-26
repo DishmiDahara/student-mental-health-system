@@ -2999,8 +2999,8 @@ export default function AdminDashboard() {
 
       {/* Rejection Reason Modal */}
       {rejectBookingId && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: 'var(--surface)', borderRadius: '24px', width: '400px', padding: '32px', border: '1px solid var(--line)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: '24px', width: '400px', maxWidth: 'calc(100vw - 32px)', boxSizing: 'border-box', padding: '32px', border: '1px solid var(--line)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' }}>
             <h3 style={{ color: 'var(--ink)', marginTop: 0, marginBottom: '8px' }}>❌ Reject Appointment Booking</h3>
             <p style={{ color: 'var(--ink-3)', fontSize: '13px', marginBottom: '20px' }}>Please specify a reason for rejecting this student request.</p>
             
@@ -3040,8 +3040,8 @@ export default function AdminDashboard() {
 
       {/* Booking Chat Modal */}
       {activeChatBooking && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: 'var(--surface)', borderRadius: '24px', width: '450px', height: '550px', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', border: '1px solid var(--line)' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '16px' }}>
+          <div style={{ background: 'var(--surface)', borderRadius: '24px', width: '450px', maxWidth: 'calc(100vw - 32px)', height: '550px', maxHeight: 'calc(100vh - 40px)', boxSizing: 'border-box', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', border: '1px solid var(--line)' }}>
             
             {/* Header */}
             <div style={{ background: 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))', padding: '20px 24px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', '--ink': '#ffffff', '--ink-2': 'rgba(255,255,255,0.9)', '--ink-3': 'rgba(255,255,255,0.74)', '--ink-4': 'rgba(255,255,255,0.6)', '--line': 'rgba(255,255,255,0.2)', '--line-strong': 'rgba(255,255,255,0.34)', '--surface': 'rgba(255,255,255,0.12)', '--surface-2': 'rgba(255,255,255,0.1)', '--surface-3': 'rgba(255,255,255,0.18)' }}>

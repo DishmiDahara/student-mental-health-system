@@ -792,6 +792,37 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   margin-right: -4px;
 }
 
+.mood-coping-col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-width: 0;
+}
+
+@media (min-width: 1081px) {
+  .mood-log-grid {
+    display: grid;
+    grid-template-columns: 460px minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+    width: 100%;
+  }
+  .assessment-scroll-card {
+    position: sticky;
+    top: 16px;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 120px);
+    max-height: calc(100vh - 120px);
+    min-height: 520px;
+    overflow: hidden;
+    box-sizing: border-box;
+    z-index: 20;
+    overscroll-behavior: contain;
+  }
+}
+
 @media (max-width: 1080px) {
   .mood-log-grid {
     grid-template-columns: 1fr;

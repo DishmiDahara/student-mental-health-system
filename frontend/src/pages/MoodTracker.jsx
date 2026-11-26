@@ -4753,7 +4753,7 @@ export default function MoodTracker() {
             </div>
 
             {/* Column 2: Interventions & 3D Sensory Grounding */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div className="mood-coping-col">
               {/* Section Quick Jump Navigator for Column 2 */}
               <div style={{
                 display: 'flex',
@@ -5890,6 +5890,8 @@ export default function MoodTracker() {
                   style={{ 
                     position: 'relative', 
                     width: '320px', 
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
                     height: '200px', 
                     background: 'linear-gradient(to bottom, var(--sky-soft), var(--sky-soft))', 
                     border: '2px solid var(--line-strong)', 
@@ -6009,6 +6011,8 @@ export default function MoodTracker() {
                   style={{ 
                     position: 'relative', 
                     width: '400px', 
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
                     height: '200px', 
                     background: '#1e293b', 
                     border: '3px solid #334155', 
@@ -6148,6 +6152,8 @@ export default function MoodTracker() {
                   style={{ 
                     position: 'relative', 
                     width: '400px', 
+                    maxWidth: '100%',
+                    boxSizing: 'border-box',
                     height: '200px', 
                     background: 'linear-gradient(to bottom, #0f172a, #1e293b)', 
                     border: '3px solid #334155', 

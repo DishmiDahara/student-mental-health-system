@@ -184,7 +184,7 @@ export default function Dashboard() {
   return (
     <div className="page dashboard-page">
       {/* ----------------- 24/7 Emergency Care Ribbon ----------------- */}
-      <div className="emergency-ribbon mb-20 rise">
+      <div className="emergency-ribbon rise" style={{ marginBottom: '32px' }}>
         <div className="emergency-ribbon-left">
           <span className="emergency-badge"><Icon name="shield" size={15} /> 24/7 Crisis Support</span>
           <span className="emergency-text">
@@ -241,7 +241,7 @@ export default function Dashboard() {
       )}
 
       {/* ----------------- Hero Section ----------------- */}
-      <section className="hero hero-elevated rise rise-1">
+      <section className="hero hero-elevated rise rise-1" style={{ marginBottom: '56px' }}>
         <div className="hero-art"><Horizon /></div>
         <div className="hero-body">
           <div className="hero-date-chip">
@@ -285,7 +285,7 @@ export default function Dashboard() {
       </section>
 
       {/* ----------------- Section Header: Toolkit ----------------- */}
-      <div className="row-between mt-48 mb-24 rise rise-2">
+      <div className="row-between rise rise-2" style={{ marginTop: '56px', marginBottom: '28px' }}>
         <div>
           <h2 className="h-section" style={{ margin: 0 }}>Your Wellbeing Toolkit</h2>
           <p className="small muted" style={{ margin: '4px 0 0' }}>
@@ -295,7 +295,7 @@ export default function Dashboard() {
       </div>
 
       {/* ----------------- Bento Grid ----------------- */}
-      <div className="bento rise rise-3">
+      <div className="bento rise rise-3" style={{ marginBottom: '56px' }}>
         {/* Card 1: Mood Tracker & Coping Hub (7 cols) */}
         <button
           type="button"
