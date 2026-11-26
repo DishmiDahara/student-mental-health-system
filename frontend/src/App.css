@@ -869,7 +869,7 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
 
 /* 3. Section Headers */
 .mobile-hub-header {
-  margin: 4px 0 0;
+  margin: 6px 0 2px;
 }
 .mobile-hub-title {
   font-size: 16px;
@@ -884,106 +884,13 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   margin: 0;
 }
 
-/* 4. Primary Spotlight Card: Daily Wellbeing Assessment */
-.mobile-spotlight-card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 18px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 12%, var(--surface)), var(--surface));
-  border: 1.5px solid color-mix(in srgb, var(--primary) 35%, var(--line));
-  box-shadow: 0 4px 16px color-mix(in srgb, var(--primary) 8%, transparent);
-  text-align: left;
-  cursor: pointer;
-  font: inherit;
-  color: inherit;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-  touch-action: manipulation;
-}
-.mobile-spotlight-card:active {
-  transform: scale(0.985);
-  border-color: var(--primary);
-}
-.mobile-spotlight-icon-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.mobile-spotlight-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  background: var(--primary-soft);
-  color: var(--primary-ink);
-}
-.mobile-spotlight-badge {
-  font-size: 11px;
-  font-weight: 750;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: var(--primary-soft);
-  color: var(--primary-ink);
-  letter-spacing: 0.02em;
-}
-.mobile-spotlight-title {
-  font-size: 16px;
-  font-weight: 800;
-  color: var(--ink);
-  margin: 0 0 4px;
-}
-.mobile-spotlight-desc {
-  font-size: 12px;
-  color: var(--ink-2);
-  line-height: 1.45;
-  margin: 0;
-}
-.mobile-spotlight-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 10px;
-  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
-  margin-top: 2px;
-}
-.mobile-spotlight-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11.5px;
-  font-weight: 650;
-  color: var(--ink-3);
-}
-.mobile-pulse-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--primary);
-  box-shadow: 0 0 6px var(--primary);
-  animation: pulseDot 2s infinite ease-in-out;
-}
-@keyframes pulseDot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.8); }
-}
-.mobile-spotlight-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12.5px;
-  font-weight: 750;
-  color: var(--primary);
-}
-
-/* 5. 2x2 Pillars Grid */
+/* 4. 2x2 Essentials Pillars Grid */
 .mobile-pillars-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
-@media (max-width: 380px) {
+@media (max-width: 360px) {
   .mobile-pillars-grid {
     grid-template-columns: 1fr;
   }
@@ -991,7 +898,7 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
 .mobile-pillar-card {
   display: flex;
   flex-direction: column;
-  padding: 14px;
+  padding: 15px 14px 14px;
   border-radius: 18px;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -1000,13 +907,14 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   font: inherit;
   color: inherit;
   cursor: pointer;
-  min-height: 118px;
-  transition: transform 0.18s ease, border-color 0.18s ease;
+  min-height: 116px;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
   touch-action: manipulation;
 }
 .mobile-pillar-card:active {
   transform: scale(0.97);
   border-color: var(--primary);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--primary) 12%, transparent);
 }
 .mobile-pillar-header {
   display: flex;
@@ -1024,20 +932,16 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
 .mobile-pillar-chip {
   font-size: 10px;
   font-weight: 750;
-  padding: 2px 7px;
+  padding: 2px 8px;
   border-radius: 999px;
   background: var(--surface-2);
   color: var(--ink-2);
   border: 1px solid var(--line);
-}
-.mobile-pillar-arrow {
-  color: var(--ink-4);
-  display: flex;
-  align-items: center;
+  letter-spacing: 0.02em;
 }
 .mobile-pillar-title {
   font-size: 13.5px;
-  font-weight: 750;
+  font-weight: 800;
   color: var(--ink);
   margin: 0 0 3px;
   line-height: 1.25;
@@ -1049,168 +953,13 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   line-height: 1.35;
 }
 
-/* 6. Breathing Widget */
-.mobile-breathing-panel {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 16px;
+/* 5. Reflection card on mobile */
+.mobile-reflection-card {
+  padding: 14px 16px;
   border-radius: 18px;
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-xs);
-}
-.mobile-breathing-left {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.mobile-breathing-right {
-  flex-shrink: 0;
-}
-.mobile-breathing-start-btn {
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  border-radius: 999px;
-}
-.mobile-breathing-live-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: var(--primary-soft);
-  border: 1.5px solid var(--primary);
-  color: var(--primary-ink);
-  cursor: pointer;
-}
-.mobile-breathing-live-phase {
-  font-size: 12px;
-  font-weight: 750;
-}
-.mobile-breathing-live-sec {
-  font-size: 12.5px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-.mobile-breathing-pause-btn {
-  display: grid;
-  place-items: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: white;
-}
-
-/* 7. Collapsible More Tools */
-.mobile-accordion-section {
-  display: flex;
-  flex-direction: column;
-}
-.mobile-accordion-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-radius: 16px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  color: var(--ink);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-.mobile-accordion-toggle-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.mobile-accordion-icon {
-  color: var(--primary);
-  display: flex;
-  align-items: center;
-}
-.mobile-accordion-toggle-right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--ink-3);
-}
-.mobile-accordion-badge {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--surface-2);
-  color: var(--ink-2);
-}
-.mobile-accordion-content {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 10px;
-  animation: fadeSlideDown 0.25s ease both;
-}
-@keyframes fadeSlideDown {
-  from { opacity: 0; transform: translateY(-6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.mobile-extra-tool-card {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease;
-}
-.mobile-extra-tool-card:active {
-  transform: scale(0.98);
-  border-color: var(--primary);
-}
-.mobile-extra-tool-info {
-  flex: 1;
-  min-width: 0;
-}
-.mobile-extra-tool-title {
-  font-size: 13px;
-  font-weight: 750;
-  color: var(--ink);
-  margin: 0 0 2px;
-}
-.mobile-extra-tool-desc {
-  font-size: 11px;
-  color: var(--ink-3);
-  margin: 0;
-  line-height: 1.35;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.mobile-extra-tool-arrow {
-  color: var(--ink-4);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-}
-
-/* Reflection card on mobile */
-.mobile-reflection-card {
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: var(--surface);
-  border: 1px solid var(--line);
 }
 .mobile-reflection-top {
   display: flex;
@@ -1248,103 +997,236 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   margin: 0;
 }
 
-/* 8. Helpline Accordion */
-.mobile-helpline-accordion {
-  border-radius: 16px;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  overflow: hidden;
-}
-.mobile-helpline-toggle {
-  width: 100%;
+/* 6. Mobile Navigation Helper Card */
+.mobile-nav-helper-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
-  background: none;
-  border: none;
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  text-align: left;
+  gap: 12px;
+  padding: 13px 15px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 8%, var(--surface)), var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--line));
+  box-shadow: var(--shadow-xs);
+  margin-top: 4px;
 }
-.mobile-helpline-toggle-left {
+.mobile-nav-helper-content {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  min-width: 0;
+}
+.mobile-nav-helper-text {
+  min-width: 0;
+}
+.mobile-nav-helper-text strong {
+  display: block;
   font-size: 12.5px;
+  font-weight: 750;
   color: var(--ink);
+  line-height: 1.25;
 }
-.mobile-helpline-toggle-right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.mobile-helpline-drawer {
-  padding: 0 14px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  animation: fadeSlideDown 0.25s ease both;
-}
-.mobile-helpline-intro {
-  font-size: 11.5px;
+.mobile-nav-helper-text p {
+  font-size: 11px;
   color: var(--ink-3);
-  margin: 0 0 2px;
+  margin: 2px 0 0;
+  line-height: 1.35;
 }
-.mobile-helpline-items {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.mobile-helpline-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-}
-.mobile-helpline-item-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.mobile-helpline-dial-code {
-  font-size: 14px;
-  font-weight: 850;
-  color: var(--danger-ink, #ef4444);
-  font-family: var(--font-display);
-  min-width: 36px;
-}
-.mobile-helpline-item-name {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ink);
-}
-.mobile-helpline-item-sub {
-  display: block;
-  font-size: 10.5px;
-  color: var(--ink-3);
-}
-.mobile-call-action {
-  padding: 4px 10px;
+.mobile-nav-helper-btn {
+  flex-shrink: 0;
   font-size: 11.5px;
-  font-weight: 700;
+  padding: 6px 12px;
   border-radius: 999px;
-  text-decoration: none;
   display: inline-flex;
   align-items: center;
   gap: 4px;
 }
-.mobile-helpline-note {
-  font-size: 10.5px;
+
+/* ==========================================================================
+   Mobile Navigation Center Sheet & Menu Categories
+   ========================================================================== */
+.mobile-nav-sheet {
+  border-radius: 28px 28px 0 0;
+  padding: 12px 18px calc(24px + env(safe-area-inset-bottom));
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+}
+.mobile-nav-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px 14px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
+}
+.mobile-nav-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.mobile-nav-user-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.mobile-nav-user-name {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mobile-nav-user-role {
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--primary);
+  text-transform: capitalize;
+}
+.mobile-nav-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.mobile-nav-category {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mobile-nav-category-title {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--ink-3);
+  padding: 0 4px;
+  margin-bottom: 2px;
+}
+.mobile-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+  width: 100%;
+}
+.mobile-nav-item:active {
+  transform: scale(0.98);
+  border-color: var(--primary);
+  background: var(--surface-2);
+}
+.mobile-nav-item.is-active {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+}
+.mobile-nav-item-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.mobile-nav-item-body {
+  flex: 1;
+  min-width: 0;
+}
+.mobile-nav-item-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mobile-nav-item-title {
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--ink);
+}
+.mobile-nav-item-badge {
+  font-size: 9.5px;
+  font-weight: 750;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary-ink);
+  letter-spacing: 0.02em;
+}
+.mobile-nav-item-desc {
+  font-size: 11px;
+  color: var(--ink-3);
+  margin: 2px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.35;
+}
+.mobile-nav-item-arrow {
   color: var(--ink-4);
-  line-height: 1.4;
-  margin: 4px 0 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+.mobile-nav-helplines {
+  padding: 14px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--danger) 7%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--danger) 24%, var(--line));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 6px;
+}
+.mobile-nav-helplines-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mobile-nav-helpline-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.mobile-nav-helpline-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px 7px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--danger) 25%, var(--line));
+  text-decoration: none;
+  color: var(--ink);
   text-align: center;
+  box-shadow: var(--shadow-xs);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+.mobile-nav-helpline-chip:active {
+  transform: scale(0.95);
+  background: color-mix(in srgb, var(--danger) 12%, var(--surface));
+}
+.mobile-nav-helpline-chip strong {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--danger-ink, #ef4444);
+  line-height: 1.1;
+}
+.mobile-nav-helpline-chip span {
+  font-size: 9.5px;
+  font-weight: 650;
+  color: var(--ink-3);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 /* ---------- Aura chat ---------- */

@@ -50,6 +50,13 @@ export default function Navbar() {
     setShowNotifications(false)
   }, [location.pathname])
 
+  // Allow other components (e.g. Mobile Home helper) to trigger opening the navigation drawer
+  useEffect(() => {
+    const handleOpenMobileNav = () => setMoreOpen(true)
+    window.addEventListener('open-mobile-nav', handleOpenMobileNav)
+    return () => window.removeEventListener('open-mobile-nav', handleOpenMobileNav)
+  }, [])
+
   useEffect(() => {
     if (token) fetchAnnouncements()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -174,7 +181,7 @@ export default function Navbar() {
     }
   ]
 
-  const go = (to) => { setMoreOpen(false); navigate(to) }
+  const go = (to, state) => { setMoreOpen(false); navigate(to, { state }) }
 
   const tabs = [
     { to: '/dashboard', icon: 'home', label: 'Home' },
@@ -183,6 +190,131 @@ export default function Navbar() {
     { to: '/booking', icon: 'calendar', label: 'Sessions' }
   ]
   const moreActive = !tabs.some(t => t.to === path) && path !== '/'
+
+  const mobileNavCategories = [
+    {
+      title: 'Mood & Wellbeing Tracking',
+      items: [
+        {
+          label: 'Mood Tracker',
+          desc: 'Emotion logs, triggers & weekly patterns',
+          icon: 'smile',
+          to: '/mood',
+          state: { tab: 'log' },
+          tileClass: 'tile-sun',
+          badge: null
+        },
+        {
+          label: 'Daily Wellbeing Assessment',
+          desc: '2-minute clinical check-in & personalized pulse',
+          icon: 'activity',
+          to: '/mood',
+          state: { tab: 'log', scrollTo: 'sec-assessment' },
+          tileClass: 'tile-primary',
+          badge: 'Daily'
+        },
+        {
+          label: 'Mood Analytics & Trends',
+          desc: 'Trigger breakdown & weekly charts',
+          icon: 'trending',
+          to: '/mood',
+          state: { tab: 'analytics' },
+          tileClass: 'tile-sky',
+          badge: null
+        }
+      ]
+    },
+    {
+      title: 'Therapeutic Coping & Exercises',
+      items: [
+        {
+          label: 'Therapeutic Exercise Library',
+          desc: 'Guided breathing, somatic calming & audio guides',
+          icon: 'compass',
+          to: '/mood',
+          state: { tab: 'log', scrollTo: 'sec-library' },
+          tileClass: 'tile-success',
+          badge: 'Coping'
+        },
+        {
+          label: 'Relaxation Games',
+          desc: '65+ ASMR, tactile bubble wrap & 3D WebGL scenes',
+          icon: 'award',
+          to: '/mood',
+          state: { tab: 'log', scrollTo: 'sec-3d' },
+          tileClass: 'tile-rose',
+          badge: '65+ Games'
+        },
+        {
+          label: 'Calming Soundscapes',
+          desc: 'Nature ambience, binaural beats & focus audio',
+          icon: 'headphones',
+          to: '/mood',
+          state: { tab: 'music' },
+          tileClass: 'tile-dusk',
+          badge: 'Audio'
+        }
+      ]
+    },
+    {
+      title: 'Support & Counseling',
+      items: [
+        {
+          label: 'Aura AI Chatbot',
+          desc: '24/7 empathetic listener in English & Sinhala',
+          icon: 'feather',
+          to: '/chat',
+          tileClass: 'tile-dusk',
+          badge: '24/7 AI'
+        },
+        {
+          label: 'Anonymous Peer Space',
+          desc: 'Safe student discussion with encrypted aliases',
+          icon: 'users',
+          to: '/anonymous-chat',
+          tileClass: 'tile-sky',
+          badge: 'Encrypted'
+        },
+        {
+          label: 'Counseling Appointments',
+          desc: '1-on-1 private appointments with campus psychologists',
+          icon: 'calendar',
+          to: '/booking',
+          tileClass: 'tile-rose',
+          badge: 'Free'
+        }
+      ]
+    },
+    {
+      title: 'Resources & Campus Portal',
+      items: [
+        {
+          label: 'Wellbeing Resources & Articles',
+          desc: 'Clinical guides, stress reduction & self-help',
+          icon: 'book',
+          to: '/resources',
+          tileClass: 'tile-primary',
+          badge: null
+        },
+        ...(user.role === 'student' ? [{
+          label: 'Apply as Peer Counselor',
+          desc: 'Join the campus student mental health support team',
+          icon: 'briefcase',
+          to: '/apply-counselor',
+          tileClass: 'tile-sun',
+          badge: null
+        }] : []),
+        ...(isAdmin ? [{
+          label: user.role === 'counsellor' ? 'Counsellor Console' : 'Admin Console',
+          desc: 'Manage appointments, analytics & student sessions',
+          icon: 'shield',
+          to: '/admin',
+          tileClass: 'tile-danger',
+          badge: 'Staff'
+        }] : [])
+      ]
+    }
+  ]
 
   const notificationsPanel = showNotifications && (
     <div className="popover" role="dialog" aria-label="Announcements">
@@ -325,35 +457,101 @@ export default function Navbar() {
         ))}
         <button className={`tab-item ${moreActive || moreOpen ? 'is-active' : ''}`} onClick={() => setMoreOpen(true)}>
           <span className="pill"><Icon name="grid" size={21} /></span>
-          More
+          Menu
         </button>
       </nav>
 
-      {/* ---------------- Mobile "More" sheet ---------------- */}
+      {/* ---------------- Mobile Navigation Menu Sheet ---------------- */}
       {moreOpen && (
         <>
           <div className="sheet-overlay" onClick={() => setMoreOpen(false)} />
-          <div className="sheet" role="dialog" aria-label="More">
+          <div className="sheet mobile-nav-sheet" role="dialog" aria-label="MindSpace Navigation Menu">
             <div className="sheet-grip" />
-            <div className="row" style={{ padding: '0 6px 14px' }}>
-              <span className="avatar">{user.profilePhoto ? <img src={user.profilePhoto} alt="" /> : nameInitial}</span>
-              <div className="grow">
-                <strong style={{ display: 'block' }}>{user.name}</strong>
-                <span className="small muted" style={{ textTransform: 'capitalize' }}>{user.role}</span>
+
+            {/* User Profile Bar */}
+            <div className="mobile-nav-sheet-header">
+              <div className="mobile-nav-user-info">
+                <span className="avatar avatar-md">{user.profilePhoto ? <img src={user.profilePhoto} alt="" /> : nameInitial}</span>
+                <div className="mobile-nav-user-meta">
+                  <span className="mobile-nav-user-name">{user.name}</span>
+                  <span className="mobile-nav-user-role">{user.role}</span>
+                </div>
               </div>
-              <button className="btn btn-soft btn-sm" onClick={() => { setMoreOpen(false); setIsModalOpen(true) }}>Profile</button>
-            </div>
-            <div className="col gap-4">
-              {groups.flatMap(g => g.items).filter(i => !tabs.some(t => t.to === i.to)).map(item => (
-                <button key={item.to} className={`nav-item ${path === item.to ? 'is-active' : ''}`} onClick={() => go(item.to)}>
-                  <Icon name={item.icon} size={20} /> <span className="nav-text">{item.label}</span>
+              <div className="row gap-8">
+                <button className="btn btn-soft btn-sm" onClick={() => { setMoreOpen(false); setIsModalOpen(true) }}>
+                  Profile
                 </button>
-              ))}
+                <button className="icon-btn icon-btn-sm" onClick={() => setMoreOpen(false)} aria-label="Close menu">
+                  <Icon name="x" size={16} />
+                </button>
+              </div>
             </div>
-            {helpCard}
-            <button className="btn btn-danger-soft btn-block" onClick={() => { setMoreOpen(false); handleLogout() }}>
-              <Icon name="logout" size={18} /> Log out
-            </button>
+
+            {/* Categorized Features List */}
+            <div className="mobile-nav-categories">
+              {mobileNavCategories.map((cat) => (
+                <div className="mobile-nav-category" key={cat.title}>
+                  <span className="mobile-nav-category-title">{cat.title}</span>
+                  <div className="col gap-6">
+                    {cat.items.map((item) => (
+                      <button
+                        key={item.label}
+                        type="button"
+                        className={`mobile-nav-item ${path === item.to ? 'is-active' : ''}`}
+                        onClick={() => go(item.to, item.state)}
+                      >
+                        <span className={`mobile-nav-item-icon ${item.tileClass}`}>
+                          <Icon name={item.icon} size={18} />
+                        </span>
+                        <div className="mobile-nav-item-body">
+                          <div className="mobile-nav-item-top">
+                            <span className="mobile-nav-item-title">{item.label}</span>
+                            {item.badge && <span className="mobile-nav-item-badge">{item.badge}</span>}
+                          </div>
+                          <p className="mobile-nav-item-desc">{item.desc}</p>
+                        </div>
+                        <span className="mobile-nav-item-arrow"><Icon name="chevronRight" size={16} /></span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              {/* 24/7 Immediate Emergency Helplines Section */}
+              <div className="mobile-nav-helplines">
+                <div className="mobile-nav-helplines-head">
+                  <span className="tile tile-sm tile-danger"><Icon name="phone" size={14} /></span>
+                  <div>
+                    <strong style={{ fontSize: 13, display: 'block', color: 'var(--danger-ink)' }}>24/7 Free Crisis Helplines</strong>
+                    <span className="tiny muted">Confidential assistance available anytime in Sri Lanka</span>
+                  </div>
+                </div>
+                <div className="mobile-nav-helpline-grid">
+                  <a href="tel:1926" className="mobile-nav-helpline-chip">
+                    <strong>1926</strong>
+                    <span>NIMH Mental Health</span>
+                  </a>
+                  <a href="tel:1990" className="mobile-nav-helpline-chip">
+                    <strong>1990</strong>
+                    <span>Suwaseriya Ambulance</span>
+                  </a>
+                  <a href="tel:1333" className="mobile-nav-helpline-chip">
+                    <strong>1333</strong>
+                    <span>CCCline Crisis Line</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Sheet Footer: Theme & Logout */}
+            <div className="row gap-8 mt-16" style={{ paddingTop: 12, borderTop: '1px solid var(--line)' }}>
+              <div className="grow">
+                <ThemeToggle />
+              </div>
+              <button className="btn btn-danger-soft btn-sm" onClick={() => { setMoreOpen(false); handleLogout() }}>
+                <Icon name="logout" size={15} /> Log out
+              </button>
+            </div>
           </div>
         </>
       )}
