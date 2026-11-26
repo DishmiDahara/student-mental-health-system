@@ -315,7 +315,7 @@ export default function Dashboard() {
             Log how you feel, discover weekly emotional patterns, and unlock 65+ games &amp; therapeutic interventions tailored to your exact mood.
           </p>
 
-          <div className="bento-visual-moods">
+          <div className="bento-visual-moods mt-auto">
             {[5, 4, 3, 2, 1].map((v) => (
               <div key={v} className="bento-face-col">
                 <MoodFace value={v} size={36} muted={v !== 4} />
@@ -324,7 +324,7 @@ export default function Dashboard() {
             ))}
           </div>
 
-          <div className="bento-footer-strip">
+          <div className="bento-footer-strip mt-14">
             <span className="bento-chip">65+ Zen Games</span>
             <span className="bento-chip">Facial AI Scanner</span>
             <span className="bento-chip">Audio Journal</span>
@@ -353,7 +353,7 @@ export default function Dashboard() {
             Empathetic, 24/7 confidential listener powered by Google Gemini. Chat comfortably in <strong>English, සිංහල, or Singlish</strong>.
           </p>
 
-          <div className="bento-prompts col gap-6" style={{ marginTop: 'auto' }}>
+          <div className="bento-prompts col gap-6 mt-auto">
             <span className="bento-prompt-label">Quick conversation starters:</span>
             <div className="row flex-wrap gap-6">
               {[
@@ -385,8 +385,18 @@ export default function Dashboard() {
         {/* Card 3: Live 1-Minute 4-7-8 Breathing Circle (4 cols) */}
         <div className="card bento-card b-4 bento-breathing-card">
           <div className="row-between">
-            <span className="tile tile-lg tile-success"><Icon name="wind" size={26} /></span>
-            <span className="chip chip-success" style={{ fontWeight: 700 }}>Micro-Relaxation</span>
+            <div className="row gap-8" style={{ alignItems: 'center' }}>
+              <span className="tile tile-lg tile-success"><Icon name="wind" size={26} /></span>
+              <span className="chip chip-success" style={{ fontWeight: 700 }}>Micro-Relaxation</span>
+            </div>
+            <button
+              type="button"
+              className="go"
+              onClick={() => navigate('/resources')}
+              aria-label="Open guided breathing resources"
+            >
+              <Icon name="arrowRight" size={18} />
+            </button>
           </div>
 
           <h3 className="card-title serif mt-8">1-Minute Calming Breath</h3>
@@ -394,7 +404,7 @@ export default function Dashboard() {
             Soothe your autonomic nervous system with the clinically proven 4-7-8 rhythmic breathing technique.
           </p>
 
-          <div className="bento-breathing-interactive">
+          <div className="bento-breathing-interactive mt-auto">
             <div
               className={`breathing-circle breathing-${breathingPhase.toLowerCase()} ${breathingActive ? 'active' : ''}`}
             >
@@ -406,20 +416,23 @@ export default function Dashboard() {
               type="button"
               className={`btn btn-sm ${breathingActive ? 'btn-soft' : 'btn-primary'}`}
               onClick={() => setBreathingActive(!breathingActive)}
-              style={{ marginTop: 12, width: '100%' }}
+              style={{ marginTop: 12, width: '100%', maxWidth: '200px' }}
             >
               <Icon name={breathingActive ? 'pause' : 'play'} size={14} />
               {breathingActive ? 'Pause Breath' : 'Start 1-Min Cycle'}
             </button>
           </div>
 
-          <button
-            type="button"
-            className="bento-subtle-link mt-8"
-            onClick={() => navigate('/resources')}
-          >
-            Explore all guided breathing techniques &rarr;
-          </button>
+          <div className="bento-footer-strip mt-14">
+            <span className="bento-chip">4-7-8 Rhythm</span>
+            <button
+              type="button"
+              className="bento-action-btn"
+              onClick={() => navigate('/resources')}
+            >
+              Explore Audio &rarr;
+            </button>
+          </div>
         </div>
 
         {/* Card 4: Book a Counseling Session (4 cols) */}
@@ -429,7 +442,10 @@ export default function Dashboard() {
           onClick={() => navigate('/booking')}
         >
           <div className="row-between">
-            <span className="tile tile-lg tile-rose"><Icon name="calendar" size={26} /></span>
+            <div className="row gap-8" style={{ alignItems: 'center' }}>
+              <span className="tile tile-lg tile-rose"><Icon name="calendar" size={26} /></span>
+              <span className="chip" style={{ background: 'color-mix(in srgb, var(--rose) 18%, transparent)', color: 'var(--rose-ink, #c2410c)', fontWeight: 700 }}>1-on-1 Sessions</span>
+            </div>
             <span className="go"><Icon name="arrowRight" size={18} /></span>
           </div>
 
@@ -457,7 +473,10 @@ export default function Dashboard() {
           onClick={() => navigate('/anonymous-chat')}
         >
           <div className="row-between">
-            <span className="tile tile-lg tile-sky"><Icon name="users" size={26} /></span>
+            <div className="row gap-8" style={{ alignItems: 'center' }}>
+              <span className="tile tile-lg tile-sky"><Icon name="users" size={26} /></span>
+              <span className="chip" style={{ background: 'color-mix(in srgb, var(--sky) 18%, transparent)', color: 'var(--sky-ink, #0369a1)', fontWeight: 700 }}>Encrypted Peer Space</span>
+            </div>
             <span className="go"><Icon name="arrowRight" size={18} /></span>
           </div>
 

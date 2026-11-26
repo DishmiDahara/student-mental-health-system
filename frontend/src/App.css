@@ -73,10 +73,17 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
 .hero-art .scene { width: 100%; height: 100%; }
 .hero-body { padding: 40px 44px; max-width: 640px; }
 .hero-body .h-display { margin: 6px 0 14px; }
-.hero-moods { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
+.hero-moods {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 480px;
+  width: 100%;
+  margin-top: 20px;
+}
 .hero-mood {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 10px 12px 9px; min-width: 74px;
+  padding: 10px 8px 9px; min-width: 0; width: 100%;
   border-radius: 20px; border: 1px solid color-mix(in srgb, var(--surface) 70%, transparent);
   background: color-mix(in srgb, var(--surface) 80%, transparent);
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
@@ -291,6 +298,26 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
 .bento-card:hover .bento-action-text {
   transform: translateX(3px);
 }
+.bento-action-btn {
+  margin-left: auto;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--primary);
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: inherit;
+  transition: transform .2s ease, color .2s ease;
+}
+.bento-card:hover .bento-action-btn,
+.bento-action-btn:hover {
+  transform: translateX(3px);
+  color: var(--primary-ink);
+}
 
 /* Prompt chips in Aura Card */
 .bento-prompt-label {
@@ -503,7 +530,7 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
 }
 .helpline-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
   margin-bottom: 18px;
 }
@@ -515,6 +542,7 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow-xs);
+  height: 100%;
 }
 .helpline-num {
   font-size: 26px;
@@ -577,6 +605,12 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   background: linear-gradient(180deg, var(--surface), var(--surface-2));
   display: flex; flex-direction: column; align-items: center; gap: 14px; color: var(--sun-ink);
 }
+.reminder-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sun-ink, var(--primary));
+}
 .reminder blockquote {
   margin: 0; max-width: 760px; color: var(--ink);
   font-family: var(--font-display); font-weight: 400; font-style: italic;
@@ -584,28 +618,40 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   font-variation-settings: 'SOFT' 100, 'opsz' 72;
 }
 .reminder cite { font-style: normal; font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); }
+.reminder-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 6px;
+}
 
 @media (max-width: 1100px) {
   .b-7, .b-5 { grid-column: span 12; }
   .b-4 { grid-column: span 6; }
   .b-4:last-child { grid-column: span 12; }
   .sensory-grid { grid-template-columns: repeat(2, 1fr); }
-  .helpline-grid { grid-template-columns: 1fr; }
+  .helpline-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 720px) {
   .b-7, .b-5, .b-4, .b-12 { grid-column: span 12; }
   .bento-card { min-height: 0; }
   .hero { min-height: 0; }
   .hero-body { padding: 24px 18px; }
-  .hero-moods { gap: 8px; justify-content: space-between; }
-  .hero-mood { min-width: 0; flex: 1 1 54px; padding: 8px 3px 7px; }
-  .hero-mood svg { width: 36px; height: 36px; }
+  .hero-moods { gap: 6px; margin-top: 14px; max-width: 100%; }
+  .hero-mood { padding: 8px 2px 6px; font-size: 11px; border-radius: 14px; }
+  .hero-mood svg { width: 32px !important; height: 32px !important; }
   .hero-trust-strip { flex-direction: column; gap: 8px; }
-  .emergency-ribbon { flex-direction: column; align-items: flex-start; }
+  .emergency-ribbon { flex-direction: column; align-items: flex-start; border-radius: 16px; padding: 14px 16px; }
   .emergency-ribbon-actions { width: 100%; justify-content: flex-start; flex-wrap: wrap; }
   .sensory-grid { grid-template-columns: 1fr; }
   .bento-visual-moods { flex-wrap: wrap; justify-content: center; }
   .notice { flex-wrap: wrap; }
+  .helpline-grid { grid-template-columns: 1fr; }
+  .reminder { padding: 28px 18px; }
+  .reminder-actions { width: 100%; flex-direction: column; gap: 8px; }
+  .reminder-actions .btn { width: 100%; justify-content: center; }
 }
 .notice .chip{background:var(--surface);}
 
