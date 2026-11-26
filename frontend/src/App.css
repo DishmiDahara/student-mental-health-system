@@ -657,6 +657,648 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
 }
 .notice .chip{background:var(--surface);}
 
+/* ==========================================================================
+   MindSpace Mobile-Optimized Dashboard Styles (<= 820px)
+   ========================================================================== */
+.mobile-dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding-bottom: 28px;
+}
+
+/* 1. Mobile Crisis Strip */
+.mobile-crisis-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-radius: var(--r-pill, 999px);
+  background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--danger) 25%, var(--line));
+}
+.mobile-crisis-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.mobile-crisis-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 750;
+  color: var(--danger-ink, #ef4444);
+  white-space: nowrap;
+}
+.mobile-crisis-sub {
+  font-size: 11px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mobile-crisis-actions {
+  flex-shrink: 0;
+}
+.mobile-crisis-call-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: var(--danger-fill, #ef4444);
+  color: #ffffff !important;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--danger) 30%, transparent);
+  transition: transform 0.15s ease;
+}
+.mobile-crisis-call-btn:active {
+  transform: scale(0.95);
+}
+
+/* 2. Mobile Hero Card */
+.mobile-hero-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: var(--scene-sky-1);
+  box-shadow: var(--shadow-sm);
+  padding: 20px 18px 16px;
+}
+.mobile-hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.mobile-hero-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.mobile-hero-greeting-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mobile-hero-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--ink-3);
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+  align-self: flex-start;
+}
+.mobile-hero-greeting {
+  font-size: clamp(20px, 5.5vw, 24px);
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 4px 0 0;
+  color: var(--ink);
+  font-family: var(--font-display);
+}
+.mobile-hero-user {
+  color: var(--primary);
+  font-style: italic;
+}
+.mobile-checkin-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 2px;
+}
+.mobile-checkin-prompt {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-2);
+  margin: 0;
+}
+.mobile-moods-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+.mobile-mood-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 2px 7px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 65%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+  min-height: 48px;
+  touch-action: manipulation;
+}
+.mobile-mood-btn:active {
+  transform: scale(0.94);
+  border-color: var(--primary);
+  background: var(--surface);
+}
+.mobile-mood-name {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+
+/* 3. Section Headers */
+.mobile-hub-header {
+  margin: 4px 0 0;
+}
+.mobile-hub-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0 0 2px;
+  letter-spacing: -0.01em;
+}
+.mobile-hub-sub {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  margin: 0;
+}
+
+/* 4. Primary Spotlight Card: Daily Wellbeing Assessment */
+.mobile-spotlight-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 12%, var(--surface)), var(--surface));
+  border: 1.5px solid color-mix(in srgb, var(--primary) 35%, var(--line));
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--primary) 8%, transparent);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  touch-action: manipulation;
+}
+.mobile-spotlight-card:active {
+  transform: scale(0.985);
+  border-color: var(--primary);
+}
+.mobile-spotlight-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mobile-spotlight-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--primary-soft);
+  color: var(--primary-ink);
+}
+.mobile-spotlight-badge {
+  font-size: 11px;
+  font-weight: 750;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary-ink);
+  letter-spacing: 0.02em;
+}
+.mobile-spotlight-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+  margin: 0 0 4px;
+}
+.mobile-spotlight-desc {
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.45;
+  margin: 0;
+}
+.mobile-spotlight-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  margin-top: 2px;
+}
+.mobile-spotlight-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 650;
+  color: var(--ink-3);
+}
+.mobile-pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 6px var(--primary);
+  animation: pulseDot 2s infinite ease-in-out;
+}
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+.mobile-spotlight-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 750;
+  color: var(--primary);
+}
+
+/* 5. 2x2 Pillars Grid */
+.mobile-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 380px) {
+  .mobile-pillars-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.mobile-pillar-card {
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-xs);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  min-height: 118px;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+  touch-action: manipulation;
+}
+.mobile-pillar-card:active {
+  transform: scale(0.97);
+  border-color: var(--primary);
+}
+.mobile-pillar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.mobile-pillar-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+}
+.mobile-pillar-chip {
+  font-size: 10px;
+  font-weight: 750;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+}
+.mobile-pillar-arrow {
+  color: var(--ink-4);
+  display: flex;
+  align-items: center;
+}
+.mobile-pillar-title {
+  font-size: 13.5px;
+  font-weight: 750;
+  color: var(--ink);
+  margin: 0 0 3px;
+  line-height: 1.25;
+}
+.mobile-pillar-desc {
+  font-size: 11px;
+  color: var(--ink-3);
+  margin: 0;
+  line-height: 1.35;
+}
+
+/* 6. Breathing Widget */
+.mobile-breathing-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-xs);
+}
+.mobile-breathing-left {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.mobile-breathing-right {
+  flex-shrink: 0;
+}
+.mobile-breathing-start-btn {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+}
+.mobile-breathing-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  border: 1.5px solid var(--primary);
+  color: var(--primary-ink);
+  cursor: pointer;
+}
+.mobile-breathing-live-phase {
+  font-size: 12px;
+  font-weight: 750;
+}
+.mobile-breathing-live-sec {
+  font-size: 12.5px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.mobile-breathing-pause-btn {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+}
+
+/* 7. Collapsible More Tools */
+.mobile-accordion-section {
+  display: flex;
+  flex-direction: column;
+}
+.mobile-accordion-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.mobile-accordion-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mobile-accordion-icon {
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+}
+.mobile-accordion-toggle-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-3);
+}
+.mobile-accordion-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+}
+.mobile-accordion-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  animation: fadeSlideDown 0.25s ease both;
+}
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.mobile-extra-tool-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.mobile-extra-tool-card:active {
+  transform: scale(0.98);
+  border-color: var(--primary);
+}
+.mobile-extra-tool-info {
+  flex: 1;
+  min-width: 0;
+}
+.mobile-extra-tool-title {
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--ink);
+  margin: 0 0 2px;
+}
+.mobile-extra-tool-desc {
+  font-size: 11px;
+  color: var(--ink-3);
+  margin: 0;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mobile-extra-tool-arrow {
+  color: var(--ink-4);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Reflection card on mobile */
+.mobile-reflection-card {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.mobile-reflection-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.mobile-reflection-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 750;
+  color: var(--sun-ink, #d97706);
+}
+.mobile-reflection-cycle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.mobile-reflection-quote {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--ink-2);
+  margin: 0;
+}
+
+/* 8. Helpline Accordion */
+.mobile-helpline-accordion {
+  border-radius: 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+.mobile-helpline-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.mobile-helpline-toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+.mobile-helpline-toggle-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mobile-helpline-drawer {
+  padding: 0 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeSlideDown 0.25s ease both;
+}
+.mobile-helpline-intro {
+  font-size: 11.5px;
+  color: var(--ink-3);
+  margin: 0 0 2px;
+}
+.mobile-helpline-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mobile-helpline-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.mobile-helpline-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mobile-helpline-dial-code {
+  font-size: 14px;
+  font-weight: 850;
+  color: var(--danger-ink, #ef4444);
+  font-family: var(--font-display);
+  min-width: 36px;
+}
+.mobile-helpline-item-name {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.mobile-helpline-item-sub {
+  display: block;
+  font-size: 10.5px;
+  color: var(--ink-3);
+}
+.mobile-call-action {
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  border-radius: 999px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.mobile-helpline-note {
+  font-size: 10.5px;
+  color: var(--ink-4);
+  line-height: 1.4;
+  margin: 4px 0 0;
+  text-align: center;
+}
+
 /* ---------- Aura chat ---------- */
 .chat-page { height: 100vh; height: 100dvh; padding: 20px 24px; display: flex; }
 .chat-card {

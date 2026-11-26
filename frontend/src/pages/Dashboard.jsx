@@ -76,6 +76,10 @@ export default function Dashboard() {
   const [breathingSeconds, setBreathingSeconds] = useState(4)
   const breathingTimerRef = useRef(null)
 
+  // Mobile collapsible sections
+  const [mobileMoreOpen, setMobileMoreOpen] = useState(false)
+  const [mobileHelplinesOpen, setMobileHelplinesOpen] = useState(false)
+
   const token = localStorage.getItem('token')
 
   useEffect(() => {
@@ -183,8 +187,12 @@ export default function Dashboard() {
 
   return (
     <div className="page dashboard-page">
-      {/* ----------------- 24/7 Emergency Care Ribbon ----------------- */}
-      <div className="emergency-ribbon rise" style={{ marginBottom: '32px' }}>
+      {/* =========================================================================
+          DESKTOP & TABLET VIEW (>820px): Preserved Full Bento & Toolkit Layout
+          ========================================================================= */}
+      <div className="only-desktop">
+        {/* ----------------- 24/7 Emergency Care Ribbon ----------------- */}
+        <div className="emergency-ribbon rise" style={{ marginBottom: '32px' }}>
         <div className="emergency-ribbon-left">
           <span className="emergency-badge"><Icon name="shield" size={15} /> 24/7 Crisis Support</span>
           <span className="emergency-text">
@@ -570,6 +578,360 @@ export default function Dashboard() {
           MindSpace is designed for student wellbeing support, emotional reflection, and non-emergency care. In acute medical or psychiatric crises, please contact 1926 or visit your nearest hospital emergency unit.
         </p>
       </section>
+      </div>
+
+      {/* =========================================================================
+          MOBILE VIEW (<=820px): Clean, Minimal, Modern & Uncluttered Experience
+          ========================================================================= */}
+      <div className="only-mobile mobile-dashboard-container">
+        {/* 1. Mobile Compact Emergency Safety Net */}
+        <div className="mobile-crisis-strip">
+          <div className="mobile-crisis-left">
+            <span className="mobile-crisis-badge"><Icon name="shield" size={13} /> 24/7 Crisis Help</span>
+            <span className="mobile-crisis-sub">Confidential across Sri Lanka</span>
+          </div>
+          <div className="mobile-crisis-actions">
+            <a href="tel:1926" className="mobile-crisis-call-btn">
+              <Icon name="phone" size={12} /> Call 1926
+            </a>
+          </div>
+        </div>
+
+        {/* 2. Counselor Message (if active) */}
+        {supportMessage && (
+          <button
+            type="button"
+            className="notice notice-danger rise"
+            onClick={() => navigate('/anonymous-chat', { state: { defaultTab: 'admin' } })}
+            style={{ borderRadius: '18px', padding: '14px 16px', margin: 0 }}
+          >
+            <span className="tile tile-danger"><Icon name="message" size={20} /></span>
+            <span className="notice-body">
+              <span className="chip chip-danger" style={{ marginBottom: 4, fontSize: '11px' }}>Counselor Message</span>
+              <strong style={{ fontSize: '13.5px' }}>Your counselor started a session</strong>
+              <span className="notice-quote" style={{ fontSize: '12px' }}>&ldquo;{supportMessage.text}&rdquo;</span>
+            </span>
+            <span className="btn btn-danger btn-sm" style={{ padding: '6px 12px', fontSize: '12px' }}>Reply <Icon name="arrowRight" size={14} /></span>
+          </button>
+        )}
+
+        {/* 3. Counselor Custom Activity (if active) */}
+        {customRec && (customRec.game || customRec.activity) && (
+          <div className="notice notice-primary rise" style={{ borderRadius: '18px', padding: '14px 16px', margin: 0 }}>
+            <span className="tile"><Icon name="heart" size={20} /></span>
+            <span className="notice-body">
+              <span className="chip chip-primary" style={{ marginBottom: 4, fontSize: '11px' }}>Personal Recommendation</span>
+              <strong style={{ fontSize: '13.5px' }}>Curated coping exercise</strong>
+              <span className="notice-quote" style={{ fontSize: '12px' }}>&ldquo;{customRec.activity || 'Take some quiet moments to reflect, breathe, and unwind.'}&rdquo;</span>
+            </span>
+            {customRec.game && (
+              <button className="btn btn-primary btn-sm" onClick={() => navigate('/mood')} style={{ padding: '6px 12px', fontSize: '12px' }}>
+                <Icon name="play" size={13} /> Play
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* 4. Streamlined Mobile Sanctuary Hero Card */}
+        <section className="mobile-hero-card">
+          <div className="hero-art"><Horizon /></div>
+          <div className="mobile-hero-content">
+            <div className="mobile-hero-top-row">
+              <div className="mobile-hero-greeting-box">
+                <span className="mobile-hero-date">
+                  <Icon name="calendar" size={12} /> {getFormattedDate()}
+                </span>
+                <h1 className="mobile-hero-greeting">
+                  {getGreeting()}, <span className="mobile-hero-user">{name}.</span>
+                </h1>
+              </div>
+            </div>
+
+            <div className="mobile-checkin-container">
+              <p className="mobile-checkin-prompt">How is your mind feeling right now?</p>
+              <div className="mobile-moods-grid" role="group" aria-label="Quick mood check-in">
+                {[5, 4, 3, 2, 1].map((v) => (
+                  <button
+                    key={v}
+                    type="button"
+                    className="mobile-mood-btn"
+                    onClick={() => handleQuickMoodClick(v)}
+                    aria-label={`Log feeling ${MOOD_LABELS[v]}`}
+                  >
+                    <MoodFace value={v} size={36} />
+                    <span className="mobile-mood-name">{MOOD_LABELS[v]}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 5. Essential Features Hub Header */}
+        <div className="mobile-hub-header">
+          <div>
+            <h2 className="mobile-hub-title">Essential Wellbeing Hub</h2>
+            <p className="mobile-hub-sub">Your core tools for daily mental balance</p>
+          </div>
+        </div>
+
+        {/* 5A. Featured Primary Card: Daily Wellbeing Assessment */}
+        <button
+          type="button"
+          className="mobile-spotlight-card"
+          onClick={() => navigate('/mood')}
+        >
+          <div className="mobile-spotlight-icon-wrap">
+            <span className="mobile-spotlight-icon"><Icon name="activity" size={24} /></span>
+            <span className="mobile-spotlight-badge">Daily Check-in</span>
+          </div>
+          <div className="mobile-spotlight-body">
+            <h3 className="mobile-spotlight-title">Daily Wellbeing Assessment</h3>
+            <p className="mobile-spotlight-desc">
+              2-minute clinical check-in for stress, energy, mood balance, and tailored coping recommendations.
+            </p>
+          </div>
+          <div className="mobile-spotlight-footer">
+            <span className="mobile-spotlight-status">
+              <span className="mobile-pulse-dot" /> Today&rsquo;s Pulse
+            </span>
+            <span className="mobile-spotlight-action">
+              Start Assessment <Icon name="arrowRight" size={15} />
+            </span>
+          </div>
+        </button>
+
+        {/* 5B. 2x2 Grid of Core Pillars */}
+        <div className="mobile-pillars-grid">
+          {/* Card 1: Mood Tracker */}
+          <button
+            type="button"
+            className="mobile-pillar-card"
+            onClick={() => navigate('/mood')}
+          >
+            <div className="mobile-pillar-header">
+              <span className="mobile-pillar-icon tile-sun"><Icon name="smile" size={22} /></span>
+              <span className="mobile-pillar-arrow"><Icon name="chevronRight" size={16} /></span>
+            </div>
+            <h4 className="mobile-pillar-title">Mood Tracker</h4>
+            <p className="mobile-pillar-desc">Emotion logs, triggers &amp; weekly patterns</p>
+          </button>
+
+          {/* Card 2: Aura AI Chatbot */}
+          <button
+            type="button"
+            className="mobile-pillar-card"
+            onClick={() => navigate('/chat')}
+          >
+            <div className="mobile-pillar-header">
+              <span className="mobile-pillar-icon tile-dusk"><Icon name="feather" size={22} /></span>
+              <span className="mobile-pillar-chip">24/7 AI</span>
+            </div>
+            <h4 className="mobile-pillar-title">Talk to Aura</h4>
+            <p className="mobile-pillar-desc">Empathetic listener in English, සිංහල &amp; Singlish</p>
+          </button>
+
+          {/* Card 3: Relaxation Games */}
+          <button
+            type="button"
+            className="mobile-pillar-card"
+            onClick={() => navigate('/mood', { state: { scrollTo: 'sec-3d' } })}
+          >
+            <div className="mobile-pillar-header">
+              <span className="mobile-pillar-icon tile-rose"><Icon name="award" size={22} /></span>
+              <span className="mobile-pillar-chip">65+ Games</span>
+            </div>
+            <h4 className="mobile-pillar-title">Relaxing Games</h4>
+            <p className="mobile-pillar-desc">Tactile ASMR, bubble wrap &amp; 3D WebGL scenes</p>
+          </button>
+
+          {/* Card 4: Therapeutic Exercise Library */}
+          <button
+            type="button"
+            className="mobile-pillar-card"
+            onClick={() => navigate('/mood', { state: { scrollTo: 'sec-library' } })}
+          >
+            <div className="mobile-pillar-header">
+              <span className="mobile-pillar-icon tile-success"><Icon name="compass" size={22} /></span>
+              <span className="mobile-pillar-arrow"><Icon name="chevronRight" size={16} /></span>
+            </div>
+            <h4 className="mobile-pillar-title">Exercise Library</h4>
+            <p className="mobile-pillar-desc">Guided exercises, somatic calming &amp; soundscapes</p>
+          </button>
+        </div>
+
+        {/* 6. Quick Calming Breath Widget */}
+        <div className="mobile-breathing-panel">
+          <div className="mobile-breathing-left">
+            <div className="row gap-8" style={{ alignItems: 'center' }}>
+              <span className="tile tile-sm tile-success"><Icon name="wind" size={18} /></span>
+              <strong style={{ fontSize: '13.5px', color: 'var(--ink)' }}>1-Minute 4-7-8 Breath</strong>
+            </div>
+            <p className="small muted" style={{ margin: '4px 0 0', fontSize: '11.5px' }}>
+              {breathingActive ? `Cycle active · ${breathingPhase}` : 'Soothe nervous system instantly'}
+            </p>
+          </div>
+          <div className="mobile-breathing-right">
+            {breathingActive ? (
+              <div className="mobile-breathing-live-pill" onClick={() => setBreathingActive(false)}>
+                <span className="mobile-breathing-live-phase">{breathingPhase}</span>
+                <span className="mobile-breathing-live-sec">{breathingSeconds}s</span>
+                <span className="mobile-breathing-pause-btn"><Icon name="pause" size={12} /></span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-sm btn-soft mobile-breathing-start-btn"
+                onClick={() => setBreathingActive(true)}
+              >
+                <Icon name="play" size={12} /> Start Breath
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* 7. Collapsible "More Wellbeing Tools" Section */}
+        <div className="mobile-accordion-section">
+          <button
+            type="button"
+            className="mobile-accordion-toggle"
+            onClick={() => setMobileMoreOpen(!mobileMoreOpen)}
+            aria-expanded={mobileMoreOpen}
+          >
+            <span className="mobile-accordion-toggle-left">
+              <span className="mobile-accordion-icon"><Icon name="heart" size={16} /></span>
+              <span>More Campus Care &amp; Peer Services</span>
+            </span>
+            <span className="mobile-accordion-toggle-right">
+              <span className="mobile-accordion-badge">{mobileMoreOpen ? 'Hide' : '3 More'}</span>
+              <Icon name={mobileMoreOpen ? 'chevronUp' : 'chevronDown'} size={16} />
+            </span>
+          </button>
+
+          {mobileMoreOpen && (
+            <div className="mobile-accordion-content">
+              {/* Tool A: Professional Counseling Booking */}
+              <button
+                type="button"
+                className="mobile-extra-tool-card"
+                onClick={() => navigate('/booking')}
+              >
+                <span className="tile tile-rose"><Icon name="calendar" size={20} /></span>
+                <div className="mobile-extra-tool-info">
+                  <h4 className="mobile-extra-tool-title">Professional Counseling</h4>
+                  <p className="mobile-extra-tool-desc">1-on-1 private appointments with university psychologists · Free for students</p>
+                </div>
+                <span className="mobile-extra-tool-arrow"><Icon name="arrowRight" size={16} /></span>
+              </button>
+
+              {/* Tool B: Anonymous Peer Space */}
+              <button
+                type="button"
+                className="mobile-extra-tool-card"
+                onClick={() => navigate('/anonymous-chat')}
+              >
+                <span className="tile tile-sky"><Icon name="users" size={20} /></span>
+                <div className="mobile-extra-tool-info">
+                  <h4 className="mobile-extra-tool-title">Anonymous Peer Space</h4>
+                  <p className="mobile-extra-tool-desc">Safe peer support with encrypted aliases &amp; counselor moderation</p>
+                </div>
+                <span className="mobile-extra-tool-arrow"><Icon name="arrowRight" size={16} /></span>
+              </button>
+
+              {/* Tool C: Daily Reflection */}
+              <div className="mobile-reflection-card">
+                <div className="mobile-reflection-top">
+                  <span className="mobile-reflection-tag"><Icon name="sun" size={13} /> Daily Reflection</span>
+                  <button
+                    type="button"
+                    className="mobile-reflection-cycle-btn"
+                    onClick={() => setReminderIdx((prev) => (prev + 1) % REMINDERS.length)}
+                    aria-label="Next thought"
+                  >
+                    <Icon name="refresh" size={12} /> New Thought
+                  </button>
+                </div>
+                <blockquote className="mobile-reflection-quote">
+                  &ldquo;{REMINDERS[reminderIdx]}&rdquo;
+                </blockquote>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 8. Collapsible 24/7 Emergency Helplines Safety Net */}
+        <div className="mobile-helpline-accordion">
+          <button
+            type="button"
+            className="mobile-helpline-toggle"
+            onClick={() => setMobileHelplinesOpen(!mobileHelplinesOpen)}
+            aria-expanded={mobileHelplinesOpen}
+          >
+            <span className="mobile-helpline-toggle-left">
+              <span className="tile tile-sm tile-danger" style={{ width: 28, height: 28 }}><Icon name="phone" size={14} /></span>
+              <strong>24/7 Crisis &amp; Mental Health Helplines</strong>
+            </span>
+            <span className="mobile-helpline-toggle-right">
+              <span className="chip chip-danger" style={{ fontSize: '10.5px', padding: '2px 8px' }}>
+                {mobileHelplinesOpen ? 'Close' : 'View Lines'}
+              </span>
+              <Icon name={mobileHelplinesOpen ? 'chevronUp' : 'chevronDown'} size={15} />
+            </span>
+          </button>
+
+          {mobileHelplinesOpen && (
+            <div className="mobile-helpline-drawer">
+              <p className="mobile-helpline-intro">
+                Free, immediate and completely confidential assistance available anytime:
+              </p>
+              <div className="mobile-helpline-items">
+                <div className="mobile-helpline-item">
+                  <div className="mobile-helpline-item-left">
+                    <span className="mobile-helpline-dial-code">1926</span>
+                    <div>
+                      <strong className="mobile-helpline-item-name">NIMH National Mental Health</strong>
+                      <span className="mobile-helpline-item-sub">24/7 Free Hotline · Toll-Free</span>
+                    </div>
+                  </div>
+                  <a href="tel:1926" className="btn btn-sm btn-danger mobile-call-action">
+                    <Icon name="phone" size={13} /> Call
+                  </a>
+                </div>
+
+                <div className="mobile-helpline-item">
+                  <div className="mobile-helpline-item-left">
+                    <span className="mobile-helpline-dial-code">1990</span>
+                    <div>
+                      <strong className="mobile-helpline-item-name">Suwaseriya Ambulance</strong>
+                      <span className="mobile-helpline-item-sub">24/7 Medical Emergency Care</span>
+                    </div>
+                  </div>
+                  <a href="tel:1990" className="btn btn-sm btn-soft mobile-call-action">
+                    <Icon name="phone" size={13} /> Call
+                  </a>
+                </div>
+
+                <div className="mobile-helpline-item">
+                  <div className="mobile-helpline-item-left">
+                    <span className="mobile-helpline-dial-code">1333</span>
+                    <div>
+                      <strong className="mobile-helpline-item-name">CCCline Sri Lanka</strong>
+                      <span className="mobile-helpline-item-sub">Emotional &amp; Crisis Counseling</span>
+                    </div>
+                  </div>
+                  <a href="tel:1333" className="btn btn-sm btn-soft mobile-call-action">
+                    <Icon name="phone" size={13} /> Call
+                  </a>
+                </div>
+              </div>
+
+              <p className="mobile-helpline-note">
+                MindSpace is for supportive wellbeing and self-reflection. In acute crises, please call 1926 or visit an emergency room.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

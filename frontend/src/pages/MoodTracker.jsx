@@ -556,6 +556,17 @@ export default function MoodTracker() {
   const [is3DAudioMuted, setIs3DAudioMuted] = useState(false)
   const threeContainerRef = useRef(null)
 
+  // Smooth scroll to target section if passed via navigation
+  useEffect(() => {
+    if (location.state?.scrollTo) {
+      const timer = setTimeout(() => {
+        const el = document.getElementById(location.state.scrollTo)
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 200)
+      return () => clearTimeout(timer)
+    }
+  }, [location.state])
+
   // Web Audio 3D Interactive Touch Chime Synthesizer
   const play3DTouchChime = (gameType, isMuted) => {
     if (isMuted) return
