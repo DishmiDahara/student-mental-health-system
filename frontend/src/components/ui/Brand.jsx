@@ -64,7 +64,7 @@ export function Horizon({ className = '', style }) {
         <path d="M104 424c0-26 4-44 10-60 6 16 10 34 10 60z" />
         <path d="M128 426c0-18 3-30 7-42 5 12 7 24 7 42z" />
       </g>
-      <g fill="none" stroke="#ffffff" strokeOpacity="0.55" strokeWidth="2" strokeLinecap="round" style={{ opacity: "var(--scene-cloud)" }}>
+      <g className="birds-group" fill="none" stroke="#ffffff" strokeOpacity="0.55" strokeWidth="2" strokeLinecap="round" style={{ opacity: "var(--scene-cloud)", transition: 'opacity .4s' }}>
         <path d="M560 176q8-8 16 0 8-8 16 0" />
         <path d="M598 150q6-6 12 0 6-6 12 0" />
       </g>

@@ -648,7 +648,7 @@ export default function Dashboard() {
             </div>
 
             <div className="mobile-checkin-container">
-              <p className="mobile-checkin-prompt">How is your mind feeling right now?</p>
+              <p className="mobile-checkin-prompt">Quick Mood Check-in:</p>
               <div className="mobile-moods-grid" role="group" aria-label="Quick mood check-in">
                 {[5, 4, 3, 2, 1].map((v) => (
                   <button

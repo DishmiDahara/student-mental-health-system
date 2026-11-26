@@ -738,7 +738,7 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   background: var(--scene-sky-1);
   box-shadow: var(--shadow-sm);
   padding: 22px 18px 18px;
-  min-height: 230px;
+  min-height: 248px;
 }
 .mobile-hero-card .hero-art {
   position: absolute;
@@ -756,17 +756,27 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
 }
 .mobile-hero-card .hero-art .scene .sun-group {
   transform-origin: 515px 215px;
-  transform: translate(0, 0);
+  transform: translate(24px, -30px);
+  transition: transform 0.3s ease;
+}
+.mobile-hero-card .hero-art .scene .birds-group {
+  transform: translate(28px, -26px);
   transition: transform 0.3s ease;
 }
 @media (max-width: 480px) {
   .mobile-hero-card .hero-art .scene .sun-group {
-    transform: translate(-12px, -8px);
+    transform: translate(28px, -36px);
+  }
+  .mobile-hero-card .hero-art .scene .birds-group {
+    transform: translate(32px, -30px);
   }
 }
 @media (max-width: 360px) {
   .mobile-hero-card .hero-art .scene .sun-group {
-    transform: translate(-25px, -14px);
+    transform: translate(20px, -42px);
+  }
+  .mobile-hero-card .hero-art .scene .birds-group {
+    transform: translate(22px, -34px);
   }
 }
 .mobile-hero-content {
@@ -780,13 +790,13 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  min-height: 72px;
+  min-height: 76px;
 }
 .mobile-hero-greeting-box {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  max-width: min(65%, calc(100% - 110px));
+  max-width: min(58%, calc(100% - 118px));
 }
 .mobile-hero-date {
   display: inline-flex;
