@@ -60,9 +60,9 @@ export default function LocalGameModal({ game, onClose }) {
           )}
           <iframe
             title={game.title}
-            src={game.launch.src}
+            src={game.launch?.src || game.src || game.url}
             onLoad={() => setLoaded(true)}
-            allow="fullscreen; autoplay; screen-wake-lock; clipboard-write"
+            allow="fullscreen; autoplay; screen-wake-lock; clipboard-write; gamepad; accelerometer; gyroscope"
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none', background: game.id === 'floodit' ? '#f5f7fb' : '#000' }}
           />
         </div>

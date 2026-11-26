@@ -121,14 +121,6 @@ const colorPalette = [
 export default function MoodTracker() {
   const [localGame, setLocalGame] = useState(null)
 
-  const handleCatalogLaunch = (game) => {
-    if (game.type === 'local') {
-      setLocalGame(game)
-    } else if (game.url) {
-      window.open(game.url, '_blank')
-    }
-  }
-
   const navigate = useNavigate()
   const location = useLocation()
   const token = localStorage.getItem('token')
@@ -2814,6 +2806,38 @@ export default function MoodTracker() {
       setRelaxMatchMatched([])
     } else if (sub === 'calmgenerator') {
       setCalmGeneratorDone(false)
+    }
+  }
+
+  // Unified Catalog Dispatcher: launches all 65+ relaxing games across embedded HTML5,
+  // native interactive games, 3D WebGL scenes, and dedicated relaxation modals.
+  const handleCatalogLaunch = (game) => {
+    if (!game) return
+    const l = game.launch || {}
+
+    if (l.type === 'embed' || l.type === 'local' || game.type === 'local') {
+      setLocalGame(game)
+    } else if (l.type === 'game') {
+      const data = l.needsData ? buildGameData(l.subtype) : null
+      launchGame(l.subtype, {
+        key: 'game',
+        title: `${game.title} ${game.icon || ''}`.trim(),
+        icon: game.icon,
+        desc: game.desc,
+        subtype: l.subtype,
+        data
+      })
+    } else if (l.type === '3d') {
+      setActive3DGame(l.key)
+    } else if (l.modal || l.type === 'modal') {
+      const m = l.modal
+      if (m === 'merge') setShowMergeModal(true)
+      else if (m === 'diff') setShowDiffModal(true)
+      else if (m === 'mower') setShowMowerModal(true)
+      else if (m === 'popit') setShowPopItModal(true)
+      else if (m === 'watersort') setShowWaterSortModal(true)
+    } else if (game.url || l.src) {
+      window.open(game.url || l.src, '_blank')
     }
   }
 
