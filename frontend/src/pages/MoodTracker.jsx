@@ -4009,8 +4009,8 @@ export default function MoodTracker() {
   }
 
   return (
-    <div style={{ paddingTop: '16px' }}>
-      <div className="page" style={{ paddingTop: '12px' }}>
+    <div style={{ width: '100%' }}>
+      <div className="page" style={{ paddingTop: '20px' }}>
 
         {/* Header */}
         <div className="page-head">
@@ -4753,12 +4753,38 @@ export default function MoodTracker() {
             </div>
 
             {/* Column 2: Interventions & 3D Sensory Grounding */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {/* Section Quick Jump Navigator for Column 2 */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                flexWrap: 'wrap',
+                padding: '8px 14px',
+                background: 'var(--surface)',
+                border: '1px solid var(--line)',
+                borderRadius: 'var(--r-pill, 999px)',
+                boxShadow: 'var(--shadow-xs)'
+              }}>
+                <span style={{ fontSize: '11.5px', fontWeight: '700', color: 'var(--ink-3)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Icon name="compass" size={13} /> Quick Jump:
+                </span>
+                <a href="#sec-recommended" style={{ textDecoration: 'none', fontSize: '11.5px', fontWeight: '600', color: 'var(--ink-2)', padding: '3px 10px', borderRadius: '999px', background: 'var(--surface-2)', border: '1px solid var(--line)', transition: 'all 0.15s ease' }}>
+                  🎯 Recommended
+                </a>
+                <a href="#sec-library" style={{ textDecoration: 'none', fontSize: '11.5px', fontWeight: '600', color: 'var(--ink-2)', padding: '3px 10px', borderRadius: '999px', background: 'var(--surface-2)', border: '1px solid var(--line)', transition: 'all 0.15s ease' }}>
+                  🎮 Exercise Library
+                </a>
+                <a href="#sec-3d" style={{ textDecoration: 'none', fontSize: '11.5px', fontWeight: '600', color: 'var(--ink-2)', padding: '3px 10px', borderRadius: '999px', background: 'var(--surface-2)', border: '1px solid var(--line)', transition: 'all 0.15s ease' }}>
+                  🌌 3D Sensory Zone
+                </a>
+              </div>
+
               {/* Evidence-Based Coping Recommendations & Full Library */}
               <MoodGamesSection selectedMood={selected} onPlay={handleCatalogLaunch} />
 
               {/* 3D Sensory Grounding Environments Card */}
-              <div style={{
+              <div id="sec-3d" className="card mg-scroll-panel" style={{
                 background: 'var(--surface)',
                 padding: '24px 28px',
                 borderRadius: 'var(--r-card, 24px)',
@@ -4767,7 +4793,8 @@ export default function MoodTracker() {
                 display: 'flex',
                 flexDirection: 'column',
                 maxHeight: '440px',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                overscrollBehavior: 'contain'
               }}>
                 <div className="row-between mb-8" style={{ alignItems: 'flex-start', flexShrink: 0, paddingBottom: '12px', borderBottom: '1px solid var(--line)' }}>
                   <div>

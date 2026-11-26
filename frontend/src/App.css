@@ -693,9 +693,10 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
 /* ---------- Mood Tracker Layout ---------- */
 .mood-log-grid {
   display: grid;
-  grid-template-columns: minmax(0, 480px) minmax(0, 1fr);
-  gap: 32px;
+  grid-template-columns: 460px minmax(0, 1fr);
+  gap: 28px;
   align-items: start;
+  width: 100%;
 }
 
 /* MindSpace Independent Section Scrollbars & Containers */
@@ -703,6 +704,7 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--primary) 40%, var(--line-strong)) transparent;
   overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
 }
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
@@ -722,21 +724,23 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
 
 .assessment-scroll-card {
   position: sticky;
-  top: 24px;
+  top: 16px;
   align-self: start;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 110px);
-  min-height: 500px;
+  height: calc(100vh - 120px);
+  max-height: calc(100vh - 120px);
+  min-height: 520px;
   overflow: hidden;
   box-sizing: border-box;
-  z-index: 10;
+  z-index: 20;
+  overscroll-behavior: contain;
 }
 .assessment-scroll-header {
   flex-shrink: 0;
   padding-bottom: 16px;
   border-bottom: 1px solid var(--line);
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 .assessment-scroll-body {
   flex: 1 1 auto;
@@ -752,6 +756,8 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-sizing: border-box;
+  overscroll-behavior: contain;
 }
 .mg-scroll-header {
   flex-shrink: 0;
@@ -762,6 +768,9 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
 .mg-scroll-body {
   flex: 1 1 auto;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
   padding-right: 10px;
   margin-right: -4px;
 }
@@ -774,6 +783,7 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   .assessment-scroll-card {
     position: relative;
     top: auto;
+    height: auto;
     max-height: 640px;
   }
 }

@@ -257,7 +257,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  overflow-x: hidden;
+  overflow-x: clip;
   transition: background-color 0.35s var(--ease-soft), color 0.35s var(--ease-soft);
 }
 
@@ -738,8 +738,8 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--primary-fill);
    App shell — rail (desktop) / topbar + tabbar (mobile)
    ========================================================================== */
 
-.shell { display: flex; min-height: 100vh; min-height: 100dvh; width: 100%; overflow-x: hidden; }
-.shell-main { flex: 1 1 auto; min-width: 0; width: 100%; display: flex; flex-direction: column; overflow-x: hidden; }
+.shell { display: flex; min-height: 100vh; min-height: 100dvh; width: 100%; overflow-x: clip; }
+.shell-main { flex: 1 1 auto; min-width: 0; width: 100%; display: flex; flex-direction: column; overflow-x: clip; }
 .shell-content { flex: 1 1 auto; min-width: 0; width: 100%; }
 
 .rail {

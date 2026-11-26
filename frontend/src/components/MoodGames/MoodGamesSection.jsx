@@ -278,10 +278,13 @@ export default function MoodGamesSection({ selectedMood, onPlay }) {
 
       {/* ------------------------------------------------ Recommended */}
       <section
+        id="sec-recommended"
         className="mg-panel mg-scroll-panel"
         aria-labelledby="mg-rec-title"
         style={{
           maxHeight: '480px',
+          display: 'flex',
+          flexDirection: 'column',
           ...(moodValue ? { borderColor: `${accent}40` } : {})
         }}
       >
@@ -357,9 +360,14 @@ export default function MoodGamesSection({ selectedMood, onPlay }) {
 
       {/* ------------------------------------------------ Explore more */}
       <section
+        id="sec-library"
         className="mg-panel mg-scroll-panel"
         aria-labelledby="mg-explore-title"
-        style={{ maxHeight: '560px' }}
+        style={{
+          maxHeight: '560px',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
       >
         <div className="mg-scroll-header">
           <div className="row-between mb-8">
