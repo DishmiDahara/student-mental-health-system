@@ -4993,7 +4993,7 @@ export default function MoodTracker() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                 
                 {/* AI Summary and Prediction Header */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '24px' }}>
                   
                   {/* Weekly wellness summary */}
                   <div style={{ background: 'linear-gradient(135deg, var(--primary-soft), var(--primary-soft))', padding: '24px', borderRadius: '24px', border: '1px solid var(--primary)' }}>
@@ -5026,7 +5026,7 @@ export default function MoodTracker() {
                 </div>
 
                 {/* Main Graph stats */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '32px' }}>
                   
                   {/* Mood Index trend */}
                   <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '24px', border: '1px solid var(--line)' }}>
@@ -5148,7 +5148,7 @@ export default function MoodTracker() {
 
         {/* TAB 3: BADGES & HEATMAP */}
         {activeTab === 'gamification' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '32px' }}>
             /
             {/* Heatmap calendar */}
             <div>

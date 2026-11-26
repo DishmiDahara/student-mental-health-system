@@ -1179,7 +1179,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Charts Area */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '32px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '24px', marginBottom: '32px' }}>
                   
                   {/* Line Chart */}
                   <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '20px', border: '1px solid var(--line)' }}>
@@ -1500,7 +1500,7 @@ export default function AdminDashboard() {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '40px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '24px', marginBottom: '40px' }}>
                   {/* Pie graph */}
                   <div style={{ background: 'var(--surface)', padding: '24px', borderRadius: '20px', border: '1px solid var(--line)', display: 'flex', flexDirection: 'column' }}>
                     <h3 style={{ color: 'var(--ink)', fontSize: '16px', marginBottom: '16px' }}>📊 Mood Distribution Breakdown</h3>
@@ -1638,7 +1638,7 @@ export default function AdminDashboard() {
 
         {/* TAB 3: Content Management (Resources) */}
         {activeTab === 'resources' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '32px' }}>
             {/* Create / Edit Form */}
             <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', border: '1px solid var(--line)', height: 'fit-content' }}>
               <h3 style={{ color: 'var(--ink)', margin: '0 0 8px' }}>📝 Add Curated Article</h3>
@@ -1922,7 +1922,7 @@ export default function AdminDashboard() {
 
         {/* TAB 7: Announcement Management */}
         {activeTab === 'announcements' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '32px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '32px' }}>
             
             {/* Form */}
             <div style={{ background: 'var(--surface)', padding: '32px', borderRadius: '24px', border: '1px solid var(--line)', height: 'fit-content' }}>

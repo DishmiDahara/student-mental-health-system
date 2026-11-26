@@ -530,9 +530,9 @@ export default function Booking() {
 
   return (
     <div className="page">
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '24px', alignItems: 'start' }}>
+      <div className="booking-grid">
 
-        <div className="page-head" style={{ gridColumn: '1 / -1', marginBottom: 4 }}>
+        <div className="page-head" style={{ gridColumn: '1 / -1', marginBottom: 16 }}>
           <div>
             <span className="eyebrow">Professional care</span>
             <h1 className="h-display" style={{ fontSize: 'clamp(30px, 3.6vw, 42px)' }}>{currentUser?.role === 'counsellor' ? 'Your sessions' : 'Find the right support'}</h1>

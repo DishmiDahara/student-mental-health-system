@@ -692,6 +692,21 @@ button.notice:hover { transform: translateY(-2px); box-shadow: var(--shadow-md);
   .chat-foot { display: none; }
 }
 
+/* ---------- Booking Layout ---------- */
+.booking-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+  width: 100%;
+}
+@media (max-width: 960px) {
+  .booking-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
 /* ---------- Mood Tracker Layout ---------- */
 .mood-log-grid {
   display: grid;
