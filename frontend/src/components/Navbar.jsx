@@ -428,15 +428,25 @@ export default function Navbar() {
 
       {/* ---------------- Mobile top bar ---------------- */}
       <header className="topbar">
-        <button className="row gap-8" style={{ background: 'none', border: 0, cursor: 'pointer', padding: 0 }} onClick={() => navigate('/dashboard')} aria-label="MindSpace home">
-          <Logo size={34} />
-          <span className="brand-name">MindSpace</span>
-        </button>
-        <div className="row gap-4">
+        <div className="row gap-8" style={{ alignItems: 'center' }}>
+          <button
+            className="icon-btn mobile-menu-btn"
+            onClick={() => setMoreOpen(true)}
+            title="Open side navigation bar"
+            aria-label="Open side navigation bar"
+          >
+            <Icon name="menu" size={22} />
+          </button>
+          <button className="row gap-8" style={{ background: 'none', border: 0, cursor: 'pointer', padding: 0 }} onClick={() => navigate('/dashboard')} aria-label="MindSpace home">
+            <Logo size={32} />
+            <span className="brand-name" style={{ fontSize: 20 }}>MindSpace</span>
+          </button>
+        </div>
+        <div className="row gap-4" style={{ alignItems: 'center' }}>
           <ThemeToggle />
           <div ref={topBellRef}>
             <button className={`icon-btn ${showNotifications ? 'is-on' : ''}`} onClick={toggleNotifications} aria-label="Announcements">
-              <Icon name="bell" size={20} />
+              <Icon name="bell" size={19} />
               {hasNewNotifications && <span className="badge-dot" />}
             </button>
             <div className="only-mobile">{notificationsPanel}</div>
@@ -461,98 +471,108 @@ export default function Navbar() {
         </button>
       </nav>
 
-      {/* ---------------- Mobile Navigation Menu Sheet ---------------- */}
+      {/* ---------------- Mobile Side Navigation Bar Drawer ---------------- */}
       {moreOpen && (
         <>
-          <div className="sheet-overlay" onClick={() => setMoreOpen(false)} />
-          <div className="sheet mobile-nav-sheet" role="dialog" aria-label="MindSpace Navigation Menu">
-            <div className="sheet-grip" />
-
-            {/* User Profile Bar */}
-            <div className="mobile-nav-sheet-header">
-              <div className="mobile-nav-user-info">
-                <span className="avatar avatar-md">{user.profilePhoto ? <img src={user.profilePhoto} alt="" /> : nameInitial}</span>
-                <div className="mobile-nav-user-meta">
-                  <span className="mobile-nav-user-name">{user.name}</span>
-                  <span className="mobile-nav-user-role">{user.role}</span>
-                </div>
-              </div>
-              <div className="row gap-8">
-                <button className="btn btn-soft btn-sm" onClick={() => { setMoreOpen(false); setIsModalOpen(true) }}>
-                  Profile
-                </button>
-                <button className="icon-btn icon-btn-sm" onClick={() => setMoreOpen(false)} aria-label="Close menu">
-                  <Icon name="x" size={16} />
-                </button>
-              </div>
-            </div>
-
-            {/* Categorized Features List */}
-            <div className="mobile-nav-categories">
-              {mobileNavCategories.map((cat) => (
-                <div className="mobile-nav-category" key={cat.title}>
-                  <span className="mobile-nav-category-title">{cat.title}</span>
-                  <div className="col gap-6">
-                    {cat.items.map((item) => (
-                      <button
-                        key={item.label}
-                        type="button"
-                        className={`mobile-nav-item ${path === item.to ? 'is-active' : ''}`}
-                        onClick={() => go(item.to, item.state)}
-                      >
-                        <span className={`mobile-nav-item-icon ${item.tileClass}`}>
-                          <Icon name={item.icon} size={18} />
-                        </span>
-                        <div className="mobile-nav-item-body">
-                          <div className="mobile-nav-item-top">
-                            <span className="mobile-nav-item-title">{item.label}</span>
-                            {item.badge && <span className="mobile-nav-item-badge">{item.badge}</span>}
-                          </div>
-                          <p className="mobile-nav-item-desc">{item.desc}</p>
-                        </div>
-                        <span className="mobile-nav-item-arrow"><Icon name="chevronRight" size={16} /></span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
-
-              {/* 24/7 Immediate Emergency Helplines Section */}
-              <div className="mobile-nav-helplines">
-                <div className="mobile-nav-helplines-head">
-                  <span className="tile tile-sm tile-danger"><Icon name="phone" size={14} /></span>
-                  <div>
-                    <strong style={{ fontSize: 13, display: 'block', color: 'var(--danger-ink)' }}>24/7 Free Crisis Helplines</strong>
-                    <span className="tiny muted">Confidential assistance available anytime in Sri Lanka</span>
-                  </div>
-                </div>
-                <div className="mobile-nav-helpline-grid">
-                  <a href="tel:1926" className="mobile-nav-helpline-chip">
-                    <strong>1926</strong>
-                    <span>NIMH Mental Health</span>
-                  </a>
-                  <a href="tel:1990" className="mobile-nav-helpline-chip">
-                    <strong>1990</strong>
-                    <span>Suwaseriya Ambulance</span>
-                  </a>
-                  <a href="tel:1333" className="mobile-nav-helpline-chip">
-                    <strong>1333</strong>
-                    <span>CCCline Crisis Line</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Sheet Footer: Theme & Logout */}
-            <div className="row gap-8 mt-16" style={{ paddingTop: 12, borderTop: '1px solid var(--line)' }}>
-              <div className="grow">
-                <ThemeToggle />
-              </div>
-              <button className="btn btn-danger-soft btn-sm" onClick={() => { setMoreOpen(false); handleLogout() }}>
-                <Icon name="logout" size={15} /> Log out
+          <div className="side-nav-overlay" onClick={() => setMoreOpen(false)} />
+          <aside className="side-nav-drawer" role="dialog" aria-label="MindSpace Side Navigation Bar">
+            {/* Brand Header */}
+            <div className="side-nav-brand-header">
+              <button
+                className="row gap-8"
+                style={{ background: 'none', border: 0, cursor: 'pointer', padding: 0, textAlign: 'left' }}
+                onClick={() => go('/dashboard')}
+                aria-label="MindSpace home"
+              >
+                <Logo size={36} />
+                <span className="brand-text">
+                  <span className="brand-name" style={{ fontSize: 22 }}>MindSpace</span>
+                  <span className="brand-tag">STUDENT WELLBEING</span>
+                </span>
+              </button>
+              <button className="icon-btn icon-btn-sm" onClick={() => setMoreOpen(false)} aria-label="Close side navigation bar">
+                <Icon name="x" size={18} />
               </button>
             </div>
-          </div>
+
+            {/* User Profile Card */}
+            <div className="side-nav-user-card">
+              <span className="avatar avatar-md">{user.profilePhoto ? <img src={user.profilePhoto} alt="" /> : nameInitial}</span>
+              <div className="side-nav-user-meta">
+                <strong className="side-nav-user-name">{user.name}</strong>
+                <span className="side-nav-user-role">{user.role}</span>
+              </div>
+              <button className="btn btn-soft btn-sm" onClick={() => { setMoreOpen(false); setIsModalOpen(true) }}>
+                Profile
+              </button>
+            </div>
+
+            {/* Scrollable Navigation Groups */}
+            <div className="side-nav-scroll">
+              <div className="side-nav-categories">
+                {mobileNavCategories.map((cat) => (
+                  <div className="side-nav-category" key={cat.title}>
+                    <span className="side-nav-category-title">{cat.title}</span>
+                    <div className="col gap-4">
+                      {cat.items.map((item) => (
+                        <button
+                          key={item.label}
+                          type="button"
+                          className={`side-nav-item ${path === item.to ? 'is-active' : ''}`}
+                          onClick={() => go(item.to, item.state)}
+                        >
+                          <span className={`side-nav-item-icon ${item.tileClass}`}>
+                            <Icon name={item.icon} size={18} />
+                          </span>
+                          <div className="side-nav-item-body">
+                            <div className="side-nav-item-top">
+                              <span className="side-nav-item-title">{item.label}</span>
+                              {item.badge && <span className="side-nav-item-badge">{item.badge}</span>}
+                            </div>
+                            <p className="side-nav-item-desc">{item.desc}</p>
+                          </div>
+                          <span className="side-nav-item-arrow"><Icon name="chevronRight" size={15} /></span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
+                {/* 24/7 Immediate Emergency Helplines Section */}
+                <div className="side-nav-helplines">
+                  <div className="side-nav-helplines-head">
+                    <span className="tile tile-sm tile-danger"><Icon name="phone" size={14} /></span>
+                    <div>
+                      <strong style={{ fontSize: 13, display: 'block', color: 'var(--danger-ink)' }}>24/7 Free Crisis Helplines</strong>
+                      <span className="tiny muted">Confidential assistance available anytime in Sri Lanka</span>
+                    </div>
+                  </div>
+                  <div className="side-nav-helpline-grid">
+                    <a href="tel:1926" className="side-nav-helpline-chip">
+                      <strong>1926</strong>
+                      <span>NIMH Mental</span>
+                    </a>
+                    <a href="tel:1990" className="side-nav-helpline-chip">
+                      <strong>1990</strong>
+                      <span>Suwaseriya</span>
+                    </a>
+                    <a href="tel:1333" className="side-nav-helpline-chip">
+                      <strong>1333</strong>
+                      <span>CCCline</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Drawer Footer: Theme & Logout */}
+            <div className="side-nav-footer">
+              <ThemeToggle />
+              <button className="btn btn-danger-soft btn-sm" onClick={() => { setMoreOpen(false); handleLogout() }}>
+                <Icon name="logout" size={16} /> Log out
+              </button>
+            </div>
+          </aside>
         </>
       )}
 
