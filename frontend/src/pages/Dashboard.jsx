@@ -285,7 +285,7 @@ export default function Dashboard() {
       </section>
 
       {/* ----------------- Section Header: Toolkit ----------------- */}
-      <div className="row-between mt-36 mb-16 rise rise-2">
+      <div className="row-between mt-48 mb-24 rise rise-2">
         <div>
           <h2 className="h-section" style={{ margin: 0 }}>Your Wellbeing Toolkit</h2>
           <p className="small muted" style={{ margin: '4px 0 0' }}>
@@ -499,7 +499,7 @@ export default function Dashboard() {
       </div>
 
       {/* ----------------- Daily Mindful Reflection ----------------- */}
-      <section className="reminder rise rise-4 mt-36">
+      <section className="reminder rise rise-4 mt-56 mb-48">
         <div className="reminder-header">
           <Icon name="sunrise" size={28} />
           <cite>MindSpace Daily Reflection</cite>
@@ -526,7 +526,7 @@ export default function Dashboard() {
       </section>
 
       {/* ----------------- Emergency Helplines Safety Net ----------------- */}
-      <section className="helpline-section mt-36 rise rise-5">
+      <section className="helpline-section mt-56 rise rise-5">
         <div className="helpline-header">
           <Icon name="phone" size={20} />
           <div>
