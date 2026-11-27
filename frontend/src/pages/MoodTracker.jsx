@@ -800,57 +800,6 @@ export default function MoodTracker() {
     }
   }, [active3DGame, is3DAudioMuted])
 
-  // --- CRAZYGAMES UNLIMITED ARCADE PORTAL STATES ---
-  const [crazySearchInput, setCrazySearchInput] = useState('')
-  const [selectedCrazyCategory, setSelectedCrazyCategory] = useState('All')
-  const [activeCrazyGameModal, setActiveCrazyGameModal] = useState(null)
-
-  const defaultCrazyGamesList = [
-    { title: 'Pop It Master 3D 🧸', category: 'Antistress', type: 'native-popit', icon: '🧸', desc: 'Native 3D Fidget popping antistress toy' },
-    { title: 'Fluid & Water Sort 🧪', category: 'Fluids', type: 'native-watersort', icon: '🧪', desc: 'Native liquid color sorting puzzle' },
-    { title: 'Zen Coloring Book 🎨', category: 'Coloring', embedUrl: 'https://html5.gamedistribution.com/b28fa5d2024b4fba8c9c0c80d46efad2/', icon: '🎨', desc: 'Mindful 3D color shading' },
-    { title: 'Antistress Toy Box 3D 🎯', category: 'Antistress', embedUrl: 'https://html5.gamedistribution.com/4f728c70757d42cf956b69b8bd591d37/', icon: '🎯', desc: 'Collection of 30+ 3D fidget toys' },
-    { title: 'Slime Simulator 3D 🧪', category: 'Antistress', embedUrl: 'https://html5.gamedistribution.com/5c9d57a912bb4cb8b5321f855fb603f0/', icon: '🧪', desc: 'Tactile slime squeezing soundscape' },
-    { title: 'Bubble Shooter Zen 🫧', category: 'Puzzle', embedUrl: 'https://html5.gamedistribution.com/c98918237937400d9841f39185a9bcbc/', icon: '🫧', desc: 'Classic relaxing bubble popping' },
-    { title: 'Mahjong Solitaire 🀄', category: 'Logic', embedUrl: 'https://html5.gamedistribution.com/978ed5df64be4c1fb3a12ebf9ffb6255/', icon: '🀄', desc: 'Traditional zen tile matching' },
-    { title: 'Jigsaw Nature Puzzles 🧩', category: 'Puzzle', embedUrl: 'https://html5.gamedistribution.com/a42dfc685bfd4c5bb9c1a5b8a531cf6c/', icon: '🧩', desc: 'Beautiful nature landscape puzzles' },
-    { title: 'Magic Piano Tiles 🎹', category: 'Music', embedUrl: 'https://html5.gamedistribution.com/396656715f5d4705a61e793910c0e5a6/', icon: '🎹', desc: 'Play soothing melodies on key taps' }
-  ]
-
-  const getCrazyEmbedUrl = (rawInput) => {
-    if (!rawInput) return 'https://html5.gamedistribution.com/rvvASAiD-1.0/'
-    const str = rawInput.trim()
-    if (str.startsWith('http://') || str.startsWith('https://')) {
-      return str
-    }
-    return `https://html5.gamedistribution.com/rvvASAiD-1.0/`
-  }
-
-  const launchCrazyGame = (gameObj) => {
-    if (gameObj.type === 'native-popit') {
-      setShowPopItModal(true)
-      return
-    }
-    if (gameObj.type === 'native-watersort') {
-      setShowWaterSortModal(true)
-      return
-    }
-    const embedUrl = gameObj.embedUrl || getCrazyEmbedUrl(gameObj.slug || gameObj.url)
-    setActiveCrazyGameModal({
-      title: gameObj.title || 'Relaxing Web Game',
-      embedUrl
-    })
-  }
-
-  const handleCustomCrazySubmit = (e) => {
-    e.preventDefault()
-    if (!crazySearchInput.trim()) return
-    const embedUrl = getCrazyEmbedUrl(crazySearchInput)
-    setActiveCrazyGameModal({
-      title: `Relaxing Game: ${crazySearchInput.trim()}`,
-      embedUrl
-    })
-  }
 
   // --- NATIVE POP-IT FIDGET TOY STATES ---
   const [popItState, setPopItState] = useState(Array(36).fill(false))
@@ -8754,59 +8703,6 @@ export default function MoodTracker() {
         </div>
       )}
 
-      {/* CRAZYGAMES FULLSCREEN EMBED MODAL */}
-      {activeCrazyGameModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'var(--overlay)',
-          backdropFilter: 'blur(10px)',
-          zIndex: 999999,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '16px'
-        }}>
-          <div style={{
-            width: '100%',
-            maxWidth: '850px',
-            height: '85vh',
-            background: '#0f172a',
-            borderRadius: '24px',
-            border: '1px solid rgba(255,255,255,0.15)',
-            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7)',
-            overflow: 'hidden',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            {/* Header Bar */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-              <h3 style={{ margin: 0, color: 'white', fontSize: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                🎮 {activeCrazyGameModal.title}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setActiveCrazyGameModal(null)}
-                style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px' }}
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Embedded Iframe Player */}
-            <iframe
-              src={activeCrazyGameModal.embedUrl}
-              title={activeCrazyGameModal.title}
-              style={{ flex: 1, width: '100%', border: 'none', background: '#000' }}
-              allow="autoplay; fullscreen; gamepad; accelerometer; gyroscope"
-            />
-          </div>
-        </div>
-      )}
 
       {/* NATIVE POP-IT 3D FIDGET MODAL */}
       {showPopItModal && (
