@@ -264,15 +264,42 @@ export default function LocalGameModal({ game, onClose }) {
             </div>
           )}
 
-          <iframe
-            key={reloadKey}
-            title={game.title}
-            src={gameSrc}
-            onLoad={() => setLoaded(true)}
-            allow="fullscreen; autoplay; screen-wake-lock; clipboard-write; gamepad; accelerometer; gyroscope"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock"
-            className="lgm-iframe"
-          />
+          {!gameSrc ? (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              color: '#e2e8f0',
+              gap: '12px',
+              padding: '24px',
+              textAlign: 'center'
+            }}>
+              <span style={{ fontSize: '40px' }}>🧘</span>
+              <h4 style={{ margin: 0, fontSize: '18px' }}>Exercise Ready</h4>
+              <p style={{ margin: 0, color: '#94a3b8', fontSize: '13px' }}>
+                This mindful coping exercise runs natively within your MindSpace session.
+              </p>
+              <button
+                type="button"
+                className="lgm-restart-btn"
+                onClick={onClose}
+                style={{ marginTop: '12px' }}
+              >
+                Return to Exercises
+              </button>
+            </div>
+          ) : (
+            <iframe
+              key={reloadKey}
+              title={game.title}
+              src={gameSrc}
+              onLoad={() => setLoaded(true)}
+              allow="fullscreen; autoplay; screen-wake-lock; clipboard-write; gamepad; accelerometer; gyroscope"
+              className="lgm-iframe"
+            />
+          )}
         </div>
 
         {/* Footer Bar */}

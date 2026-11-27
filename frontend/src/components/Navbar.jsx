@@ -527,16 +527,6 @@ export default function Navbar() {
         .ms-mobile-only { display: none; }
 
         @media (max-width: 1024px) {
-          .ms-menu-links {
-            gap: 2px;
-          }
-          .ms-nav-btn {
-            font-size: 13.5px;
-            padding: 8px 10px;
-          }
-        }
-
-        @media (max-width: 860px) {
           .ms-desktop-only { display: none !important; }
           .ms-mobile-only { display: flex !important; }
           .ms-utility-bar { display: none; }
@@ -544,6 +534,15 @@ export default function Navbar() {
             height: 64px;
             padding: 0 16px;
           }
+        }
+
+        @media (max-width: 480px) {
+          .ms-brand-name { font-size: 20px; }
+          .ms-main-nav { padding: 0 12px; }
+        }
+
+        @media (max-width: 380px) {
+          .ms-brand-tag { display: none; }
         }
       `}</style>
 
