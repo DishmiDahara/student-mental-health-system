@@ -6,6 +6,9 @@ import ThemeToggle from './ThemeToggle'
 import Icon from './ui/Icon'
 import { Logo } from './ui/Brand'
 
+const getFormattedDate = () =>
+  new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+
 /**
  * MindSpace Professional Horizontal Navigation Bar & Header
  * Inspired by official high-quality institutional & corporate websites (CEYPETCO style).
