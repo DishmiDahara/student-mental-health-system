@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import {
   loadFaceDetectionModels,
   detectFacesInVideo,
+  checkFaceAlignment,
   drawFaceOverlay,
   evaluateLighting,
   interpretFacialExpressions
@@ -17,8 +18,7 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
   // Real-time Detection States
   const [faceCount, setFaceCount] = useState(0)
   const [isFaceAligned, setIsFaceAligned] = useState(false)
-  const [lightingStatus, setLightingStatus] = useState({ isPoor: false, isTooBright: false })
-  const [statusMessage, setStatusMessage] = useState('Initializing Face Detection AI...')
+  const [statusMessage, setStatusMessage] = useState('Initializing AI Face Models...')
   const [statusType, setStatusType] = useState('info') // 'info' | 'success' | 'warning' | 'danger'
 
   // Scanning & Analysis States
@@ -54,17 +54,16 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
         await loadFaceDetectionModels('/models')
         if (isMounted) {
           setIsModelLoading(false)
-          setStatusMessage('Models ready. Start your camera to begin scanning.')
+          setStatusMessage('Vision AI ready. Starting live camera...')
           setStatusType('info')
-          // Auto-start camera on open
           startCamera()
         }
       } catch (err) {
         console.error('Failed to load neural models:', err)
         if (isMounted) {
           setIsModelLoading(false)
-          setModelError('Could not load neural face models. Please verify your connection or refresh.')
-          setStatusMessage('Neural model initialization failed.')
+          setModelError('Could not load AI vision models. Please check your connection and retry.')
+          setStatusMessage('AI vision model initialization failed.')
           setStatusType('danger')
         }
       }
@@ -111,7 +110,6 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
           audio: false
         })
       } catch (constraintErr) {
-        // Fallback to basic unconstrained video
         stream = await navigator.mediaDevices.getUserMedia({
           video: true,
           audio: false
@@ -121,13 +119,24 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
       streamRef.current = stream
 
       if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        // Wait for video metadata to play
-        await new Promise((resolve) => {
-          videoRef.current.onloadedmetadata = () => {
-            videoRef.current.play().then(resolve).catch(resolve)
-          }
-        })
+        const video = videoRef.current
+        video.srcObject = stream
+
+        // Robust video ready handling across all browsers
+        if (video.readyState >= 1) {
+          try {
+            await video.play()
+          } catch (e) {}
+        } else {
+          await new Promise((resolve) => {
+            const onMeta = () => {
+              video.removeEventListener('loadedmetadata', onMeta)
+              video.play().then(resolve).catch(resolve)
+            }
+            video.addEventListener('loadedmetadata', onMeta)
+            setTimeout(resolve, 800) // Fallback timeout
+          })
+        }
       }
 
       setIsCameraActive(true)
@@ -141,13 +150,13 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
       setIsCameraActive(false)
       let msg = 'Failed to access camera.'
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        msg = 'Camera permission denied. Please allow camera access in your browser to use the facial scanner.'
+        msg = 'Camera permission was denied. Please allow camera permissions in your browser to use the scanner.'
       } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-        msg = 'No camera found on this device. Please connect a webcam.'
+        msg = 'No camera found on this device. Please connect a webcam or use a mobile device.'
       } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
         msg = 'Camera is in use by another application. Please close other camera tabs or apps and retry.'
       } else {
-        msg = `Camera error: ${err.message || 'Unable to start camera stream'}`
+        msg = `Camera error: ${err.message || 'Unable to access camera feed'}`
       }
       setCameraError(msg)
       setStatusMessage(msg)
@@ -183,14 +192,14 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
   }
 
   // =========================================================================
-  // 3. Continuous Real-Time Detection Loop (Throttled for Performance)
+  // 3. Continuous Real-Time Detection Loop
   // =========================================================================
   const startDetectionLoop = () => {
     if (isLoopRunningRef.current) return
     isLoopRunningRef.current = true
 
     let lastDetectTime = 0
-    const DETECT_INTERVAL_MS = 140 // ~7 fps detection: smooth, accurate, no device lag
+    const DETECT_INTERVAL_MS = 150 // Smooth ~6-7 fps detection: lightweight on battery and GPU
 
     const loop = async (timestamp) => {
       if (!isLoopRunningRef.current) return
@@ -198,12 +207,15 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
       const video = videoRef.current
       const canvas = canvasRef.current
 
-      if (video && video.readyState >= 2 && canvas) {
-        // Sync canvas internal resolution with video element dimensions
+      if (video && video.readyState >= 2 && video.videoWidth > 0 && canvas) {
+        // Sync canvas resolution with video's display rect
         const rect = video.getBoundingClientRect()
-        if (canvas.width !== Math.round(rect.width) || canvas.height !== Math.round(rect.height)) {
-          canvas.width = Math.round(rect.width)
-          canvas.height = Math.round(rect.height)
+        const displayWidth = Math.round(rect.width) || video.videoWidth
+        const displayHeight = Math.round(rect.height) || video.videoHeight
+
+        if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+          canvas.width = displayWidth
+          canvas.height = displayHeight
         }
 
         // Throttle detection calls to prevent CPU overload
@@ -212,20 +224,22 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
 
           // Check lighting
           const lighting = evaluateLighting(video)
-          setLightingStatus(lighting)
 
           // Perform real face detection
           const detections = await detectFacesInVideo(video)
           currentDetectionsRef.current = detections || []
 
           if (!isScanningRef.current) {
-            handleDetectionFeedback(detections, lighting, canvas.width, canvas.height)
-          } else if (detections && detections.length === 1) {
-            // Collect sample during active scanning
-            samplesRef.current.push({
-              expressions: detections[0].expressions,
-              landmarks: detections[0].landmarks
-            })
+            handleDetectionFeedback(detections, lighting, video.videoWidth, video.videoHeight)
+          } else if (detections && detections.length >= 1) {
+            // Collect sample during active scanning (take the most confident face)
+            const primaryFace = detections[0]
+            if (primaryFace.expressions) {
+              samplesRef.current.push({
+                expressions: primaryFace.expressions,
+                landmarks: primaryFace.landmarks
+              })
+            }
           }
         }
 
@@ -242,7 +256,7 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
   }
 
   // Feedback evaluation based on real face detection
-  const handleDetectionFeedback = (detections, lighting, canvasWidth, canvasHeight) => {
+  const handleDetectionFeedback = (detections, lighting, videoWidth, videoHeight) => {
     if (lighting.isPoor) {
       setStatusMessage('⚠️ Poor lighting detected. Face a light source for better accuracy.')
       setStatusType('warning')
@@ -254,7 +268,7 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
     if (!detections || detections.length === 0) {
       setFaceCount(0)
       setIsFaceAligned(false)
-      setStatusMessage('👤 No face detected. Please position your face in front of the camera.')
+      setStatusMessage('👤 No face detected. Please look towards the camera.')
       setStatusType('info')
       return
     }
@@ -268,37 +282,20 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
       return
     }
 
-    // Exactly 1 face detected: evaluate positioning
+    // Exactly 1 face detected: evaluate positioning using normalized coords
     const face = detections[0]
-    const box = face.detection.box
-    const faceCenterX = box.x + box.width / 2
-    const faceCenterY = box.y + box.height / 2
+    const alignment = checkFaceAlignment(face, videoWidth, videoHeight)
 
-    const isTooSmall = box.width < canvasWidth * 0.22
-    const isTooFarOffCenter =
-      Math.abs(faceCenterX - canvasWidth / 2) > canvasWidth * 0.35 ||
-      Math.abs(faceCenterY - canvasHeight / 2) > canvasHeight * 0.35
-
-    if (isTooSmall) {
-      setIsFaceAligned(false)
-      setStatusMessage('🔍 Move slightly closer to the camera for optimal landmark detection.')
-      setStatusType('info')
-    } else if (isTooFarOffCenter) {
-      setIsFaceAligned(false)
-      setStatusMessage('📐 Center your face inside the scanning guide.')
-      setStatusType('info')
-    } else {
-      setIsFaceAligned(true)
-      setStatusMessage('✅ Face aligned & detected! Ready to scan your expression.')
-      setStatusType('success')
-    }
+    setIsFaceAligned(alignment.isReady)
+    setStatusMessage(alignment.message)
+    setStatusType(alignment.isReady ? 'success' : 'info')
   }
 
   // =========================================================================
   // 4. Multi-Frame Expression Scanning Procedure
   // =========================================================================
   const triggerScan = () => {
-    if (isScanning || !isFaceAligned || faceCount !== 1) return
+    if (isScanning || faceCount < 1) return
 
     setIsScanning(true)
     setAnalysisResult(null)
@@ -320,7 +317,7 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
       if (progress === 30) {
         setStatusMessage('Analyzing eye openness, eyebrow elevation & smile curvature...')
       } else if (progress === 70) {
-        setStatusMessage('Cross-referencing expression probabilities & stability...')
+        setStatusMessage('Calculating expression indicators & stability...')
       }
 
       if (step >= totalSteps) {
@@ -361,8 +358,10 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
       surprised: 0
     }
 
+    let validCount = 0
     samples.forEach((s) => {
       if (s.expressions) {
+        validCount++
         Object.entries(s.expressions).forEach(([k, v]) => {
           if (exprSum[k] !== undefined) exprSum[k] += v
         })
@@ -371,12 +370,10 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
 
     const averagedExpressions = {}
     Object.keys(exprSum).forEach((k) => {
-      averagedExpressions[k] = exprSum[k] / samples.length
+      averagedExpressions[k] = validCount > 0 ? exprSum[k] / validCount : 0
     })
 
-    // Use latest landmarks
     const lastLandmarks = samples[samples.length - 1]?.landmarks
-
     const finalResult = interpretFacialExpressions(averagedExpressions, lastLandmarks)
     setAnalysisResult(finalResult)
     setStatusMessage('🎉 Facial expression analysis complete!')
@@ -530,7 +527,7 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
             transition: 'border-color 0.3s, box-shadow 0.3s'
           }}
         >
-          {/* Live Video Preview (Mirrored for natural user feel) */}
+          {/* Live Video Preview (Mirrored for natural user selfie feel) */}
           <video
             ref={videoRef}
             playsInline
@@ -540,11 +537,12 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
               height: '100%',
               objectFit: 'cover',
               transform: 'scaleX(-1)',
-              display: isCameraActive ? 'block' : 'none'
+              opacity: isCameraActive ? 1 : 0,
+              transition: 'opacity 0.2s ease'
             }}
           />
 
-          {/* Real-time Landmark & Bounding Box Overlay Canvas (Mirrored to align with video) */}
+          {/* Real-time Landmark & Bounding Box Overlay Canvas (Mirrored identically with video) */}
           <canvas
             ref={canvasRef}
             style={{
@@ -570,7 +568,8 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
                 justifyContent: 'center',
                 padding: '20px',
                 textAlign: 'center',
-                color: '#cbd5e1'
+                color: '#cbd5e1',
+                background: '#090d16'
               }}
             >
               {isModelLoading ? (
@@ -707,7 +706,7 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
                 ? 'Face Locked'
                 : faceCount > 1
                 ? `${faceCount} Faces Detected`
-                : 'Searching...'}
+                : 'Searching for face...'}
             </div>
           )}
         </div>
@@ -814,7 +813,7 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
               </div>
             )}
 
-            {/* Ethical / Clinical Disclaimer as explicitly requested */}
+            {/* Ethical / Clinical Disclaimer */}
             <div
               style={{
                 marginTop: '6px',
@@ -875,29 +874,29 @@ export default function FaceEmotionScannerModal({ isOpen, onClose, onApplyResult
             <button
               type="button"
               onClick={triggerScan}
-              disabled={!isCameraActive || isScanning || !isFaceAligned || faceCount !== 1}
+              disabled={!isCameraActive || isScanning || faceCount < 1}
               style={{
                 flex: 1,
                 minWidth: '150px',
                 height: '46px',
                 borderRadius: '12px',
                 background:
-                  !isCameraActive || isScanning || !isFaceAligned || faceCount !== 1
+                  !isCameraActive || isScanning || faceCount < 1
                     ? 'var(--surface-3)'
                     : 'linear-gradient(135deg, var(--primary-fill), var(--primary-fill))',
                 color:
-                  !isCameraActive || isScanning || !isFaceAligned || faceCount !== 1
+                  !isCameraActive || isScanning || faceCount < 1
                     ? 'var(--ink-4)'
                     : '#ffffff',
                 border: 'none',
                 fontWeight: '800',
                 fontSize: '14px',
                 cursor:
-                  !isCameraActive || isScanning || !isFaceAligned || faceCount !== 1
+                  !isCameraActive || isScanning || faceCount < 1
                     ? 'not-allowed'
                     : 'pointer',
                 boxShadow:
-                  !isCameraActive || isScanning || !isFaceAligned || faceCount !== 1
+                  !isCameraActive || isScanning || faceCount < 1
                     ? 'none'
                     : '0 4px 14px color-mix(in srgb, var(--primary) 35%, transparent)',
                 touchAction: 'manipulation',

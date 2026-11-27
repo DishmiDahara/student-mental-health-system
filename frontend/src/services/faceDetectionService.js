@@ -3,38 +3,52 @@ import * as faceapi from '@vladmandic/face-api/dist/face-api.esm.js'
 let modelsLoaded = false
 let modelLoadingPromise = null
 
+// Primary local path and backup CDN for guaranteed model availability
+const LOCAL_MODELS_PATH = '/models'
+const CDN_MODELS_PATH = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model'
+
 /**
- * Loads TinyFaceDetector, FaceLandmark68Tiny, and FaceExpression models from /models directory.
+ * Initializes and loads TinyFaceDetector, FaceLandmark68, and FaceExpression models.
+ * Tries local path first, then automatically falls back to CDN if local files are missing.
  */
-export async function loadFaceDetectionModels(modelsPath = '/models') {
+export async function loadFaceDetectionModels(modelsPath = LOCAL_MODELS_PATH) {
   if (modelsLoaded) return true
   if (modelLoadingPromise) return modelLoadingPromise
 
   modelLoadingPromise = (async () => {
+    // Ensure TensorFlow.js backend is ready
+    if (faceapi.tf && faceapi.tf.ready) {
+      await faceapi.tf.ready()
+    }
+
+    // Attempt 1: Load from specified path (usually local /models)
     try {
-      // Load lightweight, high-performance models
       await Promise.all([
         faceapi.nets.tinyFaceDetector.loadFromUri(modelsPath),
         faceapi.nets.faceLandmark68TinyNet.loadFromUri(modelsPath),
+        faceapi.nets.faceLandmark68Net.loadFromUri(modelsPath),
         faceapi.nets.faceExpressionNet.loadFromUri(modelsPath)
       ])
       modelsLoaded = true
       return true
-    } catch (err) {
-      console.warn('Primary models load failed, trying standard landmark model:', err)
-      try {
-        await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri(modelsPath),
-          faceapi.nets.faceLandmark68Net.loadFromUri(modelsPath),
-          faceapi.nets.faceExpressionNet.loadFromUri(modelsPath)
-        ])
-        modelsLoaded = true
-        return true
-      } catch (fallbackErr) {
-        console.error('Failed to load face detection models:', fallbackErr)
-        modelLoadingPromise = null
-        throw new Error('Could not load face detection neural network models. Please check connection.')
-      }
+    } catch (localErr) {
+      console.warn(`Local model load from "${modelsPath}" failed, attempting CDN fallback:`, localErr)
+    }
+
+    // Attempt 2: Fallback to official CDN if local failed
+    try {
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(CDN_MODELS_PATH),
+        faceapi.nets.faceLandmark68TinyNet.loadFromUri(CDN_MODELS_PATH),
+        faceapi.nets.faceLandmark68Net.loadFromUri(CDN_MODELS_PATH),
+        faceapi.nets.faceExpressionNet.loadFromUri(CDN_MODELS_PATH)
+      ])
+      modelsLoaded = true
+      return true
+    } catch (cdnErr) {
+      console.error('All face detection model loading attempts failed:', cdnErr)
+      modelLoadingPromise = null
+      throw new Error('Unable to load AI face detection models. Please check your network connection.')
     }
   })()
 
@@ -42,16 +56,18 @@ export async function loadFaceDetectionModels(modelsPath = '/models') {
 }
 
 /**
- * Checks if the video frame has adequate lighting.
+ * Checks if the video frame has adequate lighting by sampling luma.
  */
 export function evaluateLighting(video) {
   try {
-    if (!video || video.readyState < 2) return { isPoor: false, luma: 100 }
+    if (!video || video.readyState < 2 || !video.videoWidth || !video.videoHeight) {
+      return { isPoor: false, isTooBright: false, luma: 100 }
+    }
     const canvas = document.createElement('canvas')
     canvas.width = 64
     canvas.height = 48
     const ctx = canvas.getContext('2d')
-    if (!ctx) return { isPoor: false, luma: 100 }
+    if (!ctx) return { isPoor: false, isTooBright: false, luma: 100 }
     ctx.drawImage(video, 0, 0, 64, 48)
     const { data } = ctx.getImageData(0, 0, 64, 48)
 
@@ -62,68 +78,138 @@ export function evaluateLighting(video) {
     }
     const avgLuma = totalLuma / pixelCount
     return {
-      isPoor: avgLuma < 35,
-      isTooBright: avgLuma > 235,
+      isPoor: avgLuma < 30,
+      isTooBright: avgLuma > 240,
       luma: Math.round(avgLuma)
     }
   } catch (e) {
-    return { isPoor: false, luma: 100 }
+    return { isPoor: false, isTooBright: false, luma: 100 }
   }
 }
 
 /**
- * Detects all faces in a video frame with landmarks and expressions.
+ * Detects all faces in a video frame with high sensitivity and fallback.
  */
-export async function detectFacesInVideo(video) {
-  if (!modelsLoaded || !video || video.readyState < 2) return null
+export async function detectFacesInVideo(video, options = {}) {
+  if (!modelsLoaded || !video || video.readyState < 2 || !video.videoWidth || !video.videoHeight) {
+    return null
+  }
 
-  // Use TinyFaceDetector with balanced scoreThreshold for fast 30fps detection
-  const options = new faceapi.TinyFaceDetectorOptions({
-    inputSize: 224,
-    scoreThreshold: 0.4
+  // Optimized detector options: 320 input size with 0.28 threshold for sensitive, reliable detection
+  const detectorOptions = new faceapi.TinyFaceDetectorOptions({
+    inputSize: options.inputSize || 320,
+    scoreThreshold: options.scoreThreshold || 0.28
   })
 
   try {
+    // Full detection with landmarks and expressions
     const detections = await faceapi
-      .detectAllFaces(video, options)
+      .detectAllFaces(video, detectorOptions)
       .withFaceLandmarks(true)
       .withFaceExpressions()
 
     return detections
   } catch (err) {
-    console.error('Error in detectFacesInVideo:', err)
-    return null
+    // Graceful fallback: try standard landmarks if tiny landmarks errored
+    try {
+      const fallbackDetections = await faceapi
+        .detectAllFaces(video, detectorOptions)
+        .withFaceLandmarks(false)
+        .withFaceExpressions()
+      return fallbackDetections
+    } catch (fallbackErr) {
+      // Basic detection without expressions if pipeline choked
+      try {
+        const basicDetections = await faceapi.detectAllFaces(video, detectorOptions)
+        return basicDetections
+      } catch (basicErr) {
+        console.warn('Face detection pass failed:', basicErr)
+        return null
+      }
+    }
+  }
+}
+
+/**
+ * Checks whether a single detected face is well-aligned inside the frame using normalized coordinates.
+ */
+export function checkFaceAlignment(face, videoWidth, videoHeight) {
+  if (!face || !videoWidth || !videoHeight) {
+    return { isReady: false, message: 'Looking for a face...' }
+  }
+
+  const box = face.detection ? face.detection.box : face.box
+  if (!box) return { isReady: false, message: 'Position face in camera view' }
+
+  const normCenterX = (box.x + box.width / 2) / videoWidth
+  const normCenterY = (box.y + box.height / 2) / videoHeight
+  const normWidth = box.width / videoWidth
+
+  if (normWidth < 0.14) {
+    return {
+      isReady: false,
+      message: '🔍 Please move slightly closer to the camera'
+    }
+  }
+
+  if (normCenterX < 0.2 || normCenterX > 0.8 || normCenterY < 0.15 || normCenterY > 0.85) {
+    return {
+      isReady: false,
+      message: '📐 Please center your face inside the scanning guide'
+    }
+  }
+
+  return {
+    isReady: true,
+    message: '✅ Face detected & aligned! Ready to scan.'
   }
 }
 
 /**
  * Renders face bounding box, corners, and landmark points on an overlay canvas.
+ * Accounts for video-to-canvas coordinate scaling and mirroring.
  */
 export function drawFaceOverlay(canvas, video, detections, options = {}) {
   if (!canvas || !video) return
   const ctx = canvas.getContext('2d')
   if (!ctx) return
 
-  const width = canvas.width
-  const height = canvas.height
-  ctx.clearRect(0, 0, width, height)
+  const canvasWidth = canvas.width
+  const canvasHeight = canvas.height
+  ctx.clearRect(0, 0, canvasWidth, canvasHeight)
 
-  if (!detections || detections.length === 0) return
+  if (!detections || detections.length === 0 || !video.videoWidth || !video.videoHeight) {
+    return
+  }
 
-  // Rescale detections to match current canvas size
-  const resized = faceapi.resizeResults(detections, { width, height })
+  // Calculate actual scale factors between video source and canvas display
+  const scaleX = canvasWidth / video.videoWidth
+  const scaleY = canvasHeight / video.videoHeight
 
-  resized.forEach((det, idx) => {
-    const box = det.detection.box
+  detections.forEach((det) => {
+    const rawBox = det.detection ? det.detection.box : det.box
+    if (!rawBox) return
+
+    // Scale coordinates to canvas pixels
+    const box = {
+      x: rawBox.x * scaleX,
+      y: rawBox.y * scaleY,
+      width: rawBox.width * scaleX,
+      height: rawBox.height * scaleY
+    }
+
     const isSingle = detections.length === 1
+    const color = isSingle ? '#10b981' : '#f59e0b'
+    const glow = isSingle ? 'rgba(16, 185, 129, 0.6)' : 'rgba(245, 158, 11, 0.6)'
 
-    // Draw styled corner brackets instead of plain rectangle
-    const cornerLength = Math.min(24, box.width * 0.25)
     ctx.save()
-    ctx.lineWidth = 3
-    ctx.strokeStyle = isSingle ? '#10b981' : '#f59e0b'
-    ctx.shadowColor = isSingle ? 'rgba(16, 185, 129, 0.6)' : 'rgba(245, 158, 11, 0.6)'
-    ctx.shadowBlur = 10
+
+    // 1. Draw glowing corner brackets
+    const cornerLength = Math.min(26, box.width * 0.25)
+    ctx.lineWidth = 3.5
+    ctx.strokeStyle = color
+    ctx.shadowColor = glow
+    ctx.shadowBlur = 12
 
     // Top-Left
     ctx.beginPath()
@@ -153,41 +239,26 @@ export function drawFaceOverlay(canvas, video, detections, options = {}) {
     ctx.lineTo(box.x + box.width, box.y + box.height - cornerLength)
     ctx.stroke()
 
-    ctx.restore()
+    // 2. Draw soft inner border
+    ctx.lineWidth = 1
+    ctx.strokeStyle = isSingle ? 'rgba(16, 185, 129, 0.25)' : 'rgba(245, 158, 11, 0.25)'
+    ctx.strokeRect(box.x, box.y, box.width, box.height)
 
-    // Draw facial landmark points lightly
+    // 3. Draw key facial landmark points if available
     if (det.landmarks && options.showLandmarks !== false) {
-      ctx.save()
       ctx.fillStyle = isSingle ? 'rgba(56, 189, 248, 0.75)' : 'rgba(251, 191, 36, 0.75)'
-      const positions = det.landmarks.positions
+      const positions = det.landmarks.positions || []
       positions.forEach((pt, pIdx) => {
-        // Only draw key contour points to avoid visual clutter
+        // Draw every other landmark point for crisp performance and aesthetics
         if (pIdx % 2 === 0) {
           ctx.beginPath()
-          ctx.arc(pt.x, pt.y, 1.8, 0, 2 * Math.PI)
+          ctx.arc(pt.x * scaleX, pt.y * scaleY, 1.8, 0, 2 * Math.PI)
           ctx.fill()
         }
       })
-      ctx.restore()
     }
 
-    // Draw detected face label badge
-    if (det.expressions) {
-      const topExpression = Object.entries(det.expressions)
-        .sort((a, b) => b[1] - a[1])[0]
-
-      if (topExpression && topExpression[1] > 0.3) {
-        const label = `${topExpression[0].toUpperCase()} (${Math.round(topExpression[1] * 100)}%)`
-        ctx.save()
-        ctx.font = '600 11px system-ui, sans-serif'
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)'
-        const textWidth = ctx.measureText(label).width + 16
-        ctx.fillRect(box.x, Math.max(0, box.y - 24), textWidth, 20)
-        ctx.fillStyle = '#ffffff'
-        ctx.fillText(label, box.x + 8, Math.max(14, box.y - 10))
-        ctx.restore()
-      }
-    }
+    ctx.restore()
   })
 }
 
@@ -200,26 +271,10 @@ export function interpretFacialExpressions(expressions, landmarks) {
   // Sort expression probabilities
   const sorted = Object.entries(expressions).sort((a, b) => b[1] - a[1])
   const [topExpr, topConfidence] = sorted[0]
-  const [secExpr, secConfidence] = sorted[1] || ['none', 0]
 
-  const pct = Math.min(99, Math.max(45, Math.round(topConfidence * 100)))
+  const pct = Math.min(99, Math.max(48, Math.round(topConfidence * 100)))
 
-  // Calculate smile curvature and eye aspect ratio if landmarks available
-  let smileCurve = 0
-  if (landmarks && landmarks.getMouth) {
-    const mouth = landmarks.getMouth()
-    if (mouth && mouth.length >= 20) {
-      const leftCorner = mouth[0]
-      const rightCorner = mouth[6]
-      const topLip = mouth[3]
-      const bottomLip = mouth[9]
-      const mouthWidth = Math.hypot(rightCorner.x - leftCorner.x, rightCorner.y - leftCorner.y)
-      const mouthHeight = Math.hypot(bottomLip.x - topLip.x, bottomLip.y - topLip.y)
-      smileCurve = mouthWidth / (mouthHeight || 1)
-    }
-  }
-
-  // Construct structured result
+  // Construct structured result with ethical health disclaimer
   switch (topExpr) {
     case 'happy':
       return {
@@ -237,7 +292,6 @@ export function interpretFacialExpressions(expressions, landmarks) {
       }
 
     case 'neutral':
-      // Differentiate between calm and tired neutral
       return {
         emotion: 'Calm & Centered 😌',
         primaryExpression: 'Relaxed / Symmetric Composure',
