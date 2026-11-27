@@ -2619,7 +2619,7 @@ export default function MoodTracker() {
     if (!game) return
     const l = game.launch || {}
 
-    if (l.type === 'embed' || l.type === 'local' || game.type === 'local') {
+    if (l.type === 'embed' || l.type === 'local' || game.type === 'local' || l.src || game.src) {
       setLocalGame(game)
     } else if (l.type === 'game') {
       const data = l.needsData ? buildGameData(l.subtype) : null
@@ -2640,8 +2640,9 @@ export default function MoodTracker() {
       else if (m === 'mower') setShowMowerModal(true)
       else if (m === 'popit') setShowPopItModal(true)
       else if (m === 'watersort') setShowWaterSortModal(true)
-    } else if (game.url || l.src) {
-      window.open(game.url || l.src, '_blank')
+    } else {
+      // Always play in-app via LocalGameModal
+      setLocalGame(game)
     }
   }
 

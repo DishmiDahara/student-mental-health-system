@@ -16,7 +16,8 @@ export default function MoodGamesSection({ selectedMood, onPlay }) {
   const explore = useMemo(() => {
     const q = query.trim().toLowerCase()
     return exploreAll.filter(game => {
-      if (filter !== 'all' && !game.needs.includes(filter)) return false
+      const needs = game.needs || []
+      if (filter !== 'all' && !needs.includes(filter)) return false
       if (q && !`${game.title} ${game.desc}`.toLowerCase().includes(q)) return false
       return true
     })
@@ -25,7 +26,7 @@ export default function MoodGamesSection({ selectedMood, onPlay }) {
   const theme = moodValue ? MOOD_GAME_THEMES[moodValue] : null
   const accent = selectedMood ? selectedMood.color : 'var(--primary)'
 
-  const countFor = key => (key === 'all' ? exploreAll.length : exploreAll.filter(game => game.needs.includes(key)).length)
+  const countFor = key => (key === 'all' ? exploreAll.length : exploreAll.filter(game => game.needs && game.needs.includes(key)).length)
 
   return (
     <div className="mg-root">
@@ -315,7 +316,7 @@ export default function MoodGamesSection({ selectedMood, onPlay }) {
 
               <div className="mg-rec-grid">
                 {recommended.map((game, idx) => {
-                  const need = NEEDS[game.needs[0]]
+                  const need = (game.needs && NEEDS[game.needs[0]]) || NEEDS.refresh
                   return (
                     <button
                       key={game.id}
@@ -332,7 +333,7 @@ export default function MoodGamesSection({ selectedMood, onPlay }) {
                       <div className="mg-rec-body">
                         <h4 className="mg-rec-title">{game.title}</h4>
                         <div className="mg-tags">
-                          {game.needs.map(key => (
+                          {(game.needs || []).map(key => NEEDS[key] && (
                             <span key={key} className="mg-tag" style={{ background: NEEDS[key].tint, color: NEEDS[key].color }}>
                               {NEEDS[key].short}
                             </span>
@@ -426,7 +427,7 @@ export default function MoodGamesSection({ selectedMood, onPlay }) {
                   </div>
                   <p className="mg-card-desc">{game.desc}</p>
                   <div className="mg-tags">
-                    {game.needs.slice(0, 2).map(key => (
+                    {(game.needs || []).slice(0, 2).map(key => NEEDS[key] && (
                       <span key={key} className="mg-tag" style={{ background: NEEDS[key].tint, color: NEEDS[key].color }}>
                         {NEEDS[key].short}
                       </span>
